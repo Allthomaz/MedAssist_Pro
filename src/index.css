@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Medical Platform Design System - Professional Healthcare Interface
+All colors MUST be HSL. Based on specified color palette for medical SaaS.
+*/
+
+@layer base {
+  :root {
+    /* Medical Platform Color System */
+    --background: 0 0% 96%; /* #F5F5F5 - Soft white background */
+    --foreground: 210 22% 22%; /* #2C3E50 - Navy dark for text */
+
+    --card: 0 0% 100%; /* Pure white for cards */
+    --card-foreground: 210 22% 22%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 22% 22%;
+
+    /* Primary - Medical Navy */
+    --primary: 210 22% 22%; /* #2C3E50 - Professional navy */
+    --primary-foreground: 0 0% 98%;
+
+    /* Medical Action Blue */
+    --medical-blue: 204 76% 54%; /* #3498DB - Vivid blue for CTAs */
+    --medical-blue-foreground: 0 0% 100%;
+
+    /* Success - Medical Green */
+    --medical-success: 145 63% 49%; /* #2ECC71 - Emerald green */
+    --medical-success-foreground: 0 0% 100%;
+
+    /* Alert - Medical Red */
+    --medical-alert: 6 78% 57%; /* #E74C3C - Coral red */
+    --medical-alert-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 94%; /* Light gray */
+    --secondary-foreground: 210 22% 22%;
+
+    --muted: 0 0% 92%; /* Muted background */
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 204 76% 95%; /* Light medical blue */
+    --accent-foreground: 210 22% 22%;
+
+    --destructive: 6 78% 57%; /* Medical alert red */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%; /* Subtle borders */
+    --input: 0 0% 100%; /* White inputs */
+    --ring: 204 76% 54%; /* Medical blue focus ring */
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* Medical platform animations and effects */
+  .medical-gradient {
+    background: linear-gradient(135deg, hsl(var(--medical-blue)), hsl(var(--primary)));
+  }
+
+  .medical-glow {
+    box-shadow: 0 0 20px hsl(var(--medical-blue) / 0.3);
+  }
+
+  .medical-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .medical-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -10px hsl(var(--primary) / 0.2);
+  }
+
+  /* Text truncation utilities */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
