@@ -4,17 +4,23 @@ import { StatsCard } from '@/components/dashboard/StatsCard';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { Users, Video, FileText, Clock, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   return (
     <MedicalLayout>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Bem-vindo ao MedAssist Pro. Gerencie suas consultas e documentos médicos.
-          </p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Bem-vindo de volta, Dr. Ricardo.
+            </p>
+          </div>
+          <Button className="medical-gradient medical-glow text-white">
+            Nova Consulta
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -24,28 +30,28 @@ const Index = () => {
             value="247"
             description="Pacientes cadastrados"
             icon={Users}
-            trend={{ value: "12%", isPositive: true }}
+            trend={{ value: "+12%", isPositive: true }}
           />
           <StatsCard
             title="Consultas Hoje"
             value="8"
             description="Consultas agendadas"
             icon={Video}
-            trend={{ value: "2", isPositive: true }}
+            trend={{ value: "+2", isPositive: true }}
           />
           <StatsCard
             title="Documentos Pendentes"
             value="3"
             description="Aguardando aprovação"
             icon={FileText}
-            trend={{ value: "1", isPositive: false }}
+            trend={{ value: "-1", isPositive: false }}
           />
           <StatsCard
             title="Tempo Médio"
             value="12min"
             description="Por documento gerado"
             icon={Clock}
-            trend={{ value: "25%", isPositive: true }}
+            trend={{ value: "-2min", isPositive: false }}
           />
         </div>
 
@@ -59,24 +65,6 @@ const Index = () => {
           {/* Recent Activity */}
           <div className="lg:col-span-1">
             <RecentActivity />
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="bg-card rounded-lg p-6 border border-border">
-          <div className="flex items-center gap-4 justify-between flex-wrap">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg medical-gradient">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Conecte ao Supabase</h3>
-                <p className="text-sm text-muted-foreground">
-                  Para ativar autenticação, banco de dados e integração com IA, conecte seu projeto ao Supabase clicando no botão verde no canto superior direito.
-                </p>
-              </div>
-            </div>
-            <a href="/auth" className="text-sm underline text-primary">Fazer login / criar conta</a>
           </div>
         </div>
       </div>
