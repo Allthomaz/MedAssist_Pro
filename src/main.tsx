@@ -4,7 +4,7 @@ import './index.css'
 import { ThemeProvider } from "next-themes";
 
 createRoot(document.getElementById("root")!).render(
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+    <ThemeProvider attribute="class" defaultTheme="light" storageKey="vite-ui-theme">
         <App />
     </ThemeProvider>
 );
