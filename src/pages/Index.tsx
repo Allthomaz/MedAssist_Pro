@@ -64,16 +64,19 @@ const Index = () => {
 
         {/* Additional Info */}
         <div className="bg-card rounded-lg p-6 border border-border">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-lg medical-gradient">
-              <TrendingUp className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-4 justify-between flex-wrap">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg medical-gradient">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Conecte ao Supabase</h3>
+                <p className="text-sm text-muted-foreground">
+                  Para ativar autenticação, banco de dados e integração com IA, conecte seu projeto ao Supabase clicando no botão verde no canto superior direito.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">Conecte ao Supabase</h3>
-              <p className="text-sm text-muted-foreground">
-                Para ativar autenticação, banco de dados e integração com IA, conecte seu projeto ao Supabase clicando no botão verde no canto superior direito.
-              </p>
-            </div>
+            <a href="/auth" className="text-sm underline text-primary">Fazer login / criar conta</a>
           </div>
         </div>
       </div>

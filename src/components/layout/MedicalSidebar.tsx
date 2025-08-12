@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -29,6 +30,8 @@ const secondaryNavigation = [
 
 export function MedicalSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   return (
     <div className="flex flex-col h-full bg-card border-r border-border">
@@ -99,7 +102,16 @@ export function MedicalSidebar() {
           );
         })}
         
-        <Button variant="ghost" className="w-full justify-start text-muted-foreground" size="sm">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-muted-foreground"
+          size="sm"
+          onClick={async () => {
+            await signOut();
+            navigate("/auth", { replace: true });
+          }}
+          aria-label="Sair da conta"
+        >
           <LogOut className="w-4 h-4" />
           Sair
         </Button>
