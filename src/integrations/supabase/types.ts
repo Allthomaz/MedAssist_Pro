@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      oauth_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          expiry_date: string | null
+          id: string
+          provider: string
+          refresh_token: string | null
+          scope: string | null
+          token_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      oauth_states: {
+        Row: {
+          created_at: string
+          redirect_to: string | null
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          redirect_to?: string | null
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          redirect_to?: string | null
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
