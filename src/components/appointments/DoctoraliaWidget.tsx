@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExternalLink } from 'lucide-react';
-
 interface DoctoraliaWidgetProps {
   doctorId: string;
   widgetType?: 'big_with_calendar' | 'big' | 'medium' | 'small';
@@ -10,7 +9,6 @@ interface DoctoraliaWidgetProps {
   saasOnly?: boolean;
   a11yTitle?: string;
 }
-
 export function DoctoraliaWidget({
   doctorId,
   widgetType = 'big_with_calendar',
@@ -20,7 +18,6 @@ export function DoctoraliaWidget({
   a11yTitle = 'Widget de marcação de consultas médicas'
 }: DoctoraliaWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     // Limpar qualquer widget anterior
     if (containerRef.current) {
@@ -49,7 +46,7 @@ export function DoctoraliaWidget({
     // Criar e adicionar o script do Doctoralia
     const script = document.createElement('script');
     script.textContent = `!function($_x,_s,id){var js,fjs=$_x.getElementsByTagName(_s)[0];if(!$_x.getElementById(id)){js = $_x.createElement(_s);js.id = id;js.src = "//platform.docplanner.com/js/widget.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","zl-widget-s");`;
-    
+
     // Adicionar o script ao container
     if (containerRef.current) {
       containerRef.current.appendChild(script);
@@ -62,9 +59,7 @@ export function DoctoraliaWidget({
       }
     };
   }, [doctorId, widgetType, showOpinion, hideBranding, saasOnly, a11yTitle]);
-
-  return (
-    <Card className="border-medical-blue/20">
+  return <Card className="border-medical-blue/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ExternalLink className="w-5 h-5 text-medical-blue" />
@@ -74,11 +69,7 @@ export function DoctoraliaWidget({
       <CardContent>
         <div className="space-y-4">
           <div className="border rounded-lg p-4 bg-accent/50">
-            <div ref={containerRef} className="min-h-[300px] flex items-center justify-center">
-              <p className="text-muted-foreground text-center">
-                Carregando widget do Doctoralia...
-              </p>
-            </div>
+            
           </div>
           <p className="text-xs text-muted-foreground">
             Este widget permite que seus pacientes agendem consultas diretamente pelo Doctoralia.
@@ -86,6 +77,5 @@ export function DoctoraliaWidget({
           </p>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
