@@ -61,6 +61,8 @@ import {
 import { DoctoraliaWidget } from "@/components/appointments/DoctoraliaWidget";
 import { AppointmentForm, AppointmentFormValues } from "@/components/appointments/AppointmentForm";
 import { AppointmentsList, Appointment } from "@/components/appointments/AppointmentsList";
+import { SyncModal } from "@/components/Agenda/SyncModal";
+import { supabase } from "@/integrations/supabase/client";
 
 // Função para gerar dados de exemplo para demonstração
 const generateMockAppointments = (): Appointment[] => {
@@ -109,6 +111,28 @@ const Appointments = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [showDoctoralia, setShowDoctoralia] = useState(false);
+  const [isSyncOpen, setIsSyncOpen] = useState(false);
+
+  const handleOpenModal = () => setIsSyncOpen(true);
+  const handleSyncGoogle = async () => {
+    try {
+      const redirectTo = `${window.location.origin}/auth/callback?provider=google`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          scopes: 'https://www.googleapis.com/auth/calendar.events',
+          redirectTo,
+        },
+      });
+      if (error) {
+        alert(`Erro ao iniciar o login com Google: ${error.message}`);
+      } else {
+        setIsSyncOpen(false);
+      }
+    } catch (e) {
+      alert('Erro inesperado ao iniciar autenticação com Google.');
+    }
+  };
 
   // Filtrar agendamentos para a data selecionada
   const filteredAppointments = selectedDate
@@ -200,10 +224,7 @@ const Appointments = () => {
           </div>
           <Button
             variant="medical"
-            onClick={() => {
-              setEditingAppointment(null);
-              setIsFormOpen(true);
-            }}
+            onClick={handleOpenModal}
           >
             <Plus className="mr-2 h-4 w-4" />
             Novo Agendamento
@@ -288,6 +309,12 @@ const Appointments = () => {
             />
           </DialogContent>
         </Dialog>
+
+        <SyncModal
+          open={isSyncOpen}
+          onClose={() => setIsSyncOpen(false)}
+          onSyncGoogle={handleSyncGoogle}
+        />
       </div>
     </MedicalLayout>
   );
