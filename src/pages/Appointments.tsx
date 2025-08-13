@@ -113,6 +113,10 @@ const Appointments = () => {
   const [showDoctoralia, setShowDoctoralia] = useState(false);
   const [isSyncOpen, setIsSyncOpen] = useState(false);
 
+  useEffect(() => {
+    document.title = 'Agendamentos | MedAssist Pro';
+  }, []);
+
   const handleOpenModal = () => setIsSyncOpen(true);
   const handleSyncGoogle = async () => {
     try {
@@ -215,21 +219,18 @@ const Appointments = () => {
     <MedicalLayout>
       <div className="container mx-auto py-6 space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Agendamentos</h1>
-            <p className="text-muted-foreground">
-              Gerencie consultas e integre com plataformas externas
-            </p>
+            <p className="text-muted-foreground">Gerencie consultas e integre com plataformas externas</p>
           </div>
-          <Button
-            variant="medical"
-            onClick={handleOpenModal}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Agendamento
-          </Button>
-        </div>
+          <div className="flex items-center gap-2">
+            <Button variant="medical" onClick={handleOpenModal}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Agendamento
+            </Button>
+          </div>
+        </header>
 
         <Tabs defaultValue="calendar" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -238,8 +239,8 @@ const Appointments = () => {
           </TabsList>
           
           <TabsContent value="calendar" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border-medical-blue/20 md:col-span-1">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              <Card className="border-medical-blue/20 lg:col-span-4 lg:sticky lg:top-24 self-start animate-fade-in">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5 text-medical-blue" />
@@ -254,7 +255,6 @@ const Appointments = () => {
                     className="rounded-md border"
                     locale={ptBR}
                   />
-                  
                   {selectedDate && (
                     <div className="mt-4 text-center">
                       <p className="font-medium">
@@ -267,9 +267,9 @@ const Appointments = () => {
                   )}
                 </CardContent>
               </Card>
-              
-              <div className="md:col-span-2">
-                <Card className="border-medical-blue/20">
+
+              <div className="lg:col-span-8">
+                <Card className="border-medical-blue/20 animate-fade-in">
                   <CardHeader>
                     <CardTitle>
                       {selectedDate
@@ -278,11 +278,13 @@ const Appointments = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <AppointmentsList
-                      appointments={filteredAppointments}
-                      onEdit={handleEditAppointment}
-                      onDelete={handleDeleteAppointment}
-                    />
+                    <div className="max-h-[60vh] md:max-h-[70vh] overflow-y-auto pr-1">
+                      <AppointmentsList
+                        appointments={filteredAppointments}
+                        onEdit={handleEditAppointment}
+                        onDelete={handleDeleteAppointment}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </div>
