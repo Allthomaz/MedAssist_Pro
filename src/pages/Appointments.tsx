@@ -58,7 +58,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-import { DoctoraliaWidget } from "@/components/appointments/DoctoraliaWidget";
+
 import { AppointmentForm, AppointmentFormValues } from "@/components/appointments/AppointmentForm";
 import { AppointmentsList, Appointment } from "@/components/appointments/AppointmentsList";
 
@@ -108,7 +108,7 @@ const Appointments = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
-  const [showDoctoralia, setShowDoctoralia] = useState(false);
+
 
   // Filtrar agendamentos para a data selecionada
   const filteredAppointments = selectedDate
@@ -211,9 +211,8 @@ const Appointments = () => {
         </div>
 
         <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="calendar">Calendário</TabsTrigger>
-            <TabsTrigger value="doctoralia">Doctoralia</TabsTrigger>
           </TabsList>
           
           <TabsContent value="calendar" className="space-y-6">
@@ -268,9 +267,7 @@ const Appointments = () => {
             </div>
           </TabsContent>
           
-          <TabsContent value="doctoralia">
-            <DoctoraliaWidget doctorId="bruno-borges-paschoalini/psiquiatra/sorocaba" />
-          </TabsContent>
+
         </Tabs>
 
         {/* Modal de formulário para criar/editar agendamento */}
