@@ -8,6 +8,7 @@ import Patients from "./pages/Patients";
 import Templates from "./pages/Templates";
 import Consultations from "./pages/Consultations";
 import Documents from "./pages/Documents";
+import Appointments from "./pages/Appointments";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import AuthPage from "@/pages/Auth";
@@ -47,6 +48,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Templates />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/appointments"
+              element={
+                <ProtectedRoute>
+                  <Appointments />
                 </ProtectedRoute>
               }
             />

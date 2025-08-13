@@ -9,7 +9,8 @@ import {
   Settings,
   Activity,
   Stethoscope,
-  LogOut
+  LogOut,
+  Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Pacientes', href: '/patients', icon: Users },
   { name: 'Consultas', href: '/consultations', icon: Video },
+  { name: 'Agendamentos', href: '/appointments', icon: Calendar },
   { name: 'Modelos', href: '/templates', icon: ClipboardList },
   { name: 'Documentos', href: '/documents', icon: FileText },
   { name: 'Analytics', href: '/analytics', icon: Activity },
