@@ -62,11 +62,11 @@ export function QuickActions() {
           >
             <div className="flex items-center gap-3 w-full">
               <action.icon className={`w-5 h-5 flex-shrink-0 ${
-                action.priority ? 'text-medical-blue' : ''
+                action.priority ? 'text-medical-blue' : 'text-foreground'
               }`} />
               <span className={`font-medium text-sm leading-tight ${
-                action.priority ? 'text-medical-blue' : ''
-              }`}>{action.title}</span>
+                action.priority ? 'text-medical-blue' : 'text-foreground'
+              } transition-colors`}>{action.title}</span>
             </div>
             <span className="text-xs opacity-75 text-left leading-relaxed w-full">{action.description}</span>
           </Button>
