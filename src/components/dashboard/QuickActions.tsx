@@ -52,7 +52,7 @@ export function QuickActions() {
           <Button
             key={action.action}
             variant={action.variant}
-            className={`h-auto p-4 flex flex-col items-start gap-3 text-left justify-start min-h-[80px] w-full transition-all duration-200 hover:scale-[1.02] ${
+            className={`group h-auto p-4 flex flex-col items-start gap-3 text-left justify-start min-h-[80px] w-full transition-all duration-200 hover:scale-[1.02] ${
               action.priority ? 'ring-2 ring-medical-blue/20 bg-medical-blue/5' : ''
             }`}
             onClick={() => {
@@ -62,10 +62,10 @@ export function QuickActions() {
           >
             <div className="flex items-center gap-3 w-full">
               <action.icon className={`w-5 h-5 flex-shrink-0 ${
-                action.priority ? 'text-medical-blue' : ''
+                action.priority ? 'text-medical-blue group-hover:text-medical-blue-foreground' : ''
               }`} />
               <span className={`font-medium text-sm leading-tight ${
-                action.priority ? 'text-medical-blue' : ''
+                action.priority ? 'text-medical-blue group-hover:text-medical-blue-foreground' : ''
               }`}>{action.title}</span>
             </div>
             <span className="text-xs opacity-75 text-left leading-relaxed w-full">{action.description}</span>
