@@ -9,7 +9,8 @@ const quickActions = [
     description: 'Iniciar consulta com gravação',
     icon: Video,
     action: 'start-consultation',
-    variant: 'medical' as const,
+    variant: 'medical-outline' as const,
+    priority: true,
   },
   {
     title: 'Novo Paciente',
@@ -17,6 +18,7 @@ const quickActions = [
     icon: Users,
     action: 'new-patient',
     variant: 'medical-outline' as const,
+    priority: false,
   },
   {
     title: 'Criar Modelo',
@@ -24,13 +26,15 @@ const quickActions = [
     icon: ClipboardList,
     action: 'create-template',
     variant: 'medical-outline' as const,
+    priority: false,
   },
   {
     title: 'Documentos',
     description: 'Visualizar documentos recentes',
     icon: FileText,
     action: 'view-documents',
-    variant: 'medical-ghost' as const,
+    variant: 'medical-outline' as const,
+    priority: false,
   },
 ];
 
@@ -43,22 +47,28 @@ export function QuickActions() {
           Ações Rápidas
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {quickActions.map((action) => (
           <Button
             key={action.action}
             variant={action.variant}
-            className="h-auto p-4 flex flex-col items-start gap-2"
+            className={`h-auto p-4 flex flex-col items-start gap-3 text-left justify-start min-h-[80px] w-full transition-all duration-200 hover:scale-[1.02] ${
+              action.priority ? 'ring-2 ring-medical-blue/20 bg-medical-blue/5' : ''
+            }`}
             onClick={() => {
               // TODO: Implement navigation to different pages
               console.log(`Action: ${action.action}`);
             }}
           >
-            <div className="flex items-center gap-2 w-full">
-              <action.icon className="w-5 h-5" />
-              <span className="font-medium">{action.title}</span>
+            <div className="flex items-center gap-3 w-full">
+              <action.icon className={`w-5 h-5 flex-shrink-0 ${
+                action.priority ? 'text-medical-blue' : ''
+              }`} />
+              <span className={`font-medium text-sm leading-tight ${
+                action.priority ? 'text-medical-blue' : ''
+              }`}>{action.title}</span>
             </div>
-            <span className="text-xs opacity-80 text-left">{action.description}</span>
+            <span className="text-xs opacity-75 text-left leading-relaxed w-full">{action.description}</span>
           </Button>
         ))}
       </CardContent>
