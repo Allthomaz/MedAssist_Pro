@@ -17,9 +17,8 @@ import {
   CheckCircle,
   X
 } from 'lucide-react';
-// Removendo bibliotecas problemáticas por enquanto
-// import { pdfjsLib } from '@/utils/pdfWorker';
-// import mammoth from 'mammoth';
+import { pdfjsLib } from '@/utils/pdfWorker';
+import mammoth from 'mammoth';
 
 interface GeneratedDocument {
   id: string;
@@ -48,39 +47,92 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
 
   // Função para extrair texto de diferentes tipos de arquivo
   const extractTextFromFile = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        resolve(result);
-      };
-      
-      reader.onerror = () => reject(new Error('Erro ao ler o arquivo'));
-      
+    try {
       if (file.type === 'text/plain') {
-        reader.readAsText(file);
-      } else if (file.type === 'application/pdf') {
-        toast({
-          title: "Aviso",
-          description: "Extração de PDF será implementada em breve. Use arquivos .txt por enquanto.",
-          variant: "destructive"
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = () => reject(new Error('Erro ao ler arquivo de texto'));
+          reader.readAsText(file);
         });
-        reject(new Error('PDF extraction temporarily disabled'));
-      } else if (
-        file.type === 'application/msword' || 
-        file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      ) {
-        toast({
-          title: "Aviso",
-          description: "Extração de DOC/DOCX será implementada em breve. Use arquivos .txt por enquanto.",
-          variant: "destructive"
+      } 
+      
+      else if (file.type === 'application/pdf') {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = '';
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              const pageText = content.items
+                .filter(item => 'str' in item)
+                .map(item => (item as any).str)
+                .join(' ');
+              text += pageText + '\n';
+            }
+            
+            if (!text.trim()) {
+              reject(new Error('Não foi possível extrair texto do PDF'));
+              return;
+            }
+            
+            resolve(text);
+          } catch (error) {
+            reject(new Error('Erro ao processar PDF: ' + (error instanceof Error ? error.message : 'Erro desconhecido')));
+          }
         });
-        reject(new Error('DOC/DOCX extraction temporarily disabled'));
-      } else {
-        reject(new Error('Tipo de arquivo não suportado. Use apenas arquivos .txt por enquanto.'));
+      } 
+      
+      else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            
+            if (!result.value.trim()) {
+              reject(new Error('Não foi possível extrair texto do documento DOCX'));
+              return;
+            }
+            
+            resolve(result.value);
+          } catch (error) {
+            reject(new Error('Erro ao processar DOCX: ' + (error instanceof Error ? error.message : 'Erro desconhecido')));
+          }
+        });
+      } 
+      
+      else if (file.type === 'application/msword') {
+        // DOC files are more complex, fallback to binary reading
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const result = e.target?.result as string;
+              // Basic text extraction for DOC files (limited)
+              const text = result.replace(/[^\x20-\x7E\s]/g, ' ').replace(/\s+/g, ' ').trim();
+              if (!text) {
+                reject(new Error('Não foi possível extrair texto do arquivo DOC. Tente converter para DOCX ou TXT.'));
+                return;
+              }
+              resolve(text);
+            } catch (error) {
+              reject(new Error('Erro ao processar arquivo DOC'));
+            }
+          };
+          reader.onerror = () => reject(new Error('Erro ao ler arquivo DOC'));
+          reader.readAsText(file, 'utf-8');
+        });
+      } 
+      
+      else {
+        throw new Error('Tipo de arquivo não suportado. Use arquivos .txt, .pdf, .doc ou .docx');
       }
-    });
+    } catch (error) {
+      throw new Error('Erro ao processar arquivo: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+    }
   };
 
   // Manipular upload de arquivo
@@ -88,18 +140,18 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Verificar tipos de arquivo aceitos (apenas .txt por enquanto)
+    // Verificar tipos de arquivo aceitos
     const acceptedTypes = [
-      'text/plain'
-      // 'application/pdf',
-      // 'application/msword',
-      // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'text/plain',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
 
     if (!acceptedTypes.includes(file.type)) {
       toast({
         title: "Erro",
-        description: "Tipo de arquivo não suportado. Use apenas arquivos .txt por enquanto.",
+        description: "Tipo de arquivo não suportado. Use arquivos .txt, .pdf, .doc ou .docx",
         variant: "destructive"
       });
       return;
@@ -231,7 +283,7 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
                 id="file-upload"
                 type="file"
                 ref={fileInputRef}
-                accept=".txt"
+                accept=".txt,.pdf,.doc,.docx"
                 onChange={handleFileUpload}
                 disabled={isProcessingFile}
                 className="flex-1"
