@@ -1,0 +1,18 @@
+# Deno
+.deno/
+*.lock
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

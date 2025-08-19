@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["ES2020", "DOM", "deno.ns"],
+    "strict": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "skipLibCheck": true
+  },
+  "importMap": "./import_map.json",
+  "tasks": {
+    "check": "deno check **/*.ts",
+    "fmt": "deno fmt **/*.ts"
+  }
+}

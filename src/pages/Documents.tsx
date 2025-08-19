@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, FileText, Microscope, Paperclip, Plus, Search, Upload, User, Mic, StopCircle } from "lucide-react";
+import { DocumentGenerator } from "@/components/documents/DocumentGenerator";
+import { Calendar, FileText, Microscope, Paperclip, Plus, Search, Upload, User, Mic, StopCircle, Brain } from "lucide-react";
 
 // Mock patients (replace with Supabase later)
 const mockPatients = [
@@ -182,6 +183,7 @@ const Documents: React.FC = () => {
             <TabsTrigger value="relatorios" className="gap-2"><FileText className="w-4 h-4" /> Relatórios</TabsTrigger>
             <TabsTrigger value="exames" className="gap-2"><Microscope className="w-4 h-4" /> Exames</TabsTrigger>
             <TabsTrigger value="anexos" className="gap-2"><Paperclip className="w-4 h-4" /> Anexos</TabsTrigger>
+            <TabsTrigger value="gerador" className="gap-2"><Brain className="w-4 h-4" /> Gerar Documento</TabsTrigger>
           </TabsList>
 
           <TabsContent value="prontuario">
@@ -208,6 +210,17 @@ const Documents: React.FC = () => {
 
           <TabsContent value="anexos">
             {renderTable(docsByType.anexo)}
+          </TabsContent>
+
+          <TabsContent value="gerador">
+            <DocumentGenerator 
+              onDocumentGenerated={(document) => {
+                toast({
+                  title: "Documento Gerado",
+                  description: `${document.title} foi gerado com sucesso!`
+                });
+              }}
+            />
           </TabsContent>
         </Tabs>
 
