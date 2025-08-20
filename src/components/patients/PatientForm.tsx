@@ -130,8 +130,8 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
       };
 
       const { data: patient, error } = await supabase
-        .from('patients')
-        .insert(patientData)
+        .from('patients' as any)
+        .insert(patientData as any)
         .select()
         .single();
 
