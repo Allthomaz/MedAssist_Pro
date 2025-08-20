@@ -197,6 +197,22 @@ ANALYZE public.patients;
 ANALYZE public.appointments;
 ANALYZE public.consultations;
 ANALYZE public.document_templates;
+-- Inserir notificações de teste para usuários existentes
+-- Nota: Estas notificações serão criadas para qualquer usuário que se registrar
+DO $$
+DECLARE
+    user_record RECORD;
+BEGIN
+    -- Para cada usuário existente, criar notificações de teste
+    FOR user_record IN SELECT id FROM auth.users LOOP
+        INSERT INTO public.notifications (user_id, type, title, message, status, priority) VALUES
+            (user_record.id, 'appointment_reminder', 'Lembrete de Consulta', 'Você tem uma consulta agendada para amanhã às 14:00', 'unread', 'high'),
+            (user_record.id, 'system', 'Bem-vindo ao Sistema', 'Bem-vindo ao sistema de prontuários médicos!', 'unread', 'medium'),
+            (user_record.id, 'document_ready', 'Documento Pronto', 'Seu relatório médico está disponível para download', 'unread', 'low')
+        ON CONFLICT DO NOTHING;
+    END LOOP;
+END $$;
+
 ANALYZE public.notifications;
 ANALYZE public.notification_preferences;
 ANALYZE public.notification_templates;
@@ -207,4 +223,4 @@ ANALYZE public.transcription_settings;
 -- Comentário final
 -- Seeds criados com sucesso!
 -- Este arquivo contém dados de exemplo para 3 médicos e 4 pacientes,
--- incluindo agendamentos, consultas, templates e configurações.
+-- incluindo agendamentos, consultas, templates, configurações e notificações de teste.
