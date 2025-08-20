@@ -11,13 +11,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Calendar } from '@/components/ui/calendar';
+import { EnhancedCalendar } from '@/components/ui/enhanced-calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
+
+type PatientInsert = Database['public']['Tables']['patients']['Insert'];
 
 const patientFormSchema = z.object({
   full_name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -112,12 +115,16 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
     setIsLoading(true);
     
     try {
-      const age = calculateAge(data.birth_date);
+      const { data: user } = await supabase.auth.getUser();
       
-      // Preparar dados do paciente
-      const patientData = {
-        doctor_id: (await supabase.auth.getUser()).data.user?.id,
-        profile_id: (await supabase.auth.getUser()).data.user?.id,
+      if (!user.user?.id) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      // Preparar dados do paciente seguindo a estrutura correta da tabela
+      const patientData: PatientInsert = {
+        doctor_id: user.user.id,
+        profile_id: user.user.id,
         full_name: data.full_name,
         birth_date: format(data.birth_date, 'yyyy-MM-dd'),
         gender: data.gender,
@@ -130,12 +137,15 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
       };
 
       const { data: patient, error } = await supabase
-        .from('patients' as any)
-        .insert(patientData as any)
+        .from('patients')
+        .insert(patientData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro detalhado:', error);
+        throw error;
+      }
 
       toast({
         title: 'Sucesso!',
@@ -143,11 +153,20 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
       });
 
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao cadastrar paciente:', error);
+      
+      let errorMessage = 'Falha ao cadastrar paciente. Tente novamente.';
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.details) {
+        errorMessage = error.details;
+      }
+      
       toast({
         title: 'Erro',
-        description: 'Falha ao cadastrar paciente. Tente novamente.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -222,15 +241,13 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
+                          <EnhancedCalendar
+                            value={field.value}
+                            onDateChange={field.onChange}
                             disabled={(date) =>
                               date > new Date() || date < new Date("1900-01-01")
                             }
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
+                            className={cn("pointer-events-auto")}
                           />
                         </PopoverContent>
                       </Popover>
