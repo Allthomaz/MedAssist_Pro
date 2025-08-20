@@ -1,0 +1,210 @@
+-- Seeds para popular o banco de dados com dados de exemplo
+-- Este arquivo contém dados de teste para desenvolvimento
+
+-- Nota: Os perfis são criados automaticamente pelo trigger quando usuários se registram
+-- através do sistema de autenticação. Para testes, você pode criar usuários através da interface
+-- do Supabase Studio ou através do sistema de registro da aplicação.
+
+-- Nota: Para inserir pacientes, primeiro é necessário criar os perfis de usuário correspondentes
+-- através do sistema de autenticação. Os dados abaixo são exemplos de como inserir pacientes
+-- após a criação dos perfis.
+
+-- Exemplo de inserção de pacientes (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.patients (profile_id, doctor_id, full_name, birth_date, gender, cpf, phone, email, address, city, state, zip_code, emergency_contact_name, emergency_contact_phone, blood_type, allergies, current_medications, insurance_company, insurance_number, status) VALUES
+--   ('PROFILE_ID_1', 'DOCTOR_ID_1', 'Ana Costa', '1985-03-15', 'female', '123.456.789-01', '(11) 88888-1111', 'ana.costa@email.com', 'Rua A, 100', 'São Paulo', 'SP', '01234-567', 'Carlos Costa', '(11) 77777-1111', 'A+', ARRAY['Penicilina', 'Frutos do mar'], ARRAY['Losartana 50mg'], 'Unimed', '123456789', 'active'),
+--   ('PROFILE_ID_2', 'DOCTOR_ID_1', 'Roberto Lima', '1978-07-22', 'male', '987.654.321-02', '(11) 88888-2222', 'roberto.lima@email.com', 'Av. B, 200', 'São Paulo', 'SP', '02345-678', 'Lucia Lima', '(11) 77777-2222', 'O-', ARRAY['Dipirona'], ARRAY['Metformina 850mg', 'Sinvastatina 20mg'], 'Bradesco Saúde', '987654321', 'active')
+-- ON CONFLICT (profile_id) DO NOTHING;
+
+-- Exemplo de horários de funcionamento dos médicos (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.doctor_schedules (doctor_id, day_of_week, start_time, end_time, default_duration, break_duration, is_active) VALUES
+--   -- Dr. João Silva (Cardiologista) - Segunda a Sexta
+--   ('DOCTOR_ID_1', 1, '08:00', '12:00', 30, 5, true), -- Segunda manhã
+--   ('DOCTOR_ID_1', 1, '14:00', '18:00', 30, 5, true), -- Segunda tarde
+--   ('DOCTOR_ID_1', 2, '08:00', '12:00', 30, 5, true), -- Terça manhã
+--   ('DOCTOR_ID_2', 2, '09:00', '13:00', 45, 10, true), -- Terça manhã
+--   ('DOCTOR_ID_2', 2, '15:00', '19:00', 45, 10, true), -- Terça tarde
+--   ('DOCTOR_ID_3', 1, '07:30', '11:30', 40, 10, true) -- Segunda manhã
+-- ON CONFLICT DO NOTHING;
+
+-- Exemplo de agendamentos (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.appointments (doctor_id, patient_id, appointment_date, appointment_time, duration, appointment_type, status, patient_name, patient_phone, patient_email, appointment_reason, consultation_mode) VALUES
+--   ('DOCTOR_ID_1', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_1'), CURRENT_DATE + INTERVAL '1 day', '09:00', 30, 'retorno', 'agendado', 'Ana Costa', '(11) 88888-1111', 'ana.costa@email.com', 'Consulta de retorno cardiológica', 'presencial'),
+--   ('DOCTOR_ID_1', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_2'), CURRENT_DATE + INTERVAL '2 days', '10:00', 30, 'consulta_geral', 'confirmado', 'Roberto Lima', '(11) 88888-2222', 'roberto.lima@email.com', 'Avaliação cardiológica de rotina', 'presencial'),
+--   ('DOCTOR_ID_2', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_3'), CURRENT_DATE + INTERVAL '3 days', '15:30', 45, 'primeira_consulta', 'agendado', 'Carla Mendes', '(11) 88888-3333', 'carla.mendes@email.com', 'Primeira consulta dermatológica', 'presencial')
+-- ON CONFLICT DO NOTHING;
+
+-- Exemplo de consultas (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.consultations (doctor_id, patient_id, consultation_date, consultation_time, scheduled_duration, consultation_type, status, chief_complaint, consultation_mode, location) VALUES
+--   ('DOCTOR_ID_1', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_1'), CURRENT_DATE - INTERVAL '7 days', '09:00', 35, 'retorno', 'finalizada', 'Dor no peito e falta de ar', 'presencial', 'Consultório 1'),
+--   ('DOCTOR_ID_2', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_2'), CURRENT_DATE - INTERVAL '14 days', '10:30', 50, 'primeira_consulta', 'finalizada', 'Manchas na pele', 'presencial', 'Consultório 2'),
+--   ('DOCTOR_ID_3', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_3'), CURRENT_DATE - INTERVAL '21 days', '15:00', 45, 'rotina', 'finalizada', 'Dor no joelho direito', 'presencial', 'Consultório 3')
+-- ON CONFLICT DO NOTHING;
+
+-- Exemplo de templates de documentos (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.document_templates (name, description, category, document_type, doctor_id, template_structure, is_public, is_active) VALUES
+--   ('Receita Médica Padrão', 'Template padrão para receitas médicas', 'receita', 'receita', 'DOCTOR_ID_1', 
+--    '{
+--      "sections": [
+--        {"id": "header", "name": "Cabeçalho", "type": "header", "required": true},
+--        {"id": "patient_info", "name": "Dados do Paciente", "type": "patient_data", "required": true},
+--        {"id": "medications", "name": "Medicamentos", "type": "medication_list", "required": true},
+--        {"id": "instructions", "name": "Instruções", "type": "text", "required": false},
+--        {"id": "footer", "name": "Rodapé", "type": "footer", "required": true}
+--      ]
+--    }', true, true),
+--   
+--   ('Atestado Médico', 'Template para atestados médicos', 'atestado', 'atestado', 'DOCTOR_ID_2',
+--    '{
+--      "sections": [
+--        {"id": "header", "name": "Cabeçalho", "type": "header", "required": true},
+--        {"id": "patient_info", "name": "Dados do Paciente", "type": "patient_data", "required": true},
+--        {"id": "attestation", "name": "Atestação", "type": "text", "required": true},
+--        {"id": "period", "name": "Período", "type": "date_range", "required": true},
+--        {"id": "footer", "name": "Rodapé", "type": "footer", "required": true}
+--      ]
+--    }', true, true),
+--   
+--   ('Prontuário Cardiológico', 'Template específico para consultas cardiológicas', 'prontuario', 'prontuario', 'DOCTOR_ID_1',
+--    '{
+--      "sections": [
+--        {"id": "anamnesis", "name": "Anamnese", "type": "text", "required": true},
+--        {"id": "physical_exam", "name": "Exame Físico", "type": "structured_exam", "required": true},
+--        {"id": "vital_signs", "name": "Sinais Vitais", "type": "vital_signs", "required": true},
+--        {"id": "ecg", "name": "ECG", "type": "text", "required": false},
+--        {"id": "diagnosis", "name": "Diagnóstico", "type": "text", "required": true},
+--        {"id": "treatment_plan", "name": "Plano Terapêutico", "type": "text", "required": true}
+--      ]
+--    }', false, true)
+-- ON CONFLICT DO NOTHING;
+
+-- Exemplo de notificações (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.notifications (user_id, type, title, message, priority, channel, status, appointment_id) VALUES
+--   ('PATIENT_PROFILE_ID_1', 'appointment_reminder', 'Lembrete de Consulta', 'Você tem uma consulta agendada para amanhã às 09:00 com Dr. João Silva', 'normal', 'in_app', 'unread', (SELECT id FROM public.appointments WHERE patient_id = (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_1') LIMIT 1)),
+--   ('PATIENT_PROFILE_ID_2', 'appointment_confirmation', 'Consulta Confirmada', 'Sua consulta com Dr. João Silva foi confirmada para o dia ' || TO_CHAR(CURRENT_DATE + INTERVAL '2 days', 'DD/MM/YYYY') || ' às 10:00', 'normal', 'in_app', 'unread', (SELECT id FROM public.appointments WHERE patient_id = (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_2') LIMIT 1)),
+--   ('DOCTOR_ID_1', 'patient_message', 'Nova Mensagem de Paciente', 'Ana Costa enviou uma mensagem sobre sua consulta', 'normal', 'in_app', 'read', NULL),
+--   ('DOCTOR_ID_2', 'system_update', 'Atualização do Sistema', 'Nova funcionalidade de transcrição automática disponível', 'low', 'in_app', 'unread', NULL)
+-- ON CONFLICT DO NOTHING;
+
+-- Exemplo de preferências de notificação (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.notification_preferences (user_id, notification_type, in_app_enabled, email_enabled, sms_enabled, push_enabled) VALUES
+--   ('DOCTOR_ID_1', 'appointment_reminder', true, true, false, true),
+--   ('DOCTOR_ID_1', 'patient_message', true, true, false, true),
+--   ('DOCTOR_ID_1', 'system_update', true, false, false, false),
+--   ('DOCTOR_ID_2', 'appointment_reminder', true, true, false, true),
+--   ('DOCTOR_ID_2', 'patient_message', true, true, false, true),
+--   ('DOCTOR_ID_3', 'appointment_reminder', true, true, false, true),
+--   ('PATIENT_PROFILE_ID_1', 'appointment_reminder', true, true, true, true),
+--   ('PATIENT_PROFILE_ID_1', 'appointment_confirmation', true, true, true, true),
+--   ('PATIENT_PROFILE_ID_2', 'appointment_reminder', true, true, false, true),
+--   ('PATIENT_PROFILE_ID_3', 'appointment_reminder', true, true, false, true),
+--   ('PATIENT_PROFILE_ID_4', 'appointment_reminder', true, false, false, true)
+-- ON CONFLICT (user_id, notification_type) DO NOTHING;
+
+-- Inserir templates de notificação
+INSERT INTO public.notification_templates (template_key, name, description, notification_type, in_app_title, in_app_message, email_subject, email_body, sms_message, push_title, push_message, available_variables, is_active) VALUES
+  ('appointment_reminder_24h', 'Lembrete 24h', 'Lembrete de consulta com 24 horas de antecedência', 'appointment_reminder', 
+   'Lembrete de Consulta', 
+   'Você tem uma consulta agendada para {{appointment_date}} às {{appointment_time}} com {{doctor_name}}',
+   'Lembrete: Consulta agendada para amanhã',
+   'Olá {{patient_name}},\n\nEste é um lembrete de que você tem uma consulta agendada para {{appointment_date}} às {{appointment_time}} com {{doctor_name}}.\n\nLocal: {{clinic_address}}\n\nEm caso de dúvidas, entre em contato conosco.\n\nAtenciosamente,\n{{clinic_name}}',
+   'Lembrete: Consulta {{appointment_date}} {{appointment_time}} - {{doctor_name}}',
+   'Consulta Amanhã',
+   'Consulta com {{doctor_name}} às {{appointment_time}}',
+   '["patient_name", "doctor_name", "appointment_date", "appointment_time", "clinic_name", "clinic_address"]',
+   true),
+   
+  ('appointment_confirmed', 'Consulta Confirmada', 'Confirmação de agendamento de consulta', 'appointment_confirmation',
+   'Consulta Confirmada',
+   'Sua consulta com {{doctor_name}} foi confirmada para {{appointment_date}} às {{appointment_time}}',
+   'Consulta confirmada - {{doctor_name}}',
+   'Olá {{patient_name}},\n\nSua consulta foi confirmada!\n\nDetalhes:\n- Médico: {{doctor_name}}\n- Data: {{appointment_date}}\n- Horário: {{appointment_time}}\n- Local: {{clinic_address}}\n\nPor favor, chegue com 15 minutos de antecedência.\n\nAtenciosamente,\n{{clinic_name}}',
+   'Consulta confirmada: {{appointment_date}} {{appointment_time}} - {{doctor_name}}',
+   'Consulta Confirmada',
+   'Agendamento confirmado com {{doctor_name}}',
+   '["patient_name", "doctor_name", "appointment_date", "appointment_time", "clinic_name", "clinic_address"]',
+   true)
+ON CONFLICT (template_key) DO NOTHING;
+
+-- Exemplo de bloqueios de horário (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.schedule_blocks (doctor_id, start_date, end_date, start_time, end_time, block_type, description) VALUES
+--   ('DOCTOR_ID_1', CURRENT_DATE + INTERVAL '30 days', CURRENT_DATE + INTERVAL '37 days', NULL, NULL, 'ferias', 'Férias de fim de ano'),
+--   ('DOCTOR_ID_2', CURRENT_DATE + INTERVAL '15 days', CURRENT_DATE + INTERVAL '17 days', NULL, NULL, 'congresso', 'Congresso Brasileiro de Dermatologia'),
+--   ('DOCTOR_ID_3', CURRENT_DATE + INTERVAL '7 days', CURRENT_DATE + INTERVAL '7 days', '14:00', '16:00', 'pessoal', 'Compromisso pessoal')
+-- ON CONFLICT DO NOTHING;
+
+-- Exemplo de configurações de transcrição (descomente após criar os perfis correspondentes):
+-- INSERT INTO public.transcription_settings (
+--   doctor_id,
+--   default_language,
+--   auto_transcribe,
+--   auto_punctuation,
+--   speaker_diarization,
+--   preferred_service,
+--   quality_level,
+--   store_audio_locally,
+--   delete_audio_after_days,
+--   notify_on_completion,
+--   notify_on_error,
+--   custom_vocabulary
+-- ) VALUES
+-- (
+--   'DOCTOR_ID_1',
+--   'pt-BR',
+--   true,
+--   true,
+--   true,
+--   'openai',
+--   'high',
+--   true,
+--   90,
+--   true,
+--   true,
+--   '["cardiologia", "hipertensão", "arritmia", "infarto", "angina"]'::jsonb
+-- ),
+-- (
+--   'DOCTOR_ID_2',
+--   'pt-BR',
+--   true,
+--   true,
+--   false,
+--   'google',
+--   'medium',
+--   true,
+--   60,
+--   true,
+--   false,
+--   '["dermatologia", "melanoma", "psoríase", "eczema", "acne"]'::jsonb
+-- ),
+-- (
+--   'DOCTOR_ID_3',
+--   'pt-BR',
+--   false,
+--   true,
+--   true,
+--   'azure',
+--   'high',
+--   true,
+--   120,
+--   true,
+--   true,
+--   '["ortopedia", "fratura", "artrose", "artrite", "ligamento"]'::jsonb
+-- )
+-- ON CONFLICT (doctor_id) DO NOTHING;
+
+-- Atualizar estatísticas das tabelas
+ANALYZE public.profiles;
+ANALYZE public.patients;
+ANALYZE public.appointments;
+ANALYZE public.consultations;
+ANALYZE public.document_templates;
+ANALYZE public.notifications;
+ANALYZE public.notification_preferences;
+ANALYZE public.notification_templates;
+ANALYZE public.doctor_schedules;
+ANALYZE public.schedule_blocks;
+ANALYZE public.transcription_settings;
+
+-- Comentário final
+-- Seeds criados com sucesso!
+-- Este arquivo contém dados de exemplo para 3 médicos e 4 pacientes,
+-- incluindo agendamentos, consultas, templates e configurações.
