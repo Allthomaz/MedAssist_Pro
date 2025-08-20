@@ -3,37 +3,11 @@
 -- =====================================================
 
 -- 1. Criar função de segurança para verificar se usuário é médico
-CREATE OR REPLACE FUNCTION public.is_doctor(user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = user_id AND role = 'doctor'
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+-- NOTA: Removida para evitar recursão infinita com RLS na tabela profiles
+-- A verificação de role será feita diretamente nas políticas quando necessário
 
--- 2. Criar função para verificar se usuário é o médico responsável pelo paciente
-CREATE OR REPLACE FUNCTION public.is_patient_doctor(patient_record_id UUID, user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.patients 
-    WHERE id = patient_record_id AND doctor_id = user_id
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
-
--- 3. Criar função para verificar se usuário é o próprio paciente
-CREATE OR REPLACE FUNCTION public.is_own_patient_record(patient_record_id UUID, user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.patients 
-    WHERE id = patient_record_id AND profile_id = user_id
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+-- 2. Funções auxiliares removidas para simplificar e evitar problemas de recursão
+-- As verificações serão feitas diretamente nas políticas RLS
 
 -- 4. Remover políticas existentes e criar novas mais seguras
 DROP POLICY IF EXISTS "Doctors can manage their patients" ON public.patients;
@@ -48,15 +22,15 @@ CREATE POLICY "doctors_view_own_patients"
 ON public.patients 
 FOR SELECT 
 USING (
-  public.is_doctor() AND doctor_id = auth.uid()
+  doctor_id = auth.uid()
 );
 
--- Política para médicos inserirem pacientes (apenas se forem médicos verificados)
+-- Política para médicos inserirem pacientes
 CREATE POLICY "doctors_insert_patients" 
 ON public.patients 
 FOR INSERT 
 WITH CHECK (
-  public.is_doctor() AND doctor_id = auth.uid()
+  doctor_id = auth.uid()
 );
 
 -- Política para médicos atualizarem apenas seus próprios pacientes
@@ -64,10 +38,10 @@ CREATE POLICY "doctors_update_own_patients"
 ON public.patients 
 FOR UPDATE 
 USING (
-  public.is_doctor() AND doctor_id = auth.uid()
+  doctor_id = auth.uid()
 )
 WITH CHECK (
-  public.is_doctor() AND doctor_id = auth.uid()
+  doctor_id = auth.uid()
 );
 
 -- Política para pacientes visualizarem apenas seus próprios dados
@@ -92,7 +66,7 @@ CREATE POLICY "doctors_delete_own_patients"
 ON public.patients 
 FOR DELETE 
 USING (
-  public.is_doctor() AND doctor_id = auth.uid()
+  doctor_id = auth.uid()
 );
 
 -- 7. Criar view segura para dados básicos de pacientes (sem informações sensíveis)
@@ -163,14 +137,13 @@ CREATE TRIGGER audit_patients_access
 -- 13. Habilitar RLS na tabela de auditoria
 ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
 
--- 14. Política para auditoria (apenas médicos podem ver logs de seus pacientes)
-CREATE POLICY "doctors_view_audit_logs" 
+-- 14. Política para auditoria (apenas usuários podem ver seus próprios logs)
+CREATE POLICY "users_view_own_audit_logs" 
 ON public.audit_log 
 FOR SELECT 
 USING (
-  public.is_doctor() AND 
-  (user_id = auth.uid() OR 
-   EXISTS (SELECT 1 FROM public.patients WHERE id = record_id AND doctor_id = auth.uid()))
+  user_id = auth.uid() OR 
+  EXISTS (SELECT 1 FROM public.patients WHERE id = record_id AND doctor_id = auth.uid())
 );
 
 -- 15. Criar índices para performance e segurança
@@ -183,6 +156,4 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON public.audit_log(user_id);
 
 -- 16. Comentários de documentação de segurança
 COMMENT ON TABLE public.patients IS 'Tabela de pacientes com RLS rigoroso. Contém dados sensíveis de saúde protegidos por múltiplas camadas de segurança.';
-COMMENT ON FUNCTION public.is_doctor IS 'Função de segurança que verifica se o usuário atual é um médico autenticado.';
-COMMENT ON FUNCTION public.is_patient_doctor IS 'Função de segurança que verifica se o usuário é o médico responsável por um paciente específico.';
 COMMENT ON TABLE public.audit_log IS 'Log de auditoria para rastreamento de acesso aos dados de pacientes.';

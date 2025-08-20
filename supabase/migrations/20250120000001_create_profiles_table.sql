@@ -61,18 +61,9 @@ CREATE POLICY "Users can view their own profile"
   ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 
--- Médicos podem ver perfis de pacientes (para consultas)
-DROP POLICY IF EXISTS "Doctors can view patient profiles" ON public.profiles;
-CREATE POLICY "Doctors can view patient profiles"
-  ON public.profiles FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles doctor_profile
-      WHERE doctor_profile.id = auth.uid()
-      AND doctor_profile.role = 'doctor'
-    )
-    AND role = 'patient'
-  );
+-- POLÍTICA REMOVIDA: "Doctors can view patient profiles" causava recursão infinita
+-- Médicos devem acessar dados de pacientes através da tabela patients, não profiles
+-- Esta política foi removida para evitar consultas recursivas na própria tabela profiles
 
 -- Usuários podem inserir seu próprio perfil
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;

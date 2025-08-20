@@ -15,6 +15,7 @@ export interface Appointment {
   appointmentType: string;
   appointmentReason?: string;
   appointmentLocation: string;
+  status?: string;
 }
 
 interface AppointmentsListProps {

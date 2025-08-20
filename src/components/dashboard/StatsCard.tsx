@@ -15,27 +15,29 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, description, icon: Icon, trend }: StatsCardProps) {
   return (
-    <Card className="medical-card-hover bg-card/50 dark:bg-card/30 border-border/50">
-      <CardHeader>
+    <Card className="medical-card-hover bg-card border-border/60 hover:border-border transition-all duration-200">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             {title}
           </CardTitle>
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-            <Icon className="w-5 h-5 text-primary" />
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 border border-primary/20">
+            <Icon className="w-4 h-4 text-primary" />
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold text-foreground">{value}</div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <CardContent className="pt-0">
+        <div className="text-2xl font-bold text-foreground mb-2">{value}</div>
+        <div className="flex items-center gap-2 text-sm">
           {trend && (
-            <span className={`flex items-center gap-1 ${trend.isPositive ? 'text-medical-success' : 'text-medical-alert'}`}>
-              {trend.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+            <span className={`flex items-center gap-1 font-medium ${
+              trend.isPositive ? 'text-medical-success' : 'text-medical-alert'
+            }`}>
+              {trend.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               {trend.value}
             </span>
           )}
-          <span>{description}</span>
+          <span className="text-muted-foreground">{description}</span>
         </div>
       </CardContent>
     </Card>

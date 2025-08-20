@@ -27,7 +27,7 @@ const patientFormSchema = z.object({
   birth_date: z.date({
     required_error: 'Data de nascimento é obrigatória',
   }),
-  gender: z.enum(['masculino', 'feminino', 'outro', 'preferir_nao_informar'], {
+  gender: z.enum(['male', 'female', 'other'], {
     required_error: 'Selecione o gênero',
   }),
   phone: z.string().optional(),
@@ -121,10 +121,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
         throw new Error('Usuário não autenticado');
       }
       
-      // Preparar dados do paciente seguindo a estrutura correta da tabela
+      // Criar registro do paciente sem profile_id (paciente sem conta no sistema)
       const patientData: PatientInsert = {
         doctor_id: user.user.id,
-        profile_id: user.user.id,
+        profile_id: null, // Paciente sem conta no sistema
         full_name: data.full_name,
         birth_date: format(data.birth_date, 'yyyy-MM-dd'),
         gender: data.gender,
@@ -276,10 +276,9 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="masculino">Masculino</SelectItem>
-                          <SelectItem value="feminino">Feminino</SelectItem>
-                          <SelectItem value="outro">Outro</SelectItem>
-                          <SelectItem value="preferir_nao_informar">Preferir não informar</SelectItem>
+                          <SelectItem value="male">Masculino</SelectItem>
+                          <SelectItem value="female">Feminino</SelectItem>
+                          <SelectItem value="other">Outro</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

@@ -9,22 +9,22 @@ import { Button } from '@/components/ui/button';
 const Index = () => {
   return (
     <MedicalLayout>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground text-base">
               Bem-vindo de volta, Dr. Ricardo.
             </p>
           </div>
-          <Button className="medical-gradient medical-glow text-white">
+          <Button className="medical-gradient medical-glow text-white shadow-lg hover:shadow-xl transition-all duration-200 w-fit">
             Nova Consulta
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="Total de Pacientes"
             value="247"
@@ -56,7 +56,7 @@ const Index = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Quick Actions */}
           <div className="lg:col-span-2">
             <QuickActions />

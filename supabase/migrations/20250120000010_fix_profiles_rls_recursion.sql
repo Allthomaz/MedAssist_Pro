@@ -9,18 +9,8 @@
 -- Remover a política problemática que causa recursão infinita
 DROP POLICY IF EXISTS "Doctors can view patient profiles" ON public.profiles;
 
--- Criar uma nova política mais segura usando auth.jwt() para verificar o role
--- Esta abordagem evita a consulta recursiva na tabela profiles
-CREATE POLICY "Doctors can view patient profiles"
-  ON public.profiles FOR SELECT
-  USING (
-    -- Permitir que médicos vejam perfis de pacientes
-    -- Usando auth.jwt() para evitar recursão
-    ((auth.jwt() -> 'user_metadata' ->> 'role') = 'doctor' AND role = 'patient')
-    OR
-    -- Ou se o usuário está vendo seu próprio perfil
-    (auth.uid() = id)
-  );
+-- POLÍTICA REMOVIDA: A política "Doctors can view patient profiles" causava recursão infinita
+-- Médicos devem acessar dados de pacientes através da tabela patients, não profiles
 
 -- Alternativa: Criar uma política mais restritiva que usa apenas auth.uid()
 -- Esta política permite apenas que usuários vejam seus próprios perfis

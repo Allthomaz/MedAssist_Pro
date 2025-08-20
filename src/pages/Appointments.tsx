@@ -63,58 +63,96 @@ import { AppointmentForm, AppointmentFormValues } from "@/components/appointment
 import { AppointmentsList, Appointment } from "@/components/appointments/AppointmentsList";
 import { SyncModal } from "@/components/Agenda/SyncModal";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationService } from "@/services/notificationService";
 
-// Função para gerar dados de exemplo para demonstração
-const generateMockAppointments = (): Appointment[] => {
-  const today = new Date();
-  
-  return [
-    {
-      id: uuidv4(),
-      patientName: 'Maria Silva',
-      patientPhone: '(11) 98765-4321',
-      appointmentDate: today,
-      appointmentTime: '09:00',
-      appointmentDuration: '30 min',
-      appointmentType: 'Consulta Geral',
-      appointmentReason: 'Dor de cabeça recorrente',
-      appointmentLocation: 'Consultório Principal - Sala 302'
-    },
-    {
-      id: uuidv4(),
-      patientName: 'João Oliveira',
-      patientPhone: '(11) 91234-5678',
-      appointmentDate: addDays(today, 1),
-      appointmentTime: '14:30',
-      appointmentDuration: '60 min',
-      appointmentType: 'Primeira Consulta',
-      appointmentReason: 'Avaliação inicial',
-      appointmentLocation: 'Consultório Principal - Sala 302'
-    },
-    {
-      id: uuidv4(),
-      patientName: 'Ana Pereira',
-      patientPhone: '(11) 99876-5432',
-      appointmentDate: addDays(today, 2),
-      appointmentTime: '10:00',
-      appointmentDuration: '45 min',
-      appointmentType: 'Retorno',
-      appointmentReason: 'Acompanhamento de tratamento',
-      appointmentLocation: 'Atendimento Online'
-    },
-  ];
-};
+// Interface para dados do banco
+interface DatabaseAppointment {
+  id: string;
+  patient_name: string | null;
+  patient_phone: string | null;
+  appointment_date: string;
+  appointment_time: string;
+  duration: number;
+  appointment_type: string;
+  appointment_reason: string | null;
+  location: string | null;
+  status: string;
+  consultation_mode: string;
+}
 
 const Appointments = () => {
-  const [appointments, setAppointments] = useState<Appointment[]>(generateMockAppointments());
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [isSyncOpen, setIsSyncOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = 'Agendamentos | MedAssist Pro';
+    fetchAppointments();
   }, []);
+
+  // Função para buscar agendamentos do banco de dados
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .order('appointment_date', { ascending: true })
+        .order('appointment_time', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        return;
+      }
+
+      // Converter dados do banco para o formato esperado pelo componente
+      const formattedAppointments: Appointment[] = data.map((apt: DatabaseAppointment) => ({
+        id: apt.id,
+        patientName: apt.patient_name || 'Paciente não informado',
+        patientPhone: apt.patient_phone || '',
+        appointmentDate: new Date(apt.appointment_date),
+        appointmentTime: apt.appointment_time,
+        appointmentDuration: `${apt.duration} min`,
+        appointmentType: formatAppointmentType(apt.appointment_type),
+        appointmentReason: apt.appointment_reason || '',
+        appointmentLocation: apt.location || formatConsultationMode(apt.consultation_mode)
+      }));
+
+      setAppointments(formattedAppointments);
+    } catch (error) {
+      console.error('Erro ao buscar agendamentos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Função para formatar tipo de agendamento
+  const formatAppointmentType = (type: string): string => {
+    const types: Record<string, string> = {
+      'consulta_geral': 'Consulta Geral',
+      'primeira_consulta': 'Primeira Consulta',
+      'retorno': 'Retorno',
+      'urgencia': 'Urgência',
+      'exame': 'Exame',
+      'procedimento': 'Procedimento',
+      'teleconsulta': 'Teleconsulta',
+      'avaliacao': 'Avaliação'
+    };
+    return types[type] || type;
+  };
+
+  // Função para formatar modo de consulta
+  const formatConsultationMode = (mode: string): string => {
+    const modes: Record<string, string> = {
+      'presencial': 'Consultório Principal',
+      'telemedicina': 'Atendimento Online',
+      'hibrida': 'Híbrida'
+    };
+    return modes[mode] || mode;
+  };
 
   const handleOpenModal = () => setIsSyncOpen(true);
   const handleSyncGoogle = async () => {
@@ -149,69 +187,215 @@ const Appointments = () => {
       })
     : [];
 
-  // Manipular criação de novo agendamento
-  const handleCreateAppointment = (data: AppointmentFormValues) => {
-    const newAppointment: Appointment = {
-      id: uuidv4(),
-      patientName: data.patientName,
-      patientPhone: data.patientPhone,
-      appointmentDate: data.appointmentDate,
-      appointmentTime: data.appointmentTime,
-      appointmentDuration: data.appointmentDuration,
-      appointmentType: data.appointmentType || 'Consulta Geral',
-      appointmentReason: data.appointmentReason || '',
-      appointmentLocation: data.appointmentLocation
-    };
+  // Função para criar novo agendamento
+  const handleCreateAppointment = async (values: AppointmentFormValues) => {
+    try {
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (!currentUser.user) {
+        alert('Usuário não autenticado');
+        return;
+      }
 
-    setAppointments([...appointments, newAppointment]);
-    setIsFormOpen(false);
-    setSelectedDate(data.appointmentDate);
-    
-    // Exibir mensagem de sucesso
-    alert(`Agendamento criado com sucesso para ${data.patientName} em ${format(data.appointmentDate, 'dd/MM/yyyy')} às ${data.appointmentTime}`);
+      const appointmentData = {
+        doctor_id: currentUser.user.id,
+        patient_name: values.patientName,
+        patient_phone: values.patientPhone,
+        patient_email: values.patientEmail || null,
+        appointment_date: format(values.appointmentDate, 'yyyy-MM-dd'),
+        appointment_time: values.appointmentTime,
+        duration: parseInt(values.appointmentDuration.replace(' min', '')),
+        appointment_type: convertAppointmentType(values.appointmentType),
+        appointment_reason: values.appointmentReason,
+        location: values.appointmentLocation,
+        consultation_mode: values.appointmentLocation?.includes('Online') ? 'telemedicina' : 'presencial',
+        status: 'agendado'
+      };
+
+      const { data: newAppointment, error } = await supabase
+        .from('appointments')
+        .insert([appointmentData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao criar agendamento:', error);
+        alert('Erro ao criar agendamento. Tente novamente.');
+        return;
+      }
+
+      // Criar notificações de lembrete
+      try {
+        // Buscar informações do médico
+        const { data: doctorProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', currentUser.user.id)
+          .single();
+
+        const doctorName = doctorProfile?.full_name || 'Médico';
+
+        // Criar lembrete de consulta
+        await NotificationService.createAppointmentReminder(
+          currentUser.user.id,
+          newAppointment.id, // Usando o ID do agendamento como patientId temporariamente
+          newAppointment.id,
+          values.appointmentDate,
+          values.appointmentTime,
+          values.patientName,
+          doctorName
+        );
+
+        // Criar notificação de confirmação
+        await NotificationService.createAppointmentConfirmation(
+          currentUser.user.id,
+          newAppointment.id,
+          newAppointment.id,
+          values.appointmentDate,
+          values.appointmentTime,
+          values.patientName
+        );
+      } catch (notificationError) {
+        console.error('Erro ao criar notificações:', notificationError);
+        // Não bloquear o fluxo se as notificações falharem
+      }
+
+      await fetchAppointments();
+      setIsFormOpen(false);
+      alert('Agendamento criado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao criar agendamento:', error);
+      alert('Erro inesperado ao criar agendamento.');
+    }
   };
 
-  // Manipular edição de agendamento
+  // Função para atualizar agendamento
+  const handleUpdateAppointment = async (values: AppointmentFormValues) => {
+    if (!editingAppointment) return;
+
+    try {
+      const appointmentData = {
+        patient_name: values.patientName,
+        patient_phone: values.patientPhone,
+        patient_email: values.patientEmail || null,
+        appointment_date: format(values.appointmentDate, 'yyyy-MM-dd'),
+        appointment_time: values.appointmentTime,
+        duration: parseInt(values.appointmentDuration.replace(' min', '')),
+        appointment_type: convertAppointmentType(values.appointmentType),
+        appointment_reason: values.appointmentReason,
+        location: values.appointmentLocation,
+        consultation_mode: values.appointmentLocation?.includes('Online') ? 'telemedicina' : 'presencial'
+      };
+
+      const { error } = await supabase
+        .from('appointments')
+        .update(appointmentData)
+        .eq('id', editingAppointment.id);
+
+      if (error) {
+        console.error('Erro ao atualizar agendamento:', error);
+        alert('Erro ao atualizar agendamento. Tente novamente.');
+        return;
+      }
+
+      await fetchAppointments();
+      setIsFormOpen(false);
+      setEditingAppointment(null);
+      alert('Agendamento atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar agendamento:', error);
+      alert('Erro inesperado ao atualizar agendamento.');
+    }
+  };
+
+  // Função para deletar agendamento
+  const handleDeleteAppointment = async (appointmentId: string) => {
+    if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+      return;
+    }
+
+    try {
+      // Buscar dados do agendamento antes de cancelar
+      const { data: appointmentToDelete } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('id', appointmentId)
+        .single();
+
+      const { error } = await supabase
+        .from('appointments')
+        .update({ 
+          status: 'cancelado',
+          cancelled_by: 'doctor',
+          cancelled_at: new Date().toISOString()
+        })
+        .eq('id', appointmentId);
+
+      if (error) {
+        console.error('Erro ao cancelar agendamento:', error);
+        alert('Erro ao cancelar agendamento. Tente novamente.');
+        return;
+      }
+
+      // Criar notificação de cancelamento
+      if (appointmentToDelete) {
+        try {
+          const { data: currentUser } = await supabase.auth.getUser();
+          if (currentUser.user) {
+            const appointmentDate = new Date(`${appointmentToDelete.appointment_date}T${appointmentToDelete.appointment_time}`);
+            
+            await NotificationService.createAppointmentCancellation(
+              currentUser.user.id,
+              appointmentToDelete.id,
+              appointmentToDelete.id,
+              appointmentDate,
+              appointmentToDelete.appointment_time,
+              appointmentToDelete.patient_name
+            );
+          }
+        } catch (notificationError) {
+          console.error('Erro ao criar notificação de cancelamento:', notificationError);
+        }
+      }
+
+      await fetchAppointments();
+      alert('Agendamento cancelado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao cancelar agendamento:', error);
+      alert('Erro inesperado ao cancelar agendamento.');
+    }
+  };
+
+  // Função para editar agendamento
   const handleEditAppointment = (appointment: Appointment) => {
     setEditingAppointment(appointment);
     setIsFormOpen(true);
   };
 
-  // Manipular atualização de agendamento
-  const handleUpdateAppointment = (data: AppointmentFormValues) => {
-    if (!editingAppointment) return;
-
-    const updatedAppointments = appointments.map(app =>
-      app.id === editingAppointment.id ? {
-        ...app,
-        patientName: data.patientName,
-        patientPhone: data.patientPhone,
-        appointmentDate: data.appointmentDate,
-        appointmentTime: data.appointmentTime,
-        appointmentDuration: data.appointmentDuration,
-        appointmentType: data.appointmentType || 'Consulta Geral',
-        appointmentReason: data.appointmentReason || '',
-        appointmentLocation: data.appointmentLocation
-      } : app
-    );
-
-    setAppointments(updatedAppointments);
-    setIsFormOpen(false);
-    setEditingAppointment(null);
-  };
-
-  // Manipular exclusão de agendamento
-  const handleDeleteAppointment = (appointmentId: string) => {
-    if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
-      const updatedAppointments = appointments.filter(app => app.id !== appointmentId);
-      setAppointments(updatedAppointments);
-    }
-  };
-
-  // Fechar formulário e limpar estado de edição
+  // Função para fechar formulário
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingAppointment(null);
+  };
+
+  // Função para converter tipo de agendamento para o banco
+  const convertAppointmentType = (type: string): string => {
+    const types: Record<string, string> = {
+      'Consulta Geral': 'consulta_geral',
+      'Primeira Consulta': 'primeira_consulta',
+      'Retorno': 'retorno',
+      'Urgência': 'urgencia',
+      'Exame': 'exame',
+      'Procedimento': 'procedimento',
+      'Teleconsulta': 'teleconsulta',
+      'Avaliação': 'avaliacao'
+    };
+    return types[type] || 'consulta_geral';
+  };
+
+  // Função para abrir formulário de novo agendamento
+  const handleNewAppointment = () => {
+    setEditingAppointment(null);
+    setIsFormOpen(true);
   };
 
   return (
@@ -224,7 +408,7 @@ const Appointments = () => {
             <p className="text-muted-foreground">Gerencie consultas e integre com plataformas externas</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="medical" onClick={handleOpenModal}>
+            <Button variant="medical" onClick={handleNewAppointment}>
               <Plus className="mr-2 h-4 w-4" />
               Novo Agendamento
             </Button>

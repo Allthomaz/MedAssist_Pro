@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ConsultationDetail } from '@/components/consultations/ConsultationDetail';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Video, 
   Clock, 
@@ -17,43 +19,114 @@ import {
   VideoOff,
   Settings,
   FileText,
-  Brain
+  Brain,
+  Plus,
+  Eye
 } from 'lucide-react';
 
-const recentConsultations = [
-  {
-    id: 1,
-    patient: 'Maria Silva Santos',
-    date: '2024-01-15',
-    time: '14:30',
-    duration: '25 min',
-    status: 'completed',
-    documentGenerated: true,
-    type: 'Consulta Geral',
-  },
-  {
-    id: 2,
-    patient: 'João Carlos Oliveira',
-    date: '2024-01-15',
-    time: '15:00',
-    duration: '18 min',
-    status: 'pending_review',
-    documentGenerated: true,
-    type: 'Retorno',
-  },
-  {
-    id: 3,
-    patient: 'Ana Costa Lima',
-    date: '2024-01-14',
-    time: '16:30',
-    duration: '32 min',
-    status: 'in_progress',
-    documentGenerated: false,
-    type: 'Primeira Consulta',
-  },
-];
+interface Patient {
+  id: string;
+  full_name: string;
+  patient_number: string;
+}
+
+interface Consultation {
+  id: string;
+  patient_id: string;
+  consultation_date: string;
+  consultation_time: string;
+  consultation_type: string;
+  status: string;
+  has_recording: boolean;
+  document_generated: boolean;
+  actual_duration?: number;
+  patients?: Patient;
+}
 
 const Consultations = () => {
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedConsultation, setSelectedConsultation] = useState<string | null>(null);
+  const [showNewConsultation, setShowNewConsultation] = useState(false);
+
+  useEffect(() => {
+    fetchConsultations();
+  }, []);
+
+  const fetchConsultations = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('consultations')
+        .select(`
+          *,
+          patients (
+            id,
+            full_name,
+            patient_number
+          )
+        `)
+        .order('consultation_date', { ascending: false })
+        .order('consultation_time', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setConsultations(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar consultas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'agendada': 'Agendada',
+      'em_andamento': 'Em Andamento',
+      'finalizada': 'Finalizada',
+      'cancelada': 'Cancelada',
+      'nao_compareceu': 'Não Compareceu'
+    };
+    return statusMap[status] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colorMap: { [key: string]: string } = {
+      'agendada': 'bg-blue-100 text-blue-700 border-blue-200',
+      'em_andamento': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      'finalizada': 'bg-green-100 text-green-700 border-green-200',
+      'cancelada': 'bg-red-100 text-red-700 border-red-200',
+      'nao_compareceu': 'bg-gray-100 text-gray-700 border-gray-200'
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const formatDuration = (minutes?: number) => {
+    if (!minutes) return 'N/A';
+    return `${minutes} min`;
+  };
+
+  if (selectedConsultation) {
+    return (
+      <MedicalLayout>
+        <div className="space-y-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setSelectedConsultation(null)}
+            className="gap-2"
+          >
+            ← Voltar para Lista
+          </Button>
+          <ConsultationDetail consultationId={selectedConsultation} />
+        </div>
+      </MedicalLayout>
+    );
+  }
+
   return (
     <MedicalLayout>
       <div className="space-y-6">
@@ -65,8 +138,8 @@ const Consultations = () => {
               Gerencie consultas com gravação e automação de documentos
             </p>
           </div>
-          <Button variant="medical" className="gap-2">
-            <Video className="w-4 h-4" />
+          <Button variant="medical" className="gap-2" onClick={() => setShowNewConsultation(true)}>
+            <Plus className="w-4 h-4" />
             Nova Consulta
           </Button>
         </div>
@@ -140,65 +213,83 @@ const Consultations = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentConsultations.map((consultation) => (
-              <div key={consultation.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
-                      {consultation.patient.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-medium text-foreground">{consultation.patient}</h4>
-                      <Badge variant="outline">{consultation.type}</Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(consultation.date).toLocaleDateString('pt-BR')} às {consultation.time}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {consultation.duration}
-                      </span>
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
+                <span className="ml-2 text-muted-foreground">Carregando consultas...</span>
+              </div>
+            ) : consultations.length === 0 ? (
+              <div className="text-center p-8">
+                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">Nenhuma consulta encontrada</p>
+                <Button variant="medical" onClick={() => setShowNewConsultation(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agendar Primeira Consulta
+                </Button>
+              </div>
+            ) : (
+              consultations.map((consultation) => (
+                <div key={consultation.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-10 h-10">
+                      <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
+                        {consultation.patients?.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'P'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-3">
+                        <h4 className="font-medium text-foreground">
+                          {consultation.patients?.full_name || 'Paciente não encontrado'}
+                        </h4>
+                        <Badge variant="outline">
+                          {consultation.consultation_type.replace('_', ' ').toUpperCase()}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {formatDate(consultation.consultation_date)} às {consultation.consultation_time}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {formatDuration(consultation.actual_duration)}
+                        </span>
+                        {consultation.has_recording && (
+                          <span className="flex items-center gap-1 text-purple-600">
+                            <Mic className="w-4 h-4" />
+                            Gravação
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Badge 
-                    variant="outline"
-                    className={
-                      consultation.status === 'completed' 
-                        ? 'bg-medical-success/10 text-medical-success border-medical-success/20'
-                        : consultation.status === 'pending_review'
-                        ? 'bg-orange-100 text-orange-700 border-orange-200'
-                        : 'bg-medical-blue/10 text-medical-blue border-medical-blue/20'
-                    }
-                  >
-                    {consultation.status === 'completed' && 'Concluída'}
-                    {consultation.status === 'pending_review' && 'Aguardando Revisão'}
-                    {consultation.status === 'in_progress' && 'Em Andamento'}
-                  </Badge>
                   
-                  {consultation.documentGenerated && (
-                    <Button variant="medical-outline" size="sm" className="gap-2">
-                      <FileText className="w-4 h-4" />
-                      Ver Documento
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className={getStatusColor(consultation.status)}>
+                      {getStatusLabel(consultation.status)}
+                    </Badge>
+                    
+                    {consultation.document_generated && (
+                      <Button variant="medical-outline" size="sm" className="gap-2">
+                        <FileText className="w-4 h-4" />
+                        Ver Documento
+                      </Button>
+                    )}
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-2"
+                      onClick={() => setSelectedConsultation(consultation.id)}
+                    >
+                      <Eye className="w-4 h-4" />
+                      Ver Detalhes
                     </Button>
-                  )}
-                  
-                  {consultation.status === 'pending_review' && (
-                    <Button variant="medical" size="sm" className="gap-2">
-                      <Brain className="w-4 h-4" />
-                      Revisar IA
-                    </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 

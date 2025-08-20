@@ -75,36 +75,38 @@ export function RecentActivity() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="h-fit">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Clock className="w-5 h-5 text-medical-blue" />
           Atividade Recente
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 pt-0">
         {recentActivities.map((activity) => (
-          <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors">
-            <Avatar className="w-8 h-8 flex-shrink-0">
-              <AvatarFallback className="bg-medical-blue/10">
+          <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/30 transition-all duration-200 border border-transparent hover:border-border/50">
+            <Avatar className="w-9 h-9 flex-shrink-0 mt-0.5">
+              <AvatarFallback className="bg-medical-blue/10 border border-medical-blue/20">
                 <activity.icon className="w-4 h-4 text-medical-blue" />
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex-1 min-w-0 space-y-1">
-              <p className="text-sm font-medium text-foreground">
-                {activity.title}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {activity.time}
-              </p>
-              <p className="text-xs text-muted-foreground">
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-semibold text-foreground leading-tight">
+                  {activity.title}
+                </p>
+                <p className="text-xs text-muted-foreground whitespace-nowrap">
+                  {activity.time}
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {activity.description}
               </p>
-              <div className="mt-2">
+              <div className="pt-1">
                 <Badge 
                   variant="outline" 
-                  className={`${getStatusColor(activity.status)} text-xs`}
+                  className={`${getStatusColor(activity.status)} text-xs font-medium`}
                 >
                   {getStatusText(activity.status)}
                 </Badge>

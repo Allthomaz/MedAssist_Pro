@@ -6,11 +6,11 @@ BEGIN
         CREATE TABLE public.patients (
             id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
             doctor_id UUID NOT NULL,
-            profile_id UUID NOT NULL,
+            profile_id UUID, -- Nullable para permitir pacientes sem conta no sistema
             patient_number TEXT,
             full_name TEXT NOT NULL,
             birth_date DATE NOT NULL,
-            gender TEXT NOT NULL CHECK (gender IN ('masculino', 'feminino', 'outro', 'preferir_nao_informar')),
+            gender TEXT NOT NULL CHECK (gender IN ('male', 'female', 'other')),
             cpf TEXT,
             rg TEXT,
             marital_status TEXT,
@@ -58,10 +58,7 @@ BEGIN
         CREATE POLICY "Doctors can insert patients" 
         ON public.patients 
         FOR INSERT 
-        WITH CHECK ((doctor_id = auth.uid()) AND (EXISTS (
-            SELECT 1 FROM profiles 
-            WHERE profiles.id = auth.uid() AND profiles.role = 'doctor'
-        )));
+        WITH CHECK (doctor_id = auth.uid());
 
         CREATE POLICY "Doctors can update their patients" 
         ON public.patients 
