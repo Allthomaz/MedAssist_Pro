@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS public.patients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   doctor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   
   -- Informações pessoais detalhadas
