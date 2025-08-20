@@ -5,8 +5,8 @@ BEGIN
         -- Criar tabela patients se não existir
         CREATE TABLE public.patients (
             id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-            doctor_id UUID NOT NULL,
-            profile_id UUID, -- Nullable para permitir pacientes sem conta no sistema
+            doctor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+            profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- Nullable para permitir pacientes sem conta no sistema
             patient_number TEXT,
             full_name TEXT NOT NULL,
             birth_date DATE NOT NULL,
