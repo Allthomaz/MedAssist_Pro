@@ -122,9 +122,8 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
       }
       
       // Criar registro do paciente sem profile_id (paciente sem conta no sistema)
-      const patientData: PatientInsert = {
+      const patientData: Omit<PatientInsert, 'profile_id'> & { profile_id?: string | null } = {
         doctor_id: user.user.id,
-        profile_id: null, // Paciente sem conta no sistema
         full_name: data.full_name,
         birth_date: format(data.birth_date, 'yyyy-MM-dd'),
         gender: data.gender,
@@ -135,6 +134,8 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
         notes: data.chief_complaint || null,
         status: 'active',
       };
+      
+      // Não incluir profile_id para pacientes sem conta no sistema
 
       const { data: patient, error } = await supabase
         .from('patients')
