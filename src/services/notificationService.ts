@@ -199,7 +199,23 @@ export class NotificationService {
     try {
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select(`
+          id,
+          user_id,
+          type,
+          title,
+          message,
+          status,
+          priority,
+          channel,
+          delivery_status,
+          created_at,
+          read_at,
+          appointment_id,
+          consultation_id,
+          document_id,
+          patient_id
+        `)
         .eq('user_id', userId)
         .neq('status', 'deleted')
         .order('created_at', { ascending: false })

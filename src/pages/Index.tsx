@@ -5,8 +5,11 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { Users, Video, FileText, Clock, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useProfile } from '@/hooks/useProfile';
 
 const Index = () => {
+  const { fullDisplayName, professionName } = useProfile();
+
   return (
     <MedicalLayout>
       <div className="flex flex-col gap-6">
@@ -15,7 +18,10 @@ const Index = () => {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground text-base">
-              Bem-vindo de volta, Dr. Ricardo.
+              Bem-vindo de volta, {fullDisplayName}.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {professionName}
             </p>
           </div>
           <Button className="medical-gradient medical-glow text-white shadow-lg hover:shadow-xl transition-all duration-200 w-fit">

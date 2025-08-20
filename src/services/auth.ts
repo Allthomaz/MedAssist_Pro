@@ -1,27 +1,44 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 
-export type UserRole = "doctor" | "patient";
+export type UserProfession = "medico" | "psicologo" | "terapeuta";
 
 export interface SignUpPayload {
   email: string;
   password: string;
   fullName: string;
-  role: UserRole;
+  profession: UserProfession;
 }
 
 export const authService = {
-  // Sign up and attach metadata. Supabase will send a confirmation email if configured.
-  async signUp({ email, password, fullName, role }: SignUpPayload) {
+  // Sign up and create profile in profiles table
+  async signUp({ email, password, fullName, profession }: SignUpPayload) {
     const redirectUrl = `${window.location.origin}/auth`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { full_name: fullName, role },
+        data: { full_name: fullName, profession },
       },
     });
+    
+    // If signup successful, create profile
+    if (data.user && !error) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          full_name: fullName,
+          role: profession,
+          email: email
+        });
+      
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+      }
+    }
+    
     return { user: data.user, session: data.session, error };
   },
 

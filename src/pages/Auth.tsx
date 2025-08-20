@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -26,7 +26,7 @@ const signInSchema = z.object({
 const signUpSchema = z
   .object({
     fullName: z.string().min(2, "Informe seu nome completo"),
-    role: z.enum(["doctor", "patient"], { required_error: "Selecione um perfil" }),
+    profession: z.enum(["medico", "psicologo", "terapeuta"], { required_error: "Selecione sua profissão" }),
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string(),
@@ -108,12 +108,12 @@ export const AuthPage: React.FC = () => {
   // Sign Up form
   const signUpForm = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: "", role: "doctor", email: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", profession: "medico", email: "", password: "", confirmPassword: "" },
   });
 
   const onSignUp = async (values: z.infer<typeof signUpSchema>) => {
     if (!acquire()) return;
-    const { error } = await signUp(values.email, values.password, values.fullName, values.role);
+    const { error } = await signUp(values.email, values.password, values.fullName, values.profession);
     if (error) {
       toast.error("Não foi possível criar a conta. Tente novamente.");
       return;
@@ -148,11 +148,13 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Acesso seguro</CardTitle>
-          <CardDescription>Entre, crie sua conta ou recupere o acesso</CardDescription>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
+      <Card className="w-full max-w-md shadow-lg border-blue-200">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-blue-900">Acesso Profissional</CardTitle>
+          <CardDescription className="text-blue-700">
+            Plataforma exclusiva para profissionais da saúde
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
@@ -195,7 +197,7 @@ export const AuthPage: React.FC = () => {
 
                   <div className="flex items-center justify-between">
                     <Button type="button" variant="ghost" onClick={() => setTab("forgot")}>Esqueci a senha</Button>
-                    <Button type="submit" disabled={locked}>Entrar</Button>
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={locked}>Entrar</Button>
                   </div>
 
                   <div className="text-xs text-muted-foreground text-right">
@@ -222,17 +224,28 @@ export const AuthPage: React.FC = () => {
                     )}
                   />
 
-                  <div className="space-y-1">
-                    <Label htmlFor="role">Perfil</Label>
-                    <select
-                      id="role"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      {...signUpForm.register("role")}
-                    >
-                      <option value="doctor">Médico(a)</option>
-                      <option value="patient">Paciente</option>
-                    </select>
-                  </div>
+                  <FormField
+                    control={signUpForm.control}
+                    name="profession"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Profissão</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione sua profissão" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="medico">Médico</SelectItem>
+                            <SelectItem value="psicologo">Psicólogo</SelectItem>
+                            <SelectItem value="terapeuta">Terapeuta</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={signUpForm.control}
@@ -276,7 +289,7 @@ export const AuthPage: React.FC = () => {
                     )}
                   />
 
-                  <Button type="submit" className="w-full" disabled={locked}>Criar conta</Button>
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={locked}>Criar conta</Button>
 
                   <p className="text-xs text-muted-foreground text-center">
                     Ao continuar, você concorda com nossos termos de uso e política de privacidade.
@@ -301,7 +314,7 @@ export const AuthPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={locked}>Enviar link de redefinição</Button>
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={locked}>Enviar link de redefinição</Button>
                 </form>
               </Form>
             </TabsContent>

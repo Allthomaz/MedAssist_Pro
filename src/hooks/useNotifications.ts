@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { NotificationService } from '@/services/notificationService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface Notification {
   id: string;
   user_id: string;
-  notification_type: string;
+  type: string;
   title: string;
-  content: string;
+  message: string;
   status: 'unread' | 'read';
-  priority: 'low' | 'medium' | 'high';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   channel: 'in_app' | 'email' | 'sms';
-  delivery_status: 'pending' | 'sent' | 'failed';
+  delivery_status?: 'pending' | 'sent' | 'failed';
   created_at: string;
   read_at?: string;
   appointment_id?: string;

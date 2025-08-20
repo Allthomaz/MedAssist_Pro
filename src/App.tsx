@@ -26,7 +26,14 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/reset" element={<ResetPassword />} />
-            <Route path="/" element={<Index />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/patients"
               element={
