@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { PatientForm } from '@/components/patients/PatientForm';
 import { 
   Search, 
   Plus, 
@@ -53,6 +54,22 @@ const patients = [
 ];
 
 const Patients = () => {
+  const [showPatientForm, setShowPatientForm] = useState(false);
+
+  if (showPatientForm) {
+    return (
+      <MedicalLayout>
+        <PatientForm
+          onSuccess={() => {
+            setShowPatientForm(false);
+            // Aqui você pode adicionar lógica para recarregar a lista de pacientes
+          }}
+          onCancel={() => setShowPatientForm(false)}
+        />
+      </MedicalLayout>
+    );
+  }
+
   return (
     <MedicalLayout>
       <div className="space-y-6">
@@ -64,7 +81,11 @@ const Patients = () => {
               Gerencie o cadastro e histórico dos seus pacientes
             </p>
           </div>
-          <Button variant="medical" className="gap-2">
+          <Button 
+            variant="medical" 
+            className="gap-2"
+            onClick={() => setShowPatientForm(true)}
+          >
             <Plus className="w-4 h-4" />
             Novo Paciente
           </Button>
