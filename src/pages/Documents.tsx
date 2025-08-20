@@ -9,36 +9,91 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useToast } from "@/hooks/use-toast";
 import { DocumentGenerator } from "@/components/documents/DocumentGenerator";
-import { Calendar, FileText, Microscope, Paperclip, Plus, Search, Upload, User, Mic, StopCircle, Brain } from "lucide-react";
+import { Calendar, FileText, Microscope, Paperclip, Plus, Search, Upload, User, Mic, StopCircle, Brain, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/types/database.types";
 
-// Mock patients (replace with Supabase later)
-const mockPatients = [
-  { id: "p1", name: "Maria Silva Santos", email: "maria.silva@email.com" },
-  { id: "p2", name: "João Carlos Oliveira", email: "joao.oliveira@email.com" },
-  { id: "p3", name: "Ana Costa Lima", email: "ana.costa@email.com" },
-];
-
-// Mock documents (replace with Supabase later)
-// type: prontuario | relatorio | exame | anexo
-const mockDocuments = [
-  { id: "d1", patientId: "p1", type: "prontuario", title: "Evolução Clínica", date: "2024-01-15", status: "final" },
-  { id: "d2", patientId: "p1", type: "relatorio", title: "Laudo de Ultrassom", date: "2024-01-12", status: "rascunho" },
-  { id: "d3", patientId: "p1", type: "exame", title: "Hemograma Completo", date: "2024-01-10", status: "final" },
-  { id: "d4", patientId: "p2", type: "anexo", title: "Anexo – RX Tórax.pdf", date: "2024-01-08", status: "final" },
-  { id: "d5", patientId: "p3", type: "relatorio", title: "Relatório de Retorno", date: "2024-01-05", status: "final" },
-];
+type Patient = Database['public']['tables']['patients']['Row'];
+type Document = Database['public']['tables']['documents']['Row'];
 
 const Documents: React.FC = () => {
   const { toast } = useToast();
   const [openPatientDialog, setOpenPatientDialog] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<typeof mockPatients[number] | null>(mockPatients[0]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [recording, setRecording] = useState(false);
+
+  // Fetch patients from Supabase
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('status', 'active')
+          .order('full_name');
+        
+        if (error) throw error;
+        
+        setPatients(data || []);
+        if (data && data.length > 0) {
+          setSelectedPatient(data[0]);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar pacientes:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os pacientes.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    fetchPatients();
+  }, [toast]);
+
+  // Fetch documents when patient changes
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!selectedPatient) {
+        setDocuments([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('documents')
+          .select('*')
+          .eq('patient_id', selectedPatient.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        setDocuments(data || []);
+      } catch (error) {
+        console.error('Erro ao carregar documentos:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os documentos.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, [selectedPatient, toast]);
 
   useEffect(() => {
     // SEO basics per page
     document.title = selectedPatient
-      ? `Prontuário • ${selectedPatient.name} | MedAssist Pro`
+      ? `Prontuário • ${selectedPatient.full_name} | MedAssist Pro`
       : "Prontuário | MedAssist Pro";
     const desc = "Prontuário do paciente com relatórios, exames e anexos.";
     let meta = document.querySelector('meta[name="description"]');
@@ -59,18 +114,23 @@ const Documents: React.FC = () => {
     link.setAttribute("href", `${window.location.origin}/documents`);
   }, [selectedPatient]);
 
-  const patientDocuments = useMemo(() => {
-    const docs = mockDocuments.filter((d) => d.patientId === selectedPatient?.id);
-    if (!query) return docs;
-    return docs.filter((d) => d.title.toLowerCase().includes(query.toLowerCase()));
-  }, [selectedPatient, query]);
+  const filteredDocuments = useMemo(() => {
+    if (!selectedPatient || !documents) return [];
+    return documents.filter(doc => 
+      query === "" || 
+      doc.title.toLowerCase().includes(query.toLowerCase()) ||
+      (doc.description && doc.description.toLowerCase().includes(query.toLowerCase()))
+    );
+  }, [documents, query, selectedPatient]);
 
-  const docsByType = useMemo(() => ({
-    prontuario: patientDocuments.filter((d) => d.type === "prontuario"),
-    relatorio: patientDocuments.filter((d) => d.type === "relatorio"),
-    exame: patientDocuments.filter((d) => d.type === "exame"),
-    anexo: patientDocuments.filter((d) => d.type === "anexo"),
-  }), [patientDocuments]);
+  const docsByType = useMemo(() => {
+    return {
+      prontuario: filteredDocuments.filter(d => d.document_type === "prontuario"),
+      relatorio: filteredDocuments.filter(d => d.document_type === "relatorio"),
+      exame: filteredDocuments.filter(d => d.document_type === "exame"),
+      anexo: filteredDocuments.filter(d => d.document_type === "anexo"),
+    };
+  }, [filteredDocuments]);
 
   const handleNewReport = () => {
     toast({ title: "Novo Laudo", description: "Abriremos o editor de laudos em breve (mock)." });
@@ -90,51 +150,73 @@ const Documents: React.FC = () => {
     });
   };
 
-  const renderTable = (items: typeof mockDocuments) => (
-    <Card>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Título</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[160px]">Data</TableHead>
-              <TableHead className="w-[200px]">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length === 0 && (
+  const renderTable = (docs: Document[]) => {
+    if (loading) {
+      return (
+        <Card>
+          <CardContent className="p-8">
+            <div className="text-center">
+              <Loader2 className="mx-auto h-8 w-8 animate-spin mb-4" />
+              <p className="text-muted-foreground">Carregando documentos...</p>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                  Nenhum documento encontrado.
-                </TableCell>
+                <TableHead>Título</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[160px]">Data</TableHead>
+                <TableHead className="w-[200px]">Ações</TableHead>
               </TableRow>
-            )}
-            {items.map((doc) => (
-              <TableRow key={doc.id}>
-                <TableCell className="font-medium">{doc.title}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={doc.status === "final" ? "border-green-500/30 text-green-600" : "border-yellow-500/30 text-yellow-600"}>
-                    {doc.status === "final" ? "Final" : "Rascunho"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {new Date(doc.date).toLocaleDateString("pt-BR")}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="medical-outline">Visualizar</Button>
-                    <Button size="sm" variant="outline">Editar</Button>
-                    <Button size="sm" variant="ghost">Excluir</Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
+            </TableHeader>
+            <TableBody>
+              {docs.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    Nenhum documento encontrado.
+                  </TableCell>
+                </TableRow>
+              )}
+              {docs.map((doc) => (
+                <TableRow key={doc.id}>
+                  <TableCell className="font-medium">
+                    <div>
+                      <div>{doc.title}</div>
+                      {doc.description && (
+                        <div className="text-sm text-muted-foreground">{doc.description}</div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={doc.status === "final" ? "border-green-500/30 text-green-600" : "border-yellow-500/30 text-yellow-600"}>
+                      {doc.status === "final" ? "Final" : doc.status === "draft" ? "Rascunho" : doc.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(doc.created_at).toLocaleDateString("pt-BR")}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="medical-outline">Visualizar</Button>
+                      <Button size="sm" variant="outline">Editar</Button>
+                      <Button size="sm" variant="ghost">Excluir</Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <MedicalLayout>
@@ -148,7 +230,7 @@ const Documents: React.FC = () => {
           <div className="flex items-center gap-2">
             <Button variant="outline" className="gap-2" onClick={() => setOpenPatientDialog(true)}>
               <User className="w-4 h-4" />
-              {selectedPatient ? selectedPatient.name : "Selecionar paciente"}
+              {selectedPatient ? selectedPatient.full_name : "Selecionar paciente"}
             </Button>
             <Button variant="medical" className="gap-2" onClick={handleNewReport}>
               <Plus className="w-4 h-4" />
@@ -224,22 +306,7 @@ const Documents: React.FC = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Supabase notice */}
-        <Card className="bg-accent/50 border-medical-blue/20">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-medical-blue/10">
-                <Upload className="w-5 h-5 text-medical-blue" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Conecte ao Supabase para dados reais</h3>
-                <p className="text-sm text-muted-foreground">
-                  Documentos e uploads serão salvos no banco e no Storage do Supabase com segurança. Esta página usa dados de exemplo por enquanto.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
 
       {/* Patient selector */}
@@ -248,10 +315,10 @@ const Documents: React.FC = () => {
         <CommandList>
           <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
           <CommandGroup heading="Pacientes">
-            {mockPatients.map((p) => (
+            {patients.map((p) => (
               <CommandItem
                 key={p.id}
-                value={`${p.name} ${p.email}`}
+                value={`${p.full_name} ${p.email}`}
                 onSelect={() => {
                   setSelectedPatient(p);
                   setOpenPatientDialog(false);
@@ -259,7 +326,7 @@ const Documents: React.FC = () => {
               >
                 <User className="mr-2 h-4 w-4" />
                 <div className="flex flex-col">
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-medium">{p.full_name}</span>
                   <span className="text-xs text-muted-foreground">{p.email}</span>
                 </div>
               </CommandItem>

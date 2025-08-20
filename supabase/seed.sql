@@ -9,11 +9,22 @@
 -- através do sistema de autenticação. Os dados abaixo são exemplos de como inserir pacientes
 -- após a criação dos perfis.
 
--- Exemplo de inserção de pacientes (descomente após criar os perfis correspondentes):
--- INSERT INTO public.patients (profile_id, doctor_id, full_name, birth_date, gender, cpf, phone, email, address, city, state, zip_code, emergency_contact_name, emergency_contact_phone, blood_type, allergies, current_medications, insurance_company, insurance_number, status) VALUES
---   ('PROFILE_ID_1', 'DOCTOR_ID_1', 'Ana Costa', '1985-03-15', 'female', '123.456.789-01', '(11) 88888-1111', 'ana.costa@email.com', 'Rua A, 100', 'São Paulo', 'SP', '01234-567', 'Carlos Costa', '(11) 77777-1111', 'A+', ARRAY['Penicilina', 'Frutos do mar'], ARRAY['Losartana 50mg'], 'Unimed', '123456789', 'active'),
---   ('PROFILE_ID_2', 'DOCTOR_ID_1', 'Roberto Lima', '1978-07-22', 'male', '987.654.321-02', '(11) 88888-2222', 'roberto.lima@email.com', 'Av. B, 200', 'São Paulo', 'SP', '02345-678', 'Lucia Lima', '(11) 77777-2222', 'O-', ARRAY['Dipirona'], ARRAY['Metformina 850mg', 'Sinvastatina 20mg'], 'Bradesco Saúde', '987654321', 'active')
--- ON CONFLICT (profile_id) DO NOTHING;
+-- Inserir pacientes de exemplo
+DO $$
+DECLARE
+    user_id_var UUID;
+BEGIN
+    -- Pegar o primeiro usuário existente
+    SELECT id INTO user_id_var FROM auth.users LIMIT 1;
+    
+    IF user_id_var IS NOT NULL THEN
+        INSERT INTO public.patients (profile_id, full_name, birth_date, gender, cpf, phone, email, address, city, state, zip_code, emergency_contact_name, emergency_contact_phone, blood_type, allergies, current_medications, insurance_company, insurance_number, status) VALUES
+            (user_id_var, 'Ana Costa Silva', '1985-03-15', 'female', '123.456.789-01', '(11) 98888-1111', 'ana.costa@email.com', 'Rua das Flores, 100', 'São Paulo', 'SP', '01234-567', 'Carlos Costa', '(11) 97777-1111', 'A+', ARRAY['Penicilina', 'Frutos do mar'], ARRAY['Losartana 50mg'], 'Unimed', '123456789', 'active'),
+            (user_id_var, 'Roberto Lima Santos', '1978-07-22', 'male', '987.654.321-02', '(11) 98888-2222', 'roberto.lima@email.com', 'Av. Paulista, 200', 'São Paulo', 'SP', '02345-678', 'Lucia Lima', '(11) 97777-2222', 'O-', ARRAY['Dipirona'], ARRAY['Metformina 850mg', 'Sinvastatina 20mg'], 'Bradesco Saúde', '987654321', 'active'),
+            (user_id_var, 'Maria Oliveira', '1990-12-10', 'female', '456.789.123-03', '(11) 98888-3333', 'maria.oliveira@email.com', 'Rua Augusta, 300', 'São Paulo', 'SP', '03456-789', 'João Oliveira', '(11) 97777-3333', 'B+', ARRAY['Lactose'], ARRAY['Anticoncepcional'], 'SulAmérica', '456789123', 'active')
+        ON CONFLICT (profile_id, cpf) DO NOTHING;
+    END IF;
+END $$;
 
 -- Exemplo de horários de funcionamento dos médicos (descomente após criar os perfis correspondentes):
 -- INSERT INTO public.doctor_schedules (doctor_id, day_of_week, start_time, end_time, default_duration, break_duration, is_active) VALUES
@@ -26,19 +37,44 @@
 --   ('DOCTOR_ID_3', 1, '07:30', '11:30', 40, 10, true) -- Segunda manhã
 -- ON CONFLICT DO NOTHING;
 
--- Exemplo de agendamentos (descomente após criar os perfis correspondentes):
--- INSERT INTO public.appointments (doctor_id, patient_id, appointment_date, appointment_time, duration, appointment_type, status, patient_name, patient_phone, patient_email, appointment_reason, consultation_mode) VALUES
---   ('DOCTOR_ID_1', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_1'), CURRENT_DATE + INTERVAL '1 day', '09:00', 30, 'retorno', 'agendado', 'Ana Costa', '(11) 88888-1111', 'ana.costa@email.com', 'Consulta de retorno cardiológica', 'presencial'),
---   ('DOCTOR_ID_1', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_2'), CURRENT_DATE + INTERVAL '2 days', '10:00', 30, 'consulta_geral', 'confirmado', 'Roberto Lima', '(11) 88888-2222', 'roberto.lima@email.com', 'Avaliação cardiológica de rotina', 'presencial'),
---   ('DOCTOR_ID_2', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_3'), CURRENT_DATE + INTERVAL '3 days', '15:30', 45, 'primeira_consulta', 'agendado', 'Carla Mendes', '(11) 88888-3333', 'carla.mendes@email.com', 'Primeira consulta dermatológica', 'presencial')
--- ON CONFLICT DO NOTHING;
+-- Inserir agendamentos de exemplo
+DO $$
+DECLARE
+    user_id_var UUID;
+    patient_id_var UUID;
+BEGIN
+    -- Pegar o primeiro usuário e paciente
+    SELECT id INTO user_id_var FROM auth.users LIMIT 1;
+    SELECT id INTO patient_id_var FROM public.patients LIMIT 1;
+    
+    IF user_id_var IS NOT NULL AND patient_id_var IS NOT NULL THEN
+        INSERT INTO public.appointments (doctor_id, patient_id, appointment_date, appointment_time, duration, appointment_type, status, patient_name, patient_phone, patient_email, appointment_reason, consultation_mode) VALUES
+            (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '1 day', '09:00', 30, 'retorno', 'agendado', 'Ana Costa Silva', '(11) 98888-1111', 'ana.costa@email.com', 'Consulta de retorno cardiológica', 'presencial'),
+            (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '2 days', '10:00', 30, 'consulta_geral', 'confirmado', 'Roberto Lima Santos', '(11) 98888-2222', 'roberto.lima@email.com', 'Avaliação cardiológica de rotina', 'presencial'),
+            (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '3 days', '15:30', 45, 'primeira_consulta', 'agendado', 'Maria Oliveira', '(11) 98888-3333', 'maria.oliveira@email.com', 'Primeira consulta clínica geral', 'presencial'),
+            (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '7 days', '14:00', 30, 'rotina', 'agendado', 'Ana Costa Silva', '(11) 98888-1111', 'ana.costa@email.com', 'Consulta de rotina', 'telemedicina')
+        ON CONFLICT DO NOTHING;
+    END IF;
+END $$;
 
--- Exemplo de consultas (descomente após criar os perfis correspondentes):
--- INSERT INTO public.consultations (doctor_id, patient_id, consultation_date, consultation_time, scheduled_duration, consultation_type, status, chief_complaint, consultation_mode, location) VALUES
---   ('DOCTOR_ID_1', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_1'), CURRENT_DATE - INTERVAL '7 days', '09:00', 35, 'retorno', 'finalizada', 'Dor no peito e falta de ar', 'presencial', 'Consultório 1'),
---   ('DOCTOR_ID_2', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_2'), CURRENT_DATE - INTERVAL '14 days', '10:30', 50, 'primeira_consulta', 'finalizada', 'Manchas na pele', 'presencial', 'Consultório 2'),
---   ('DOCTOR_ID_3', (SELECT id FROM public.patients WHERE profile_id = 'PATIENT_PROFILE_ID_3'), CURRENT_DATE - INTERVAL '21 days', '15:00', 45, 'rotina', 'finalizada', 'Dor no joelho direito', 'presencial', 'Consultório 3')
--- ON CONFLICT DO NOTHING;
+-- Inserir consultas de exemplo
+DO $$
+DECLARE
+    user_id_var UUID;
+    patient_id_var UUID;
+BEGIN
+    -- Pegar o primeiro usuário e paciente
+    SELECT id INTO user_id_var FROM auth.users LIMIT 1;
+    SELECT id INTO patient_id_var FROM public.patients LIMIT 1;
+    
+    IF user_id_var IS NOT NULL AND patient_id_var IS NOT NULL THEN
+        INSERT INTO public.consultations (doctor_id, patient_id, consultation_date, consultation_time, scheduled_duration, consultation_type, status, chief_complaint, consultation_mode, location, clinical_notes, diagnosis, treatment_plan) VALUES
+            (user_id_var, patient_id_var, CURRENT_DATE - INTERVAL '7 days', '09:00', 35, 'retorno', 'finalizada', 'Dor no peito e falta de ar', 'presencial', 'Consultório 1', 'Paciente relata dor precordial aos esforços. Exame físico normal. ECG sem alterações.', 'Dor torácica atípica', 'Orientações sobre estilo de vida. Retorno em 30 dias.'),
+            (user_id_var, patient_id_var, CURRENT_DATE - INTERVAL '14 days', '10:30', 50, 'primeira_consulta', 'finalizada', 'Consulta de rotina', 'presencial', 'Consultório 1', 'Paciente assintomático. Exames laboratoriais dentro da normalidade.', 'Paciente hígido', 'Manter acompanhamento anual.'),
+            (user_id_var, patient_id_var, CURRENT_DATE - INTERVAL '21 days', '15:00', 45, 'rotina', 'finalizada', 'Acompanhamento diabetes', 'presencial', 'Consultório 1', 'Glicemia controlada. HbA1c 6.8%. Paciente aderente ao tratamento.', 'Diabetes mellitus tipo 2 controlado', 'Manter medicação atual. Retorno em 3 meses.')
+        ON CONFLICT DO NOTHING;
+    END IF;
+END $$;
 
 -- Exemplo de templates de documentos (descomente após criar os perfis correspondentes):
 -- INSERT INTO public.document_templates (name, description, category, document_type, doctor_id, template_structure, is_public, is_active) VALUES

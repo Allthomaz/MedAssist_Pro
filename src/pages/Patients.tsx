@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PatientForm } from '@/components/patients/PatientForm';
+import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/types/database.types';
 import { 
   Search, 
   Plus, 
@@ -14,47 +16,62 @@ import {
   Calendar, 
   MapPin,
   MoreVertical,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 
-const patients = [
-  {
-    id: 1,
-    name: 'Maria Silva Santos',
-    email: 'maria.silva@email.com',
-    phone: '(11) 99999-9999',
-    age: 34,
-    lastVisit: '2024-01-15',
-    status: 'active',
-    consultations: 12,
-    nextAppointment: '2024-01-22',
-  },
-  {
-    id: 2,
-    name: 'João Carlos Oliveira',
-    email: 'joao.oliveira@email.com',
-    phone: '(11) 88888-8888',
-    age: 45,
-    lastVisit: '2024-01-10',
-    status: 'active',
-    consultations: 8,
-    nextAppointment: null,
-  },
-  {
-    id: 3,
-    name: 'Ana Costa Lima',
-    email: 'ana.costa@email.com',
-    phone: '(11) 77777-7777',
-    age: 28,
-    lastVisit: '2024-01-08',
-    status: 'pending',
-    consultations: 3,
-    nextAppointment: '2024-01-20',
-  },
-];
+type Patient = Database['public']['Tables']['patients']['Row'];
+
+// Dados serão carregados do Supabase
 
 const Patients = () => {
   const [showPatientForm, setShowPatientForm] = useState(false);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const loadPatients = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao carregar pacientes:', error);
+        return;
+      }
+
+      setPatients(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar pacientes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPatients();
+  }, []);
+
+  const calculateAge = (birthDate: string) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const filteredPatients = patients.filter(patient =>
+    patient.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (patient.phone && patient.phone.includes(searchTerm)) ||
+    (patient.mobile_phone && patient.mobile_phone.includes(searchTerm))
+  );
 
   if (showPatientForm) {
     return (
@@ -62,7 +79,7 @@ const Patients = () => {
         <PatientForm
           onSuccess={() => {
             setShowPatientForm(false);
-            // Aqui você pode adicionar lógica para recarregar a lista de pacientes
+            loadPatients(); // Recarrega a lista de pacientes
           }}
           onCancel={() => setShowPatientForm(false)}
         />
@@ -100,6 +117,8 @@ const Patients = () => {
                 <Input
                   placeholder="Buscar pacientes por nome, email ou telefone..."
                   className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <Button variant="outline" className="gap-2">
@@ -112,54 +131,73 @@ const Patients = () => {
 
         {/* Patients List */}
         <div className="grid gap-4">
-          {patients.map((patient) => (
+          {loading ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Carregando pacientes...</span>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredPatients.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center text-muted-foreground">
+                  {searchTerm ? 'Nenhum paciente encontrado com os critérios de busca.' : 'Nenhum paciente cadastrado ainda.'}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredPatients.map((patient) => (
             <Card key={patient.id} className="medical-card-hover">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
                     <Avatar className="w-12 h-12">
                       <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
-                        {patient.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                        {patient.full_name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                       </AvatarFallback>
                     </Avatar>
                     
                     <div className="space-y-2">
                       <div>
-                        <h3 className="text-lg font-semibold text-foreground">{patient.name}</h3>
-                        <p className="text-sm text-muted-foreground">{patient.age} anos</p>
+                        <h3 className="text-lg font-semibold text-foreground">{patient.full_name}</h3>
+                        <p className="text-sm text-muted-foreground">{calculateAge(patient.birth_date)} anos</p>
                       </div>
                       
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-4 h-4" />
-                          {patient.email}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Phone className="w-4 h-4" />
-                          {patient.phone}
-                        </div>
+                        {patient.email && (
+                          <div className="flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            {patient.email}
+                          </div>
+                        )}
+                        {(patient.phone || patient.mobile_phone) && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-4 h-4" />
+                            {patient.mobile_phone || patient.phone}
+                          </div>
+                        )}
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          Última consulta: {new Date(patient.lastVisit).toLocaleDateString('pt-BR')}
+                          Cadastrado em: {new Date(patient.created_at).toLocaleDateString('pt-BR')}
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-3">
                         <Badge 
                           variant="outline" 
-                          className={patient.status === 'active' 
+                          className={patient.status === 'ativo' 
                             ? 'bg-medical-success/10 text-medical-success border-medical-success/20' 
                             : 'bg-orange-100 text-orange-700 border-orange-200'
                           }
                         >
-                          {patient.status === 'active' ? 'Ativo' : 'Pendente'}
+                          {patient.status === 'ativo' ? 'Ativo' : 'Inativo'}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {patient.consultations} consultas
-                        </span>
-                        {patient.nextAppointment && (
-                          <span className="text-sm text-medical-blue">
-                            Próxima: {new Date(patient.nextAppointment).toLocaleDateString('pt-BR')}
+                        {patient.patient_number && (
+                          <span className="text-sm text-muted-foreground">
+                            #{patient.patient_number}
                           </span>
                         )}
                       </div>
@@ -177,25 +215,9 @@ const Patients = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            ))
+          )}
         </div>
-
-        {/* Supabase Connection Notice */}
-        <Card className="bg-accent/50 border-medical-blue/20">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-medical-blue/10">
-                <Plus className="w-5 h-5 text-medical-blue" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Funcionalidade Completa</h3>
-                <p className="text-sm text-muted-foreground">
-                  Para cadastrar novos pacientes e gerenciar dados reais, conecte ao Supabase para ativar o banco de dados.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </MedicalLayout>
   );
