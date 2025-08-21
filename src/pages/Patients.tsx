@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PatientForm } from '@/components/patients/PatientForm';
+import { PatientProfile } from '@/components/patients/PatientProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/types/database.types';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Search, 
   Plus, 
@@ -17,7 +19,8 @@ import {
   MapPin,
   MoreVertical,
   Filter,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
 
 type Patient = Database['public']['Tables']['patients']['Row'];
@@ -25,17 +28,22 @@ type Patient = Database['public']['Tables']['patients']['Row'];
 // Dados serão carregados do Supabase
 
 const Patients = () => {
+  const { user } = useAuth();
   const [showPatientForm, setShowPatientForm] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   const loadPatients = async () => {
+    if (!user?.id) return;
+    
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('patients')
         .select('*')
+        .eq('doctor_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -52,8 +60,10 @@ const Patients = () => {
   };
 
   useEffect(() => {
-    loadPatients();
-  }, []);
+    if (user?.id) {
+      loadPatients();
+    }
+  }, [user?.id]);
 
   const calculateAge = (birthDate: string) => {
     const today = new Date();
@@ -72,6 +82,35 @@ const Patients = () => {
     (patient.phone && patient.phone.includes(searchTerm)) ||
     (patient.mobile_phone && patient.mobile_phone.includes(searchTerm))
   );
+
+  // Show patient profile if a patient is selected
+  if (selectedPatientId) {
+    return (
+      <MedicalLayout>
+        <div className="space-y-4">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => setSelectedPatientId(null)}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar para Lista de Pacientes
+          </Button>
+          <PatientProfile 
+            patientId={selectedPatientId}
+            onEdit={() => {
+              // TODO: Implement edit functionality
+              console.log('Edit patient:', selectedPatientId);
+            }}
+            onNewConsultation={() => {
+              // TODO: Implement new consultation functionality
+              console.log('New consultation for patient:', selectedPatientId);
+            }}
+          />
+        </div>
+      </MedicalLayout>
+    );
+  }
 
   if (showPatientForm) {
     return (
@@ -150,7 +189,11 @@ const Patients = () => {
             </Card>
           ) : (
             filteredPatients.map((patient) => (
-            <Card key={patient.id} className="medical-card-hover">
+            <Card 
+              key={patient.id} 
+              className="medical-card-hover cursor-pointer transition-all duration-200 hover:shadow-md"
+              onClick={() => setSelectedPatientId(patient.id)}
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">

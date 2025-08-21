@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { Video, Users, ClipboardList, FileText, Plus } from 'lucide-react';
 
 const quickActions = [
@@ -39,6 +40,30 @@ const quickActions = [
 ];
 
 export function QuickActions() {
+  const navigate = useNavigate();
+  
+  const handleAction = (action: string) => {
+    switch (action) {
+      case 'start-consultation':
+        // TODO: Implement consultation start
+        console.log('Starting consultation...');
+        break;
+      case 'new-patient':
+        navigate('/patients');
+        break;
+      case 'create-template':
+        // TODO: Implement template creation
+        console.log('Creating template...');
+        break;
+      case 'view-documents':
+        // TODO: Implement documents view
+        console.log('Viewing documents...');
+        break;
+      default:
+        break;
+    }
+  };
+  
   return (
     <Card className="h-fit">
       <CardHeader className="pb-4">
@@ -55,10 +80,7 @@ export function QuickActions() {
             className={`group h-auto p-4 flex flex-col items-start gap-2 text-left justify-start min-h-[90px] w-full transition-all duration-200 hover:scale-[1.01] hover:shadow-md ${
               action.priority ? 'ring-2 ring-medical-blue/20 bg-medical-blue/5 border-medical-blue/30' : 'border-border/60'
             }`}
-            onClick={() => {
-              // TODO: Implement navigation to different pages
-              console.log(`Action: ${action.action}`);
-            }}
+            onClick={() => handleAction(action.action)}
           >
             <div className="flex items-center gap-3 w-full">
               <div className={`p-2 rounded-lg ${
