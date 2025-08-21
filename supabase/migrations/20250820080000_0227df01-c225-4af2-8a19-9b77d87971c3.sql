@@ -1,6 +1,14 @@
--- Verificar se a tabela patients já existe e criar se necessário
+-- FORÇAR ALTERAÇÃO DA COLUNA profile_id PARA NULLABLE
+-- Esta migração agora força a alteração independente da existência da tabela
 DO $$ 
 BEGIN
+    -- Primeiro, garantir que profile_id seja nullable se a tabela existir
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'patients') THEN
+        ALTER TABLE public.patients ALTER COLUMN profile_id DROP NOT NULL;
+        RAISE NOTICE 'FORÇADO: profile_id agora é nullable na tabela existente';
+    END IF;
+    
+    -- Só criar a tabela se ela não existir
     IF NOT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'patients') THEN
         -- Criar tabela patients se não existir
         CREATE TABLE public.patients (
