@@ -13,8 +13,8 @@ import { Calendar, FileText, Microscope, Paperclip, Plus, Search, Upload, User, 
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
-type Patient = Database['Tables']['patients']['Row'];
-type Document = Database['Tables']['documents']['Row'];
+type Patient = Database['public']['Tables']['patients']['Row'];
+type Document = Database['public']['Tables']['documents']['Row'];
 
 const Documents: React.FC = () => {
   const { toast } = useToast();

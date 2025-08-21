@@ -11,9 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-export type EnhancedCalendarProps = React.ComponentProps<typeof DayPicker> & {
+export type EnhancedCalendarProps = {
+  className?: string;
+  classNames?: any;
+  showOutsideDays?: boolean;
   onDateChange?: (date: Date | undefined) => void;
   value?: Date;
+  disabled?: (date: Date) => boolean;
 };
 
 function EnhancedCalendar({
@@ -22,7 +26,7 @@ function EnhancedCalendar({
   showOutsideDays = true,
   onDateChange,
   value,
-  ...props
+  disabled,
 }: EnhancedCalendarProps) {
   const [currentMonth, setCurrentMonth] = React.useState<Date>(
     value || new Date()
@@ -156,6 +160,7 @@ function EnhancedCalendar({
         month={currentMonth}
         onMonthChange={setCurrentMonth}
         showOutsideDays={showOutsideDays}
+        disabled={disabled}
         locale={ptBR}
         className={cn("p-3", className)}
         classNames={{
@@ -196,7 +201,6 @@ function EnhancedCalendar({
           IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
           IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
         }}
-        {...props}
       />
     </div>
   );

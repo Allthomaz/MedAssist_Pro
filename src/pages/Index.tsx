@@ -61,8 +61,8 @@ const Index = () => {
       
       const { count: transcriptionsCount } = await supabase
         .from('transcriptions')
-        .select('*', { count: 'exact', head: true })
-        .eq('doctor_id', user.id);
+        .select('*, recordings!inner(doctor_id)', { count: 'exact', head: true })
+        .eq('recordings.doctor_id', user.id);
       
       setStats({
         totalPatients: patientsCount || 0,

@@ -15,6 +15,7 @@ import { Check, X } from 'lucide-react';
 const appointmentSchema = z.object({
   patientName: z.string().min(2, 'Nome do paciente é obrigatório'),
   patientPhone: z.string().min(8, 'Telefone é obrigatório'),
+  patientEmail: z.string().email('E-mail inválido').optional().or(z.literal('')),
   appointmentDate: z.date({
     required_error: 'Data é obrigatória',
   }),
