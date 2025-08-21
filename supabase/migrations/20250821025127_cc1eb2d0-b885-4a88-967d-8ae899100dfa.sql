@@ -5,10 +5,9 @@
 CREATE OR REPLACE FUNCTION public.set_document_number()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   IF NEW.document_number IS NULL THEN
     NEW.document_number := generate_document_number(NEW.doctor_id, NEW.document_type);
   END IF;
@@ -19,13 +18,12 @@ $function$;
 CREATE OR REPLACE FUNCTION public.create_document_history_entry()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   action_type TEXT;
   changed_fields TEXT[];
 BEGIN
+  SET search_path = public, extensions;
   IF TG_OP = 'INSERT' THEN
     action_type := 'created';
   ELSIF TG_OP = 'UPDATE' THEN
@@ -62,7 +60,7 @@ BEGIN
     CASE WHEN TG_OP = 'UPDATE' THEN to_jsonb(OLD) ELSE NULL END,
     CASE WHEN TG_OP != 'DELETE' THEN to_jsonb(NEW) ELSE NULL END,
     changed_fields,
-    auth.uid()
+    (select auth.uid())
   );
   
   RETURN COALESCE(NEW, OLD);
@@ -72,12 +70,11 @@ $function$;
 CREATE OR REPLACE FUNCTION public.calculate_recording_duration(p_recording_id uuid)
 RETURNS integer
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   duration_seconds INTEGER;
 BEGIN
+  SET search_path = public, extensions;
   SELECT EXTRACT(EPOCH FROM (ended_at - started_at))::INTEGER
   INTO duration_seconds
   FROM public.recordings
@@ -90,10 +87,9 @@ $function$;
 CREATE OR REPLACE FUNCTION public.update_consultation_transcription_status()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   IF NEW.transcription_status = 'completed' AND OLD.transcription_status != 'completed' THEN
     UPDATE public.consultations
     SET 
@@ -110,13 +106,12 @@ $function$;
 CREATE OR REPLACE FUNCTION public.cleanup_old_recordings()
 RETURNS integer
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   deleted_count INTEGER := 0;
   setting_record RECORD;
 BEGIN
+  SET search_path = public, extensions;
   FOR setting_record IN 
     SELECT doctor_id, delete_audio_after_days 
     FROM public.transcription_settings 
@@ -139,10 +134,9 @@ $function$;
 CREATE OR REPLACE FUNCTION public.update_recording_duration()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   IF NEW.recording_status = 'completed' AND OLD.recording_status != 'completed' 
      AND NEW.started_at IS NOT NULL AND NEW.ended_at IS NOT NULL THEN
     NEW.audio_duration := EXTRACT(EPOCH FROM (NEW.ended_at - NEW.started_at))::INTEGER;
@@ -155,17 +149,16 @@ $function$;
 CREATE OR REPLACE FUNCTION public.mark_notification_as_read(notification_uuid uuid)
 RETURNS boolean
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   UPDATE public.notifications
   SET 
     status = 'read',
     read_at = now(),
     updated_at = now()
   WHERE id = notification_uuid
-    AND user_id = auth.uid()
+    AND user_id = (select auth.uid())
     AND status = 'unread';
   
   RETURN FOUND;
@@ -175,12 +168,11 @@ $function$;
 CREATE OR REPLACE FUNCTION public.create_notification(p_user_id uuid, p_type text, p_title text, p_message text, p_data jsonb DEFAULT '{}'::jsonb, p_priority text DEFAULT 'normal'::text, p_channel text DEFAULT 'in_app'::text, p_scheduled_for timestamp with time zone DEFAULT NULL::timestamp with time zone, p_appointment_id uuid DEFAULT NULL::uuid, p_consultation_id uuid DEFAULT NULL::uuid, p_document_id uuid DEFAULT NULL::uuid, p_patient_id uuid DEFAULT NULL::uuid)
 RETURNS uuid
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   notification_id UUID;
 BEGIN
+  SET search_path = public, extensions;
   INSERT INTO public.notifications (
     user_id, type, title, message, data, priority, channel,
     scheduled_for, appointment_id, consultation_id, document_id, patient_id
@@ -198,13 +190,12 @@ $function$;
 CREATE OR REPLACE FUNCTION public.cleanup_old_notifications()
 RETURNS integer
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   deleted_count INTEGER := 0;
   temp_count INTEGER;
 BEGIN
+  SET search_path = public, extensions;
   DELETE FROM public.notifications
   WHERE status = 'read'
     AND read_at < (now() - INTERVAL '30 days');
@@ -256,13 +247,12 @@ $function$;
 CREATE OR REPLACE FUNCTION public.generate_patient_number(doctor_uuid uuid)
 RETURNS text
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   next_number INTEGER;
   doctor_initials TEXT;
 BEGIN
+  SET search_path = public, extensions;
   SELECT UPPER(LEFT(full_name, 1) || LEFT(SPLIT_PART(full_name, ' ', -1), 1))
   INTO doctor_initials
   FROM public.profiles
@@ -285,10 +275,9 @@ $function$;
 CREATE OR REPLACE FUNCTION public.set_patient_number()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   IF NEW.patient_number IS NULL THEN
     NEW.patient_number := generate_patient_number(NEW.doctor_id);
   END IF;
@@ -299,13 +288,12 @@ $function$;
 CREATE OR REPLACE FUNCTION public.generate_consultation_number()
 RETURNS text
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   next_number INTEGER;
   year_suffix TEXT;
 BEGIN
+  SET search_path = public, extensions;
   year_suffix := TO_CHAR(CURRENT_DATE, 'YY');
   
   SELECT COALESCE(MAX(CAST(SUBSTRING(consultation_number FROM '[0-9]+$') AS INTEGER)), 0) + 1
@@ -321,10 +309,9 @@ $function$;
 CREATE OR REPLACE FUNCTION public.set_consultation_number()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   IF NEW.consultation_number IS NULL THEN
     NEW.consultation_number := generate_consultation_number();
   END IF;
@@ -335,10 +322,9 @@ $function$;
 CREATE OR REPLACE FUNCTION public.update_consultation_timestamps()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   IF NEW.status = 'em_andamento' AND OLD.status != 'em_andamento' AND NEW.started_at IS NULL THEN
     NEW.started_at := now();
   END IF;
@@ -358,8 +344,6 @@ $function$;
 CREATE OR REPLACE FUNCTION public.check_appointment_availability(p_doctor_id uuid, p_date date, p_time time without time zone, p_duration integer DEFAULT 30)
 RETURNS boolean
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   day_of_week INTEGER;
@@ -367,6 +351,7 @@ DECLARE
   has_conflicts BOOLEAN;
   is_blocked BOOLEAN;
 BEGIN
+  SET search_path = public, extensions;
   day_of_week := EXTRACT(DOW FROM p_date);
   
   SELECT EXISTS(
@@ -417,12 +402,11 @@ $function$;
 CREATE OR REPLACE FUNCTION public.create_consultation_from_appointment()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   consultation_uuid UUID;
 BEGIN
+  SET search_path = public, extensions;
   IF NEW.status = 'confirmado' AND OLD.status != 'confirmado' AND NEW.consultation_id IS NULL AND NEW.patient_id IS NOT NULL THEN
     INSERT INTO public.consultations (
       doctor_id,
@@ -461,10 +445,9 @@ $function$;
 CREATE OR REPLACE FUNCTION public.increment_template_usage(p_template_id uuid)
 RETURNS void
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 BEGIN
+  SET search_path = public, extensions;
   UPDATE public.document_templates
   SET 
     usage_count = usage_count + 1,
@@ -476,14 +459,13 @@ $function$;
 CREATE OR REPLACE FUNCTION public.duplicate_template(p_template_id uuid, p_new_name text, p_doctor_id uuid)
 RETURNS uuid
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   new_template_id UUID;
   section_record RECORD;
   new_section_id UUID;
 BEGIN
+  SET search_path = public, extensions;
   INSERT INTO public.document_templates (
     doctor_id, name, description, document_type, category,
     template_structure, template_content, template_variables,
@@ -532,8 +514,6 @@ $function$;
 CREATE OR REPLACE FUNCTION public.generate_document_number(p_doctor_id uuid, p_document_type text)
 RETURNS text
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
 AS $function$
 DECLARE
   doctor_initials TEXT;
@@ -541,6 +521,7 @@ DECLARE
   sequence_number INTEGER;
   document_number TEXT;
 BEGIN
+  SET search_path = public, extensions;
   SELECT 
     UPPER(LEFT(SPLIT_PART(full_name, ' ', 1), 1) || LEFT(SPLIT_PART(full_name, ' ', -1), 1))
   INTO doctor_initials
@@ -579,30 +560,30 @@ $function$;
 -- Consultations table - secure INSERT policy
 CREATE POLICY "Doctors can create consultations" 
 ON public.consultations FOR INSERT 
-WITH CHECK (doctor_id = auth.uid());
+WITH CHECK (doctor_id = (select auth.uid()));
 
 -- Recordings table - secure DELETE policy  
 CREATE POLICY "Doctors can delete their recordings" 
 ON public.recordings FOR DELETE 
-USING (doctor_id = auth.uid());
+USING (doctor_id = (select auth.uid()));
 
 -- Documents table - secure DELETE policy
 CREATE POLICY "Doctors can delete their documents" 
 ON public.documents FOR DELETE 
-USING (doctor_id = auth.uid() AND deleted_at IS NULL);
+USING (doctor_id = (select auth.uid()) AND deleted_at IS NULL);
 
 -- Transcriptions table - secure DELETE policy
 CREATE POLICY "Doctors can delete their transcriptions" 
 ON public.transcriptions FOR DELETE 
 USING (EXISTS (
   SELECT 1 FROM public.recordings r 
-  WHERE r.id = transcriptions.recording_id AND r.doctor_id = auth.uid()
+  WHERE r.id = transcriptions.recording_id AND r.doctor_id = (select auth.uid())
 ));
 
 -- Notification preferences - secure DELETE policy
 CREATE POLICY "Users can delete their notification preferences" 
 ON public.notification_preferences FOR DELETE 
-USING (user_id = auth.uid());
+USING (user_id = (select auth.uid()));
 
 -- Add comprehensive audit logging
 CREATE TABLE IF NOT EXISTS public.patient_access_log (
@@ -643,17 +624,18 @@ BEGIN
     timestamp
   ) 
   SELECT 
-    auth.uid(),
+    (select auth.uid()),
     COALESCE(p.role, 'unknown'),
     COALESCE(NEW.id, OLD.id),
     TG_OP,
     CASE 
-      WHEN TG_OP = 'SELECT' THEN ARRAY['full_name', 'cpf', 'rg', 'email', 'phone']
       WHEN TG_OP = 'UPDATE' THEN ARRAY['updated_data']
+      WHEN TG_OP = 'INSERT' THEN ARRAY['new_patient']
+      WHEN TG_OP = 'DELETE' THEN ARRAY['deleted_patient']
       ELSE ARRAY['all_fields']
     END
   FROM public.profiles p 
-  WHERE p.id = auth.uid();
+  WHERE p.id = (select auth.uid());
   
   RETURN COALESCE(NEW, OLD);
 END;
@@ -662,6 +644,6 @@ $function$;
 -- Apply audit trigger to patients table
 DROP TRIGGER IF EXISTS audit_patient_access ON public.patients;
 CREATE TRIGGER audit_patient_access
-  AFTER SELECT OR INSERT OR UPDATE OR DELETE ON public.patients
+  AFTER INSERT OR UPDATE OR DELETE ON public.patients
   FOR EACH ROW
   EXECUTE FUNCTION public.log_patient_access();

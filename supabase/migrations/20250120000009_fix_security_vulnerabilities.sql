@@ -52,9 +52,9 @@ $$;
 CREATE POLICY "Verified doctors can view their assigned patients"
   ON public.patients FOR SELECT
   USING (
-    auth.uid() IS NOT NULL AND
-    doctor_id = auth.uid() AND
-    public.is_active_doctor(auth.uid()) AND
+    (select auth.uid()) IS NOT NULL AND
+    doctor_id = (select auth.uid()) AND
+    public.is_active_doctor((select auth.uid())) AND
     status = 'active'
   );
 
@@ -62,18 +62,18 @@ CREATE POLICY "Verified doctors can view their assigned patients"
 CREATE POLICY "Active patients can view their own data"
   ON public.patients FOR SELECT
   USING (
-    auth.uid() IS NOT NULL AND
-    profile_id = auth.uid() AND
-    public.is_active_patient(auth.uid())
+    (select auth.uid()) IS NOT NULL AND
+    profile_id = (select auth.uid()) AND
+    public.is_active_patient((select auth.uid()))
   );
 
 -- Política mais restritiva para médicos inserirem pacientes
 CREATE POLICY "Verified doctors can insert patients"
   ON public.patients FOR INSERT
   WITH CHECK (
-    auth.uid() IS NOT NULL AND
-    doctor_id = auth.uid() AND
-    public.is_active_doctor(auth.uid()) AND
+    (select auth.uid()) IS NOT NULL AND
+    doctor_id = (select auth.uid()) AND
+    public.is_active_doctor((select auth.uid())) AND
     profile_id IS NOT NULL AND
     public.is_active_patient(profile_id)
   );
@@ -82,13 +82,13 @@ CREATE POLICY "Verified doctors can insert patients"
 CREATE POLICY "Verified doctors can update their assigned patients"
   ON public.patients FOR UPDATE
   USING (
-    auth.uid() IS NOT NULL AND
-    doctor_id = auth.uid() AND
-    public.is_active_doctor(auth.uid())
+    (select auth.uid()) IS NOT NULL AND
+    doctor_id = (select auth.uid()) AND
+    public.is_active_doctor((select auth.uid()))
   )
   WITH CHECK (
-    doctor_id = auth.uid() AND
-    public.is_active_doctor(auth.uid())
+    doctor_id = (select auth.uid()) AND
+    public.is_active_doctor((select auth.uid()))
   );
 
 -- Política mais restritiva para pacientes atualizarem dados básicos
@@ -96,22 +96,22 @@ CREATE POLICY "Verified doctors can update their assigned patients"
 CREATE POLICY "Active patients can update limited own data"
   ON public.patients FOR UPDATE
   USING (
-    auth.uid() IS NOT NULL AND
-    profile_id = auth.uid() AND
-    public.is_active_patient(auth.uid())
+    (select auth.uid()) IS NOT NULL AND
+    profile_id = (select auth.uid()) AND
+    public.is_active_patient((select auth.uid()))
   )
   WITH CHECK (
-    profile_id = auth.uid() AND
-    public.is_active_patient(auth.uid())
+    profile_id = (select auth.uid()) AND
+    public.is_active_patient((select auth.uid()))
   );
 
 -- Política para prevenir DELETE não autorizado
 CREATE POLICY "Only verified doctors can soft delete patients"
   ON public.patients FOR UPDATE
   USING (
-    auth.uid() IS NOT NULL AND
-    doctor_id = auth.uid() AND
-    public.is_active_doctor(auth.uid())
+    (select auth.uid()) IS NOT NULL AND
+    doctor_id = (select auth.uid()) AND
+    public.is_active_doctor((select auth.uid()))
   )
   WITH CHECK (
     status IN ('active', 'inactive') -- Apenas mudança de status permitida
@@ -141,8 +141,8 @@ $$;
 CREATE POLICY "Only verified doctors can view notification templates"
   ON public.notification_templates FOR SELECT
   USING (
-    auth.uid() IS NOT NULL AND
-    public.can_access_notification_templates(auth.uid()) AND
+    (select auth.uid()) IS NOT NULL AND
+    public.can_access_notification_templates((select auth.uid())) AND
     is_active = true AND
     notification_type != 'system' -- Bloquear acesso a templates do sistema
   );
@@ -151,8 +151,8 @@ CREATE POLICY "Only verified doctors can view notification templates"
 CREATE POLICY "System templates restricted access"
   ON public.notification_templates FOR SELECT
   USING (
-    auth.uid() IS NULL OR -- Apenas chamadas de sistema
-    (auth.uid() IS NOT NULL AND notification_type != 'system')
+    (select auth.uid()) IS NULL OR -- Apenas chamadas de sistema
+    ((select auth.uid()) IS NOT NULL AND notification_type != 'system')
   );
 
 -- ========================================
@@ -223,7 +223,7 @@ BEGIN
   -- Obter role do usuário
   SELECT role INTO user_role_val
   FROM public.profiles
-  WHERE id = auth.uid();
+  WHERE id = (select auth.uid());
   
   -- Identificar campos sensíveis acessados
   IF TG_TABLE_NAME = 'patients' THEN
@@ -241,7 +241,7 @@ BEGIN
   ) VALUES (
     TG_TABLE_NAME,
     TG_OP,
-    auth.uid(),
+    (select auth.uid()),
     user_role_val,
     sensitive_fields,
     now()

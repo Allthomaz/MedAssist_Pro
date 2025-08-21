@@ -160,7 +160,7 @@ ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Doctors can view their own consultations" ON public.consultations;
 CREATE POLICY "Doctors can view their own consultations"
   ON public.consultations FOR SELECT
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Pacientes podem ver suas próprias consultas
 DROP POLICY IF EXISTS "Patients can view their own consultations" ON public.consultations;
@@ -169,7 +169,7 @@ CREATE POLICY "Patients can view their own consultations"
   USING (
     EXISTS (
       SELECT 1 FROM public.patients p
-      WHERE p.id = patient_id AND p.profile_id = auth.uid()
+      WHERE p.id = patient_id AND p.profile_id = (select auth.uid())
     )
   );
 
@@ -178,10 +178,10 @@ DROP POLICY IF EXISTS "Doctors can insert consultations" ON public.consultations
 CREATE POLICY "Doctors can insert consultations"
   ON public.consultations FOR INSERT
   WITH CHECK (
-    doctor_id = auth.uid() AND
+    doctor_id = (select auth.uid()) AND
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'doctor'
+      WHERE id = (select auth.uid()) AND role = 'doctor'
     )
   );
 
@@ -189,7 +189,7 @@ CREATE POLICY "Doctors can insert consultations"
 DROP POLICY IF EXISTS "Doctors can update their own consultations" ON public.consultations;
 CREATE POLICY "Doctors can update their own consultations"
   ON public.consultations FOR UPDATE
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Comentários para documentação
 COMMENT ON TABLE public.consultations IS 'Consultas médicas com gravações, transcrições e documentos gerados';

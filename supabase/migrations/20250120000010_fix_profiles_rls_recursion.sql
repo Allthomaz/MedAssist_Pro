@@ -18,7 +18,7 @@ DROP POLICY IF EXISTS "Doctors can view patient profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Doctors can view patient profiles" ON public.profiles;
 CREATE POLICY "Users can only view their own profile"
   ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+  USING ((select auth.uid()) = id);
 
 -- Comentário explicativo
 COMMENT ON POLICY "Users can only view their own profile" ON public.profiles IS 

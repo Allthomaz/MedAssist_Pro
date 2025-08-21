@@ -276,7 +276,7 @@ ALTER TABLE public.schedule_blocks ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Doctors can manage their appointments" ON public.appointments;
 CREATE POLICY "Doctors can manage their appointments"
   ON public.appointments FOR ALL
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Patients can view their appointments" ON public.appointments;
 CREATE POLICY "Patients can view their appointments"
@@ -284,7 +284,7 @@ CREATE POLICY "Patients can view their appointments"
   USING (
     EXISTS (
       SELECT 1 FROM public.patients p
-      WHERE p.id = patient_id AND p.profile_id = auth.uid()
+      WHERE p.id = patient_id AND p.profile_id = (select auth.uid())
     )
   );
 
@@ -292,13 +292,13 @@ CREATE POLICY "Patients can view their appointments"
 DROP POLICY IF EXISTS "Doctors can manage their schedules" ON public.doctor_schedules;
 CREATE POLICY "Doctors can manage their schedules"
   ON public.doctor_schedules FOR ALL
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Políticas para schedule_blocks
 DROP POLICY IF EXISTS "Doctors can manage their schedule blocks" ON public.schedule_blocks;
 CREATE POLICY "Doctors can manage their schedule blocks"
   ON public.schedule_blocks FOR ALL
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Comentários para documentação
 COMMENT ON TABLE public.appointments IS 'Agendamentos de consultas médicas';

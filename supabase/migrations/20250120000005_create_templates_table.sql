@@ -288,7 +288,7 @@ ALTER TABLE public.shared_templates ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Doctors can manage their templates" ON public.document_templates;
 CREATE POLICY "Doctors can manage their templates"
   ON public.document_templates FOR ALL
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Doctors can view public templates" ON public.document_templates;
 CREATE POLICY "Doctors can view public templates"
@@ -302,7 +302,7 @@ CREATE POLICY "Doctors can view shared templates"
     EXISTS (
       SELECT 1 FROM public.shared_templates st
       WHERE st.template_id = id
-      AND (st.shared_with = auth.uid() OR st.shared_with IS NULL)
+      AND (st.shared_with = (select auth.uid()) OR st.shared_with IS NULL)
       AND st.can_view = true
     )
   );
@@ -316,12 +316,12 @@ CREATE POLICY "Access sections of accessible templates"
       SELECT 1 FROM public.document_templates dt
       WHERE dt.id = template_id
       AND (
-        dt.doctor_id = auth.uid()
+        dt.doctor_id = (select auth.uid())
         OR (dt.is_public = true AND dt.is_active = true)
         OR EXISTS (
           SELECT 1 FROM public.shared_templates st
           WHERE st.template_id = dt.id
-          AND (st.shared_with = auth.uid() OR st.shared_with IS NULL)
+          AND (st.shared_with = (select auth.uid()) OR st.shared_with IS NULL)
           AND st.can_view = true
         )
       )
@@ -338,12 +338,12 @@ CREATE POLICY "Access fields of accessible sections"
       JOIN public.document_templates dt ON dt.id = ts.template_id
       WHERE ts.id = section_id
       AND (
-        dt.doctor_id = auth.uid()
+        dt.doctor_id = (select auth.uid())
         OR (dt.is_public = true AND dt.is_active = true)
         OR EXISTS (
           SELECT 1 FROM public.shared_templates st
           WHERE st.template_id = dt.id
-          AND (st.shared_with = auth.uid() OR st.shared_with IS NULL)
+          AND (st.shared_with = (select auth.uid()) OR st.shared_with IS NULL)
           AND st.can_view = true
         )
       )
@@ -354,12 +354,12 @@ CREATE POLICY "Access fields of accessible sections"
 DROP POLICY IF EXISTS "Doctors can manage their shared templates" ON public.shared_templates;
 CREATE POLICY "Doctors can manage their shared templates"
   ON public.shared_templates FOR ALL
-  USING (shared_by = auth.uid());
+  USING (shared_by = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Doctors can view templates shared with them" ON public.shared_templates;
 CREATE POLICY "Doctors can view templates shared with them"
   ON public.shared_templates FOR SELECT
-  USING (shared_with = auth.uid() OR shared_with IS NULL);
+  USING (shared_with = (select auth.uid()) OR shared_with IS NULL);
 
 -- Comentários para documentação
 COMMENT ON TABLE public.document_templates IS 'Templates/modelos para geração de documentos médicos';

@@ -29,18 +29,18 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 -- Política simples para SELECT
 CREATE POLICY "profiles_select_policy"
   ON public.profiles FOR SELECT
-  USING (id = auth.uid());
+  USING (id = (select auth.uid()));
 
 -- Política simples para INSERT
 CREATE POLICY "profiles_insert_policy"
   ON public.profiles FOR INSERT
-  WITH CHECK (id = auth.uid());
+  WITH CHECK (id = (select auth.uid()));
 
 -- Política simples para UPDATE
 CREATE POLICY "profiles_update_policy"
   ON public.profiles FOR UPDATE
-  USING (id = auth.uid())
-  WITH CHECK (id = auth.uid());
+  USING (id = (select auth.uid()))
+  WITH CHECK (id = (select auth.uid()));
 
 -- ========================================
 -- LOG E VERIFICAÇÃO

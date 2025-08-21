@@ -30,13 +30,13 @@ END $$;
 
 -- 6. Criar apenas as 3 políticas seguras
 CREATE POLICY "users_view_own_profile" ON public.profiles
-    FOR SELECT USING (auth.uid() = id);
+    FOR SELECT USING ((select auth.uid()) = id);
 
 CREATE POLICY "users_insert_own_profile" ON public.profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
+    FOR INSERT WITH CHECK ((select auth.uid()) = id);
 
 CREATE POLICY "users_update_own_profile" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id);
+    FOR UPDATE USING ((select auth.uid()) = id);
 
 -- 7. Verificação final
 DO $$

@@ -339,7 +339,7 @@ ALTER TABLE public.transcription_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Doctors can manage their recordings" ON public.recordings;
 CREATE POLICY "Doctors can manage their recordings"
   ON public.recordings FOR ALL
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Políticas para transcriptions
 DROP POLICY IF EXISTS "Doctors can manage their transcriptions" ON public.transcriptions;
@@ -348,7 +348,7 @@ CREATE POLICY "Doctors can manage their transcriptions"
   USING (
     EXISTS (
       SELECT 1 FROM public.recordings r
-      WHERE r.id = recording_id AND r.doctor_id = auth.uid()
+      WHERE r.id = recording_id AND r.doctor_id = (select auth.uid())
     )
   );
 
@@ -360,7 +360,7 @@ CREATE POLICY "Access segments of accessible transcriptions"
     EXISTS (
       SELECT 1 FROM public.transcriptions t
       JOIN public.recordings r ON r.id = t.recording_id
-      WHERE t.id = transcription_id AND r.doctor_id = auth.uid()
+      WHERE t.id = transcription_id AND r.doctor_id = (select auth.uid())
     )
   );
 
@@ -369,11 +369,11 @@ DROP POLICY IF EXISTS "Doctors can manage their annotations" ON public.transcrip
 CREATE POLICY "Doctors can manage their annotations"
   ON public.transcription_annotations FOR ALL
   USING (
-    created_by = auth.uid()
+    created_by = (select auth.uid())
     OR EXISTS (
       SELECT 1 FROM public.transcriptions t
       JOIN public.recordings r ON r.id = t.recording_id
-      WHERE t.id = transcription_id AND r.doctor_id = auth.uid()
+      WHERE t.id = transcription_id AND r.doctor_id = (select auth.uid())
     )
   );
 
@@ -381,7 +381,7 @@ CREATE POLICY "Doctors can manage their annotations"
 DROP POLICY IF EXISTS "Doctors can manage their transcription settings" ON public.transcription_settings;
 CREATE POLICY "Doctors can manage their transcription settings"
   ON public.transcription_settings FOR ALL
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Comentários para documentação
 COMMENT ON TABLE public.recordings IS 'Gravações de áudio das consultas médicas';

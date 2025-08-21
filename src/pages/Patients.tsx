@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { PatientForm } from '@/components/patients/PatientForm';
-import { PatientProfile } from '@/components/patients/PatientProfile';
+
+// Lazy load heavy components
+const PatientForm = lazy(() => import('@/components/patients/PatientForm').then(module => ({ default: module.PatientForm })));
+const PatientProfile = lazy(() => import('@/components/patients/PatientProfile').then(module => ({ default: module.PatientProfile })));
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/types/database.types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +27,13 @@ import {
 
 type Patient = Database['public']['Tables']['patients']['Row'];
 
+// Loading component for Suspense fallback
+const ComponentLoader = () => (
+  <div className="flex items-center justify-center p-8">
+    <Loader2 className="h-6 w-6 animate-spin" />
+  </div>
+);
+
 // Dados serão carregados do Supabase
 
 const Patients = () => {
@@ -35,7 +44,7 @@ const Patients = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const loadPatients = async () => {
+  const loadPatients = useCallback(async () => {
     if (!user?.id) return;
     
     try {
@@ -57,7 +66,7 @@ const Patients = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     if (user?.id) {
@@ -65,7 +74,7 @@ const Patients = () => {
     }
   }, [user?.id]);
 
-  const calculateAge = (birthDate: string) => {
+  const calculateAge = useCallback((birthDate: string) => {
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
@@ -74,13 +83,15 @@ const Patients = () => {
       age--;
     }
     return age;
-  };
+  }, []);
 
-  const filteredPatients = patients.filter(patient =>
-    patient.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (patient.phone && patient.phone.includes(searchTerm)) ||
-    (patient.mobile_phone && patient.mobile_phone.includes(searchTerm))
+  const filteredPatients = useMemo(() => 
+    patients.filter(patient =>
+      patient.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (patient.phone && patient.phone.includes(searchTerm)) ||
+      (patient.mobile_phone && patient.mobile_phone.includes(searchTerm))
+    ), [patients, searchTerm]
   );
 
   // Show patient profile if a patient is selected
@@ -96,17 +107,19 @@ const Patients = () => {
             <ArrowLeft className="w-4 h-4" />
             Voltar para Lista de Pacientes
           </Button>
-          <PatientProfile 
-            patientId={selectedPatientId}
-            onEdit={() => {
-              // TODO: Implement edit functionality
-              console.log('Edit patient:', selectedPatientId);
-            }}
-            onNewConsultation={() => {
-              // TODO: Implement new consultation functionality
-              console.log('New consultation for patient:', selectedPatientId);
-            }}
-          />
+          <Suspense fallback={<ComponentLoader />}>
+            <PatientProfile 
+              patientId={selectedPatientId}
+              onEdit={() => {
+                // TODO: Implement edit functionality
+                console.log('Edit patient:', selectedPatientId);
+              }}
+              onNewConsultation={() => {
+                // TODO: Implement new consultation functionality
+                console.log('New consultation for patient:', selectedPatientId);
+              }}
+            />
+          </Suspense>
         </div>
       </MedicalLayout>
     );
@@ -115,13 +128,15 @@ const Patients = () => {
   if (showPatientForm) {
     return (
       <MedicalLayout>
-        <PatientForm
-          onSuccess={() => {
-            setShowPatientForm(false);
-            loadPatients(); // Recarrega a lista de pacientes
-          }}
-          onCancel={() => setShowPatientForm(false)}
-        />
+        <Suspense fallback={<ComponentLoader />}>
+          <PatientForm
+            onSuccess={() => {
+              setShowPatientForm(false);
+              loadPatients(); // Recarrega a lista de pacientes
+            }}
+            onCancel={() => setShowPatientForm(false)}
+          />
+        </Suspense>
       </MedicalLayout>
     );
   }

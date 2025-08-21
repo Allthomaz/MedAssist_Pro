@@ -164,7 +164,7 @@ BEGIN
     read_at = now(),
     updated_at = now()
   WHERE id = notification_uuid
-    AND user_id = auth.uid()
+    AND user_id = (select auth.uid())
     AND status = 'unread';
   
   RETURN FOUND;
@@ -280,30 +280,30 @@ ALTER TABLE public.notification_delivery_log ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own notifications" ON public.notifications;
 CREATE POLICY "Users can view their own notifications"
   ON public.notifications FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Users can update their own notifications" ON public.notifications;
 CREATE POLICY "Users can update their own notifications"
   ON public.notifications FOR UPDATE
-  USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
+  USING (user_id = (select auth.uid()))
+  WITH CHECK (user_id = (select auth.uid()));
 
 -- Políticas para notification_preferences
 DROP POLICY IF EXISTS "Users can view their own preferences" ON public.notification_preferences;
 CREATE POLICY "Users can view their own preferences"
   ON public.notification_preferences FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Users can insert their own preferences" ON public.notification_preferences;
 CREATE POLICY "Users can insert their own preferences"
   ON public.notification_preferences FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (user_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Users can update their own preferences" ON public.notification_preferences;
 CREATE POLICY "Users can update their own preferences"
   ON public.notification_preferences FOR UPDATE
-  USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
+  USING (user_id = (select auth.uid()))
+  WITH CHECK (user_id = (select auth.uid()));
 
 -- Políticas para notification_templates (apenas leitura para usuários)
 DROP POLICY IF EXISTS "Users can view notification templates" ON public.notification_templates;
@@ -318,7 +318,7 @@ CREATE POLICY "Users can view their notification delivery logs"
   USING (
     EXISTS (
       SELECT 1 FROM public.notifications n
-      WHERE n.id = notification_id AND n.user_id = auth.uid()
+      WHERE n.id = notification_id AND n.user_id = (select auth.uid())
     )
   );
 

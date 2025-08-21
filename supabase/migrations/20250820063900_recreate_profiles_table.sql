@@ -56,16 +56,16 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 -- 9. Criar APENAS as políticas seguras (sem recursão)
 CREATE POLICY "users_view_own_profile"
     ON public.profiles FOR SELECT
-    USING (auth.uid() = id);
+    USING ((select auth.uid()) = id);
 
 CREATE POLICY "users_insert_own_profile"
     ON public.profiles FOR INSERT
-    WITH CHECK (auth.uid() = id);
+    WITH CHECK ((select auth.uid()) = id);
 
 CREATE POLICY "users_update_own_profile"
     ON public.profiles FOR UPDATE
-    USING (auth.uid() = id)
-    WITH CHECK (auth.uid() = id);
+    USING ((select auth.uid()) = id)
+    WITH CHECK ((select auth.uid()) = id);
 
 -- 10. Restaurar os dados do backup (apenas colunas compatíveis)
 INSERT INTO public.profiles (id, full_name, email, role, phone, specialty, crm, created_at, updated_at)

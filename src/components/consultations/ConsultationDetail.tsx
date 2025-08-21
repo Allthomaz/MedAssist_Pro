@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AudioRecorder } from './AudioRecorder';
-import ReportGenerator from './ReportGenerator';
+
+// Lazy load heavy components
+const ReportGenerator = lazy(() => import('./ReportGenerator'));
 import { supabase } from '@/integrations/supabase/client';
 import {
   Calendar,
@@ -98,7 +100,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     }
   }, [consultation]);
 
-  const fetchConsultationData = async () => {
+  const fetchConsultationData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -129,9 +131,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [consultationId]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!consultation) return;
 
     try {
@@ -164,9 +166,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     } finally {
       setSaving(false);
     }
-  };
+  }, [consultation, formData, hasRecording, consultationId, onSave]);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = useCallback(async (newStatus: string) => {
     if (!consultation) return;
 
     try {
@@ -192,9 +194,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       console.error('Erro ao atualizar status:', err);
       setError('Erro ao atualizar status da consulta');
     }
-  };
+  }, [consultation, consultationId, onStatusChange]);
 
-  const handleRecordingComplete = (recordingId: string) => {
+  const handleRecordingComplete = useCallback((recordingId: string) => {
     setHasRecording(true);
     // Atualizar automaticamente o status has_recording na consulta
     supabase
@@ -204,9 +206,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       .then(() => {
         console.log('Status de gravação atualizado');
       });
-  };
+  }, [consultationId]);
 
-  const handleTranscriptionComplete = (transcriptionId: string, text: string) => {
+  const handleTranscriptionComplete = useCallback((transcriptionId: string, text: string) => {
     setTranscriptionText(text);
     // Adicionar automaticamente a transcrição às notas clínicas
     setFormData(prev => ({
@@ -215,13 +217,13 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
         ? `${prev.clinical_notes}\n\n--- Transcrição Automática ---\n${text}`
         : `--- Transcrição Automática ---\n${text}`
     }));
-  };
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  }, []);
 
-  const calculateAge = (birthDate: string) => {
+  const calculateAge = useCallback((birthDate: string) => {
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
@@ -232,9 +234,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     }
     
     return age;
-  };
+  }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'agendada':
         return 'bg-blue-100 text-blue-700 border-blue-200';
@@ -247,9 +249,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
-  };
+  }, []);
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = useCallback((status: string) => {
     switch (status) {
       case 'agendada':
         return 'Agendada';
@@ -262,7 +264,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       default:
         return status;
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -538,12 +540,21 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       )}
 
       {/* Gerador de Relatórios */}
-      <ReportGenerator
-        consultationId={consultation.id}
-        transcriptionText={consultation.clinical_notes || ''}
-        patientName={patient.full_name}
-        doctorName="Dr. [Nome do Médico]"
-      />
+      <Suspense fallback={
+        <Card>
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
+            <span className="text-muted-foreground">Carregando gerador de relatórios...</span>
+          </CardContent>
+        </Card>
+      }>
+        <ReportGenerator
+          consultationId={consultation.id}
+          transcriptionText={consultation.clinical_notes || ''}
+          patientName={patient.full_name}
+          doctorName="Dr. [Nome do Médico]"
+        />
+      </Suspense>
 
       {/* Botões de Ação */}
       {isEditing && (

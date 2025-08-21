@@ -1,18 +1,25 @@
 {
   "mcpServers": {
     "magic-mcp": {
-      "command": "cmd",
+      "command": "npx",
       "args": [
-        "/c",
-        "npx",
-        "-y",
-        "@smithery/cli@latest",
-        "run",
         "@21st-dev/magic-mcp",
         "--key",
         "2f1cd8f8-0b6b-4c88-8286-489f52f3ab9e",
         "--profile",
-        "loose-cicada-gZTGeu"
+        "loose-cicada-gZT6eu"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "@smithery/cli@latest",
+        "run",
+        "@smithery-ai/github",
+        "--key",
+        "2f1cd8f8-0b6b-4c88-8286-489f52f3ab9e",
+        "--profile",
+        "loose-cicada-gZT6eu"
       ]
     }
   }

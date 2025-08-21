@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { NotificationCenter } from './NotificationCenter';
+import { LazyNotificationCenter } from './LazyNotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export function NotificationButton() {
@@ -36,7 +36,9 @@ export function NotificationButton() {
         )}
       </Button>
       
-      <NotificationCenter isOpen={isOpen} onClose={handleClose} />
+      <Suspense fallback={<div>Carregando notificações...</div>}>
+        <LazyNotificationCenter isOpen={isOpen} onClose={handleClose} />
+      </Suspense>
     </>
   );
 }

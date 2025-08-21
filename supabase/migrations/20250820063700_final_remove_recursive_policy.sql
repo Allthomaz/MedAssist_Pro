@@ -35,15 +35,15 @@ DROP POLICY IF EXISTS "Users can only view their own profile" ON public.profiles
 -- Recriar apenas as políticas seguras (sem recursão)
 CREATE POLICY "Users can view their own profile"
   ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+  USING ((select auth.uid()) = id);
 
 CREATE POLICY "Users can insert their own profile"
   ON public.profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  WITH CHECK ((select auth.uid()) = id);
 
 CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
-  USING (auth.uid() = id);
+  USING ((select auth.uid()) = id);
 
 -- 5. Comentário de documentação
 COMMENT ON TABLE public.profiles IS 

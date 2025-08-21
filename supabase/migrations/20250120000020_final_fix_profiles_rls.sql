@@ -19,18 +19,18 @@ DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 -- Política para usuários verem apenas seu próprio perfil
 CREATE POLICY "Users can view own profile"
   ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+  USING ((select auth.uid()) = id);
 
 -- Política para usuários inserirem apenas seu próprio perfil
 CREATE POLICY "Users can insert own profile"
   ON public.profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  WITH CHECK ((select auth.uid()) = id);
 
 -- Política para usuários atualizarem apenas seu próprio perfil
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
-  USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
+  USING ((select auth.uid()) = id)
+  WITH CHECK ((select auth.uid()) = id);
 
 -- ========================================
 -- DOCUMENTAÇÃO E COMENTÁRIOS

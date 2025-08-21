@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ConsultationDetail } from '@/components/consultations/ConsultationDetail';
+
+// Lazy load heavy components
+const ConsultationDetail = lazy(() => import('@/components/consultations/ConsultationDetail').then(module => ({ default: module.ConsultationDetail })));
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Video, 
@@ -53,7 +55,7 @@ const Consultations = () => {
     fetchConsultations();
   }, []);
 
-  const fetchConsultations = async () => {
+  const fetchConsultations = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -77,38 +79,40 @@ const Consultations = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getStatusLabel = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      'agendada': 'Agendada',
-      'em_andamento': 'Em Andamento',
-      'finalizada': 'Finalizada',
-      'cancelada': 'Cancelada',
-      'nao_compareceu': 'Não Compareceu'
-    };
-    return statusMap[status] || status;
-  };
+  const statusMap = useMemo(() => ({
+    'agendada': 'Agendada',
+    'em_andamento': 'Em Andamento',
+    'finalizada': 'Finalizada',
+    'cancelada': 'Cancelada',
+    'nao_compareceu': 'Não Compareceu'
+  }), []);
 
-  const getStatusColor = (status: string) => {
-    const colorMap: { [key: string]: string } = {
-      'agendada': 'bg-blue-100 text-blue-700 border-blue-200',
-      'em_andamento': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      'finalizada': 'bg-green-100 text-green-700 border-green-200',
-      'cancelada': 'bg-red-100 text-red-700 border-red-200',
+  const colorMap = useMemo(() => ({
+    'agendada': 'bg-blue-100 text-blue-700 border-blue-200',
+    'em_andamento': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    'finalizada': 'bg-green-100 text-green-700 border-green-200',
+    'cancelada': 'bg-red-100 text-red-700 border-red-200',
       'nao_compareceu': 'bg-gray-100 text-gray-700 border-gray-200'
-    };
+    }), []);
+
+  const getStatusLabel = useCallback((status: string) => {
+    return statusMap[status] || status;
+  }, [statusMap]);
+
+  const getStatusColor = useCallback((status: string) => {
     return colorMap[status] || 'bg-gray-100 text-gray-700 border-gray-200';
-  };
+  }, [colorMap]);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  }, []);
 
-  const formatDuration = (minutes?: number) => {
+  const formatDuration = useCallback((minutes?: number) => {
     if (!minutes) return 'N/A';
     return `${minutes} min`;
-  };
+  }, []);
 
   if (selectedConsultation) {
     return (
@@ -121,7 +125,14 @@ const Consultations = () => {
           >
             ← Voltar para Lista
           </Button>
-          <ConsultationDetail consultationId={selectedConsultation} />
+          <Suspense fallback={
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
+              <span className="text-muted-foreground">Carregando detalhes da consulta...</span>
+            </div>
+          }>
+            <ConsultationDetail consultationId={selectedConsultation} />
+          </Suspense>
         </div>
       </MedicalLayout>
     );

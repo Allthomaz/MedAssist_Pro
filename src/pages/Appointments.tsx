@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { z } from "zod";
@@ -59,7 +59,8 @@ import {
 } from "@/components/ui/tabs";
 
 
-import { AppointmentForm, AppointmentFormValues } from "@/components/appointments/AppointmentForm";
+import { LazyAppointmentForm } from "@/components/appointments/LazyAppointmentForm";
+import { AppointmentFormValues } from "@/components/appointments/AppointmentForm";
 import { AppointmentsList, Appointment } from "@/components/appointments/AppointmentsList";
 import { SyncModal } from "@/components/Agenda/SyncModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -515,11 +516,13 @@ const Appointments = () => {
                 {editingAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}
               </DialogTitle>
             </DialogHeader>
-            <AppointmentForm
-              onSubmit={editingAppointment ? handleUpdateAppointment : handleCreateAppointment}
-              onCancel={handleCloseForm}
-              defaultValues={editingAppointment || undefined}
-            />
+            <Suspense fallback={<div>Carregando formulário...</div>}>
+              <LazyAppointmentForm
+                onSubmit={editingAppointment ? handleUpdateAppointment : handleCreateAppointment}
+                onCancel={handleCloseForm}
+                defaultValues={editingAppointment || undefined}
+              />
+            </Suspense>
           </DialogContent>
         </Dialog>
 

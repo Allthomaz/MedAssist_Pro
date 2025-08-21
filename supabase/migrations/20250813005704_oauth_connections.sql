@@ -37,22 +37,22 @@ ALTER TABLE public.oauth_connections ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own oauth connections" ON public.oauth_connections;
 CREATE POLICY "Users can view their own oauth connections"
 ON public.oauth_connections FOR SELECT
-USING (auth.uid() = user_id);
+USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "Users can insert their own oauth connection" ON public.oauth_connections;
 CREATE POLICY "Users can insert their own oauth connection"
 ON public.oauth_connections FOR INSERT
-WITH CHECK (auth.uid() = user_id);
+WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "Users can update their own oauth connection" ON public.oauth_connections;
 CREATE POLICY "Users can update their own oauth connection"
 ON public.oauth_connections FOR UPDATE
-USING (auth.uid() = user_id);
+USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "Users can delete their own oauth connection" ON public.oauth_connections;
 CREATE POLICY "Users can delete their own oauth connection"
 ON public.oauth_connections FOR DELETE
-USING (auth.uid() = user_id);
+USING ((select auth.uid()) = user_id);
 
 -- 3) Ephemeral OAuth state storage for CSRF protection
 CREATE TABLE IF NOT EXISTS public.oauth_states (
@@ -67,14 +67,14 @@ ALTER TABLE public.oauth_states ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can insert their own oauth state" ON public.oauth_states;
 CREATE POLICY "Users can insert their own oauth state"
 ON public.oauth_states FOR INSERT
-WITH CHECK (auth.uid() = user_id);
+WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "Users can view their own oauth state (recent)" ON public.oauth_states;
 CREATE POLICY "Users can view their own oauth state (recent)"
 ON public.oauth_states FOR SELECT
-USING (auth.uid() = user_id AND created_at > now() - interval '15 minutes');
+USING ((select auth.uid()) = user_id AND created_at > now() - interval '15 minutes');
 
 DROP POLICY IF EXISTS "Users can delete their own oauth state" ON public.oauth_states;
 CREATE POLICY "Users can delete their own oauth state"
 ON public.oauth_states FOR DELETE
-USING (auth.uid() = user_id);
+USING ((select auth.uid()) = user_id);

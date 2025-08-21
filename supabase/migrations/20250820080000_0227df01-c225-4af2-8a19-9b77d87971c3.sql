@@ -61,28 +61,28 @@ BEGIN
         CREATE POLICY "Doctors can view their own patients" 
         ON public.patients 
         FOR SELECT 
-        USING (doctor_id = auth.uid());
+        USING (doctor_id = (select auth.uid()));
 
         CREATE POLICY "Doctors can insert patients" 
         ON public.patients 
         FOR INSERT 
-        WITH CHECK (doctor_id = auth.uid());
+        WITH CHECK (doctor_id = (select auth.uid()));
 
         CREATE POLICY "Doctors can update their patients" 
         ON public.patients 
         FOR UPDATE 
-        USING (doctor_id = auth.uid());
+        USING (doctor_id = (select auth.uid()));
 
         CREATE POLICY "Patients can view their own data" 
         ON public.patients 
         FOR SELECT 
-        USING (profile_id = auth.uid());
+        USING (profile_id = (select auth.uid()));
 
         CREATE POLICY "Patients can update their own basic info" 
         ON public.patients 
         FOR UPDATE 
-        USING (profile_id = auth.uid())
-        WITH CHECK (profile_id = auth.uid());
+        USING (profile_id = (select auth.uid()))
+        WITH CHECK (profile_id = (select auth.uid()));
 
         -- Criar trigger para updated_at
         CREATE TRIGGER update_patients_updated_at

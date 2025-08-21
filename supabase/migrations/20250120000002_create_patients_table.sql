@@ -138,23 +138,23 @@ ALTER TABLE public.patients ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Doctors can view their own patients" ON public.patients;
 CREATE POLICY "Doctors can view their own patients"
   ON public.patients FOR SELECT
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Pacientes podem ver seus próprios dados
 DROP POLICY IF EXISTS "Patients can view their own data" ON public.patients;
 CREATE POLICY "Patients can view their own data"
   ON public.patients FOR SELECT
-  USING (profile_id = auth.uid());
+  USING (profile_id = (select auth.uid()));
 
 -- Médicos podem inserir novos pacientes
 DROP POLICY IF EXISTS "Doctors can insert patients" ON public.patients;
 CREATE POLICY "Doctors can insert patients"
   ON public.patients FOR INSERT
   WITH CHECK (
-    doctor_id = auth.uid() AND
+    doctor_id = (select auth.uid()) AND
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'doctor'
+      WHERE id = (select auth.uid()) AND role = 'doctor'
     )
   );
 
@@ -162,14 +162,14 @@ CREATE POLICY "Doctors can insert patients"
 DROP POLICY IF EXISTS "Doctors can update their patients" ON public.patients;
 CREATE POLICY "Doctors can update their patients"
   ON public.patients FOR UPDATE
-  USING (doctor_id = auth.uid());
+  USING (doctor_id = (select auth.uid()));
 
 -- Pacientes podem atualizar alguns de seus próprios dados
 DROP POLICY IF EXISTS "Patients can update their own basic info" ON public.patients;
 CREATE POLICY "Patients can update their own basic info"
   ON public.patients FOR UPDATE
-  USING (profile_id = auth.uid())
-  WITH CHECK (profile_id = auth.uid());
+  USING (profile_id = (select auth.uid()))
+  WITH CHECK (profile_id = (select auth.uid()));
 
 -- Comentários para documentação
 COMMENT ON TABLE public.patients IS 'Informações detalhadas dos pacientes para uso médico';

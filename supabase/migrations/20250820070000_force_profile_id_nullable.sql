@@ -50,12 +50,12 @@ DROP POLICY IF EXISTS "Patients can update their own basic info" ON public.patie
 -- Recriar políticas que lidam corretamente com profile_id NULL
 CREATE POLICY "Patients can view their own data"
   ON public.patients FOR SELECT
-  USING (profile_id IS NOT NULL AND profile_id = auth.uid());
+  USING (profile_id IS NOT NULL AND profile_id = (select auth.uid()));
 
 CREATE POLICY "Patients can update their own basic info"
   ON public.patients FOR UPDATE
-  USING (profile_id IS NOT NULL AND profile_id = auth.uid())
-  WITH CHECK (profile_id IS NOT NULL AND profile_id = auth.uid());
+  USING (profile_id IS NOT NULL AND profile_id = (select auth.uid()))
+  WITH CHECK (profile_id IS NOT NULL AND profile_id = (select auth.uid()));
 
 -- 6. Log final
 DO $$

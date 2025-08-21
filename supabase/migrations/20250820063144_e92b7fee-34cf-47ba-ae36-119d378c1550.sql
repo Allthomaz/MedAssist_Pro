@@ -8,13 +8,13 @@ DROP POLICY IF EXISTS "Doctors can update their patients" ON public.patients;
 CREATE POLICY "Doctors can manage their patients" 
 ON public.patients 
 FOR ALL
-USING (doctor_id = auth.uid());
+USING (doctor_id = (select auth.uid()));
 
 -- Política específica para inserção sem verificação na tabela profiles
 CREATE POLICY "Users can insert patients as doctor" 
 ON public.patients 
 FOR INSERT 
-WITH CHECK (doctor_id = auth.uid());
+WITH CHECK (doctor_id = (select auth.uid()));
 
 -- Manter as políticas dos pacientes
 -- (já existentes, apenas para referência)

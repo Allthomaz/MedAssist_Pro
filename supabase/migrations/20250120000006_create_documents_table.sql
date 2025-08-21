@@ -341,7 +341,7 @@ ALTER TABLE public.document_shares ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Doctors can manage their documents" ON public.documents;
 CREATE POLICY "Doctors can manage their documents"
   ON public.documents FOR ALL
-  USING (doctor_id = auth.uid() AND deleted_at IS NULL);
+  USING (doctor_id = (select auth.uid()) AND deleted_at IS NULL);
 
 DROP POLICY IF EXISTS "Patients can view their documents" ON public.documents;
 CREATE POLICY "Patients can view their documents"
@@ -349,7 +349,7 @@ CREATE POLICY "Patients can view their documents"
   USING (
     EXISTS (
       SELECT 1 FROM public.patients p
-      WHERE p.id = patient_id AND p.profile_id = auth.uid()
+      WHERE p.id = patient_id AND p.profile_id = (select auth.uid())
     )
     AND status IN ('finalizado', 'assinado', 'enviado')
     AND deleted_at IS NULL
@@ -364,10 +364,10 @@ CREATE POLICY "Access attachments of accessible documents"
       SELECT 1 FROM public.documents d
       WHERE d.id = document_id
       AND (
-        d.doctor_id = auth.uid()
+        d.doctor_id = (select auth.uid())
         OR EXISTS (
           SELECT 1 FROM public.patients p
-          WHERE p.id = d.patient_id AND p.profile_id = auth.uid()
+          WHERE p.id = d.patient_id AND p.profile_id = (select auth.uid())
         )
       )
       AND d.deleted_at IS NULL
@@ -381,7 +381,7 @@ CREATE POLICY "Doctors can view their document history"
   USING (
     EXISTS (
       SELECT 1 FROM public.documents d
-      WHERE d.id = document_id AND d.doctor_id = auth.uid()
+      WHERE d.id = document_id AND d.doctor_id = (select auth.uid())
     )
   );
 
@@ -389,7 +389,7 @@ CREATE POLICY "Doctors can view their document history"
 DROP POLICY IF EXISTS "Doctors can manage their document shares" ON public.document_shares;
 CREATE POLICY "Doctors can manage their document shares"
   ON public.document_shares FOR ALL
-  USING (shared_by = auth.uid());
+  USING (shared_by = (select auth.uid()));
 
 -- Comentários para documentação
 COMMENT ON TABLE public.documents IS 'Documentos médicos gerados (prontuários, receitas, laudos, etc.)';

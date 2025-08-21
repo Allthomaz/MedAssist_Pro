@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback, Suspense, lazy } from "react";
 import { MedicalLayout } from "@/components/layout/MedicalLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useToast } from "@/hooks/use-toast";
-import { DocumentGenerator } from "@/components/documents/DocumentGenerator";
+
+// Lazy load heavy components
+const DocumentGenerator = lazy(() => import("@/components/documents/DocumentGenerator").then(module => ({ default: module.DocumentGenerator })));
 import { Calendar, FileText, Microscope, Paperclip, Plus, Search, Upload, User, Mic, StopCircle, Brain, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
@@ -132,15 +134,15 @@ const Documents: React.FC = () => {
     };
   }, [filteredDocuments]);
 
-  const handleNewReport = () => {
+  const handleNewReport = useCallback(() => {
     toast({ title: "Novo Laudo", description: "Abriremos o editor de laudos em breve (mock)." });
-  };
+  }, [toast]);
 
-  const handleUpload = () => {
+  const handleUpload = useCallback(() => {
     toast({ title: "Upload de Arquivo", description: "Envio de arquivos será conectado ao Supabase Storage.", });
-  };
+  }, [toast]);
 
-  const toggleRecording = () => {
+  const toggleRecording = useCallback(() => {
     setRecording((r) => !r);
     toast({
       title: recording ? "Gravação encerrada" : "Gravação iniciada",
@@ -148,7 +150,7 @@ const Documents: React.FC = () => {
         ? "Transcrição será adicionada ao prontuário (mock)."
         : "Estamos capturando o áudio para transcrição (mock).",
     });
-  };
+  }, [recording, toast]);
 
   const renderTable = (docs: Document[]) => {
     if (loading) {
@@ -295,14 +297,21 @@ const Documents: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="gerador">
-            <DocumentGenerator 
-              onDocumentGenerated={(document) => {
-                toast({
-                  title: "Documento Gerado",
-                  description: `${document.title} foi gerado com sucesso!`
-                });
-              }}
-            />
+            <Suspense fallback={
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Carregando gerador de documentos...</span>
+              </div>
+            }>
+              <DocumentGenerator 
+                onDocumentGenerated={(document) => {
+                  toast({
+                    title: "Documento Gerado",
+                    description: `${document.title} foi gerado com sucesso!`
+                  });
+                }}
+              />
+            </Suspense>
           </TabsContent>
         </Tabs>
 

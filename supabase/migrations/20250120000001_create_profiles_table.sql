@@ -59,7 +59,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile"
   ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+  USING ((select auth.uid()) = id);
 
 -- POLÍTICA REMOVIDA: "Doctors can view patient profiles" causava recursão infinita
 -- Médicos devem acessar dados de pacientes através da tabela patients, não profiles
@@ -69,13 +69,13 @@ CREATE POLICY "Users can view their own profile"
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 CREATE POLICY "Users can insert their own profile"
   ON public.profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  WITH CHECK ((select auth.uid()) = id);
 
 -- Usuários podem atualizar seu próprio perfil
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
-  USING (auth.uid() = id);
+  USING ((select auth.uid()) = id);
 
 -- Função para criar perfil automaticamente após signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()

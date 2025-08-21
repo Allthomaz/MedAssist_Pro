@@ -38,53 +38,66 @@ export function MedicalSidebar() {
   return (
     <div className="premium-sidebar h-full flex flex-col">
       {/* Logo Section */}
-      <div className="flex items-center gap-3 p-6 border-b border-border">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg medical-gradient premium-glow">
-          <Stethoscope className="w-6 h-6 text-white" />
+      <div className="flex items-center gap-3 p-6 border-b border-sidebar-border/50">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl medical-gradient shadow-lg">
+          <Stethoscope className="w-7 h-7 text-white" />
         </div>
         <div>
-          <h1 className="text-lg font-semibold text-foreground">MedAssist Pro</h1>
-          <p className="text-xs text-muted-foreground">Assistente Clínico Digital</p>
+          <h1 className="text-xl font-bold text-sidebar-foreground medical-heading">MedAssist Pro</h1>
+          <p className="text-xs text-sidebar-foreground/70 medical-subheading">Assistente Clínico Digital</p>
         </div>
       </div>
 
       {/* Main Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         <div className="space-y-1">
-          {navigation.map((item) => {
+          {navigation.map((item, index) => {
             const isActive = location.pathname === item.href;
             return (
               <NavLink
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                  "premium-sidebar-item flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 group",
                   isActive
-                    ? "bg-medical-blue text-medical-blue-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground medical-card-hover"
+                    ? "bg-medical-blue/10 text-medical-blue border border-medical-blue/20 active"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-1"
                 )}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <item.icon className="w-5 h-5" />
-                {item.name}
+                <div className={cn(
+                  "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300",
+                  isActive 
+                    ? "bg-medical-blue text-white shadow-md" 
+                    : "bg-sidebar-accent/50 text-sidebar-foreground/60 group-hover:bg-medical-blue/20 group-hover:text-medical-blue"
+                )}>
+                  <item.icon className="w-4 h-4" />
+                </div>
+                <span className="font-medium">{item.name}</span>
               </NavLink>
             );
           })}
         </div>
 
         {/* Quick Actions */}
-        <div className="pt-6 mt-6 border-t border-border">
-          <p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <div className="pt-6 mt-6 border-t border-sidebar-border/30">
+          <p className="px-4 mb-3 text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider medical-subheading">
             Ações Rápidas
           </p>
-          <Button variant="medical" className="w-full justify-start" size="sm">
-            <Video className="w-4 h-4" />
+          <Button 
+            className="w-full justify-start bg-medical-blue/10 hover:bg-medical-blue/20 text-medical-blue border border-medical-blue/20 premium-button" 
+            size="sm"
+          >
+            <div className="flex items-center justify-center w-6 h-6 rounded-md bg-medical-blue/20 mr-2">
+              <Video className="w-3 h-3" />
+            </div>
             Nova Consulta
           </Button>
         </div>
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-4 border-t border-border space-y-2">
+      <div className="p-4 border-t border-sidebar-border/30 space-y-2">
         {secondaryNavigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -92,21 +105,28 @@ export function MedicalSidebar() {
               key={item.name}
               to={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                "premium-sidebar-item flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 group",
                 isActive
-                  ? "bg-medical-blue text-medical-blue-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-medical-blue/10 text-medical-blue border border-medical-blue/20 active"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-1"
               )}
             >
-              <item.icon className="w-5 h-5" />
-              {item.name}
+              <div className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300",
+                isActive 
+                  ? "bg-medical-blue text-white shadow-md" 
+                  : "bg-sidebar-accent/50 text-sidebar-foreground/60 group-hover:bg-medical-blue/20 group-hover:text-medical-blue"
+              )}>
+                <item.icon className="w-4 h-4" />
+              </div>
+              <span className="font-medium">{item.name}</span>
             </NavLink>
           );
         })}
         
         <Button
           variant="ghost"
-          className="w-full justify-start text-muted-foreground"
+          className="w-full justify-start text-sidebar-foreground/60 hover:text-medical-alert hover:bg-medical-alert/10 transition-all duration-300 mt-4 premium-button"
           size="sm"
           onClick={async () => {
             await signOut();
@@ -114,8 +134,10 @@ export function MedicalSidebar() {
           }}
           aria-label="Sair da conta"
         >
-          <LogOut className="w-4 h-4" />
-          Sair
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/50 mr-3 transition-all duration-300 group-hover:bg-medical-alert/20">
+            <LogOut className="w-4 h-4" />
+          </div>
+          <span className="font-medium">Sair</span>
         </Button>
       </div>
     </div>
