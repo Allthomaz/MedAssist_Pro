@@ -35,6 +35,11 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     --medical-alert: 6 78% 57%; /* #E74C3C - Coral red */
     --medical-alert-foreground: 0 0% 100%;
 
+    /* Additional Medical Colors */
+    --medical-purple: 271 81% 56%; /* #8B5CF6 - Medical purple */
+    --medical-orange: 25 95% 53%; /* #F97316 - Medical orange */
+    --medical-teal: 173 80% 40%; /* #14B8A6 - Medical teal */
+
     --secondary: 0 0% 94%; /* Light gray */
     --secondary-foreground: 210 22% 22%;
 
@@ -426,5 +431,150 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
   @keyframes shimmer {
     0% { left: -100%; }
     100% { left: 100%; }
+  }
+
+  /* Compact Mode Styles */
+  .compact-mode {
+    --spacing-scale: 0.75;
+  }
+
+  .compact-mode .medical-card {
+    padding: calc(1rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-sidebar {
+    width: calc(240px * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-header {
+    height: calc(4rem * var(--spacing-scale));
+    padding: calc(0.75rem * var(--spacing-scale)) calc(1.5rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-stats-card {
+    padding: calc(1.25rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-button {
+    padding: calc(0.5rem * var(--spacing-scale)) calc(1rem * var(--spacing-scale));
+    font-size: calc(0.875rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-text-lg {
+    font-size: calc(1.125rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-text-xl {
+    font-size: calc(1.25rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-text-2xl {
+    font-size: calc(1.5rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-text-3xl {
+    font-size: calc(1.875rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-spacing {
+    gap: calc(1rem * var(--spacing-scale));
+  }
+
+  .compact-mode .medical-spacing-lg {
+    gap: calc(1.5rem * var(--spacing-scale));
+  }
+
+  /* Medical Color Utilities */
+  .text-medical-blue {
+    color: hsl(var(--medical-blue));
+  }
+
+  .text-medical-success {
+    color: hsl(var(--medical-success));
+  }
+
+  .text-medical-alert {
+    color: hsl(var(--medical-alert));
+  }
+
+  .text-medical-purple {
+    color: hsl(var(--medical-purple));
+  }
+
+  .text-medical-orange {
+    color: hsl(var(--medical-orange));
+  }
+
+  .text-medical-teal {
+    color: hsl(var(--medical-teal));
+  }
+
+  .bg-medical-blue {
+    background-color: hsl(var(--medical-blue));
+  }
+
+  .bg-medical-success {
+    background-color: hsl(var(--medical-success));
+  }
+
+  .bg-medical-alert {
+    background-color: hsl(var(--medical-alert));
+  }
+
+  .bg-medical-purple {
+    background-color: hsl(var(--medical-purple));
+  }
+
+  .bg-medical-orange {
+    background-color: hsl(var(--medical-orange));
+  }
+
+  .bg-medical-teal {
+    background-color: hsl(var(--medical-teal));
+  }
+
+  /* Enhanced Medical Gradients */
+  .medical-gradient-enhanced {
+    background: linear-gradient(135deg, 
+      hsl(var(--medical-blue)) 0%, 
+      hsl(var(--medical-teal)) 50%, 
+      hsl(var(--medical-success)) 100%);
+  }
+
+  .medical-gradient-purple {
+    background: linear-gradient(135deg, 
+      hsl(var(--medical-purple)) 0%, 
+      hsl(var(--medical-blue)) 100%);
+  }
+
+  .medical-gradient-warm {
+    background: linear-gradient(135deg, 
+      hsl(var(--medical-orange)) 0%, 
+      hsl(var(--medical-alert)) 100%);
+  }
+
+  /* Medical Status Indicators */
+  .medical-status-success {
+    background: hsl(var(--medical-success) / 0.1);
+    color: hsl(var(--medical-success));
+    border: 1px solid hsl(var(--medical-success) / 0.2);
+  }
+
+  .medical-status-warning {
+    background: hsl(var(--medical-orange) / 0.1);
+    color: hsl(var(--medical-orange));
+    border: 1px solid hsl(var(--medical-orange) / 0.2);
+  }
+
+  .medical-status-error {
+    background: hsl(var(--medical-alert) / 0.1);
+    color: hsl(var(--medical-alert));
+    border: 1px solid hsl(var(--medical-alert) / 0.2);
+  }
+
+  .medical-status-info {
+    background: hsl(var(--medical-blue) / 0.1);
+    color: hsl(var(--medical-blue));
+    border: 1px solid hsl(var(--medical-blue) / 0.2);
   }
 }

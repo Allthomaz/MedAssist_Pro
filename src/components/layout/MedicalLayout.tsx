@@ -4,6 +4,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { Button } from '../ui/button';
 import { UserCircle } from 'lucide-react';
 import { NotificationButton } from '../notifications/NotificationButton';
+import { ProfileConfigModal } from '../profile/ProfileConfigModal';
 
 interface MedicalLayoutProps {
   children: React.ReactNode;
@@ -37,9 +38,11 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
           <div className="flex items-center gap-4">
             <NotificationButton />
             <ThemeToggle />
-            <Button variant="ghost" size="icon">
-              <UserCircle className="w-6 h-6" />
-            </Button>
+            <ProfileConfigModal>
+              <Button variant="ghost" size="icon">
+                <UserCircle className="w-6 h-6" />
+              </Button>
+            </ProfileConfigModal>
           </div>
         </header>
 

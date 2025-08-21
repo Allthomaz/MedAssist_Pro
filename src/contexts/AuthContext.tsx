@@ -11,6 +11,10 @@ interface UserProfile {
   crm?: string;
   specialty?: string;
   clinic_name?: string;
+  custom_title?: string;
+  phone?: string;
+  theme_preference?: 'light' | 'dark' | 'system';
+  compact_mode?: boolean;
 }
 
 interface AuthContextValue {
@@ -44,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, role, email, crm, specialty')
+        .select('id, full_name, role, email, crm, specialty, custom_title, phone, theme_preference, compact_mode')
         .eq('id', userId)
         .single();
       

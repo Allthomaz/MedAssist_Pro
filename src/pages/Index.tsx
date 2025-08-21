@@ -5,19 +5,21 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users, Video, FileText, Clock, TrendingUp, Plus, ArrowRight, Loader2 } from 'lucide-react';
+import { Users, Video, FileText, Clock, TrendingUp, Plus, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Database } from '@/types/database.types';
+import { useThemePreferences } from '@/hooks/useThemePreferences';
 
 type Patient = Database['public']['Tables']['patients']['Row'];
 
 const Index = () => {
   const { fullDisplayName, professionName } = useProfile();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { compactMode } = useThemePreferences();
   const navigate = useNavigate();
   const [recentPatients, setRecentPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,77 +102,95 @@ const Index = () => {
     <MedicalLayout>
       <div className="flex flex-col gap-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 medical-header ${compactMode ? 'medical-spacing' : 'medical-spacing-lg'}`}>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground text-base">
+            <h1 className={`font-bold text-foreground tracking-tight ${compactMode ? 'medical-text-2xl' : 'text-3xl'}`}>
+              Dashboard
+            </h1>
+            <p className={`text-muted-foreground ${compactMode ? 'text-sm' : 'text-base'}`}>
               Bem-vindo de volta, {fullDisplayName}.
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className={`text-muted-foreground ${compactMode ? 'text-xs' : 'text-sm'}`}>
               {professionName}
             </p>
+            {profile?.custom_title && (
+              <div className={`custom-title-highlight mt-2 ${compactMode ? 'medical-spacing' : ''}`}>
+                <p className={`text-medical-blue font-medium ${compactMode ? 'text-xs' : 'text-sm'} flex items-center gap-2`}>
+                  <Sparkles className="h-4 w-4" />
+                  {profile.custom_title}
+                </p>
+              </div>
+            )}
           </div>
-          <Button className="medical-gradient medical-glow text-white shadow-lg hover:shadow-xl transition-all duration-200 w-fit">
+          <Button className={`medical-gradient medical-glow text-white shadow-lg hover:shadow-xl transition-all duration-200 w-fit ${compactMode ? 'medical-button' : ''}`}>
             Nova Consulta
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard
-            title="Total de Pacientes"
-            value={loading ? "..." : stats.totalPatients.toString()}
-            description="Pacientes cadastrados"
-            icon={Users}
-            trend={{ value: "+12%", isPositive: true }}
-          />
-          <StatsCard
-            title="Consultas Realizadas"
-            value={loading ? "..." : stats.totalConsultations.toString()}
-            description="Consultas realizadas"
-            icon={Video}
-            trend={{ value: "+2", isPositive: true }}
-          />
-          <StatsCard
-            title="Transcrições"
-            value={loading ? "..." : stats.totalTranscriptions.toString()}
-            description="Transcrições geradas"
-            icon={FileText}
-            trend={{ value: "-1", isPositive: false }}
-          />
-          <StatsCard
-            title="Tempo Médio"
-            value="12min"
-            description="Por documento gerado"
-            icon={Clock}
-            trend={{ value: "-2min", isPositive: false }}
-          />
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${compactMode ? 'medical-spacing' : ''}`}>
+          <div className={compactMode ? 'medical-stats-card' : ''}>
+            <StatsCard
+              title="Total de Pacientes"
+              value={loading ? "..." : stats.totalPatients.toString()}
+              description="Pacientes cadastrados"
+              icon={Users}
+              trend={{ value: "+12%", isPositive: true }}
+            />
+          </div>
+          <div className={compactMode ? 'medical-stats-card' : ''}>
+            <StatsCard
+              title="Consultas Realizadas"
+              value={loading ? "..." : stats.totalConsultations.toString()}
+              description="Consultas realizadas"
+              icon={Video}
+              trend={{ value: "+2", isPositive: true }}
+            />
+          </div>
+          <div className={compactMode ? 'medical-stats-card' : ''}>
+            <StatsCard
+              title="Transcrições"
+              value={loading ? "..." : stats.totalTranscriptions.toString()}
+              description="Transcrições geradas"
+              icon={FileText}
+              trend={{ value: "-1", isPositive: false }}
+            />
+          </div>
+          <div className={compactMode ? 'medical-stats-card' : ''}>
+            <StatsCard
+              title="Tempo Médio"
+              value="12min"
+              description="Por documento gerado"
+              icon={Clock}
+              trend={{ value: "-2min", isPositive: false }}
+            />
+          </div>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 items-start ${compactMode ? 'medical-spacing' : ''}`}>
           {/* Quick Actions */}
-          <div className="lg:col-span-2">
+          <div className={`lg:col-span-2 ${compactMode ? 'medical-card' : ''}`}>
             <QuickActions />
           </div>
 
           {/* Recent Activity */}
-          <div className="lg:col-span-1">
+          <div className={`lg:col-span-1 ${compactMode ? 'medical-card' : ''}`}>
             <RecentActivity />
           </div>
         </div>
         
         {/* Seção de Pacientes Recentes */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <Card className="medical-card">
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 ${compactMode ? 'medical-spacing' : ''}`}>
+          <Card className={`medical-card medical-card-hover ${compactMode ? 'medical-card' : ''}`}>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className={`font-semibold text-gray-900 ${compactMode ? 'text-base' : 'text-lg'}`}>
                 Pacientes Recentes
               </CardTitle>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="gap-2"
+                className={`gap-2 text-medical-blue hover:text-medical-teal hover:bg-medical-blue/10 ${compactMode ? 'medical-button' : ''}`}
                 onClick={() => navigate('/patients')}
               >
                 Ver Todos
@@ -230,9 +250,9 @@ const Index = () => {
           </Card>
           
           {/* Seção de Atividades Recentes */}
-          <Card className="medical-card">
+          <Card className={`medical-card medical-card-hover ${compactMode ? 'medical-card' : ''}`}>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className={`font-semibold text-gray-900 ${compactMode ? 'text-base' : 'text-lg'}`}>
                 Atividades Recentes
               </CardTitle>
             </CardHeader>

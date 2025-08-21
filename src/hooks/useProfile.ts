@@ -64,7 +64,7 @@ export const useProfile = () => {
   };
 
   const displayName = profile?.full_name || 'Usuário';
-  const professionalTitle = profile?.role ? getProfessionalTitle(profile.role) : 'Dr.';
+  const professionalTitle = profile?.custom_title || (profile?.role ? getProfessionalTitle(profile.role) : 'Dr.');
   const professionName = profile?.role ? getProfessionName(profile.role) : 'Profissional da Saúde';
   const professionNamePlural = profile?.role ? getProfessionNamePlural(profile.role) : 'Profissionais da Saúde';
   const fullDisplayName = `${professionalTitle} ${displayName}`;
