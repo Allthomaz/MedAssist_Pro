@@ -72,6 +72,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
       
+      // Handle token refresh errors
+      if (event === 'TOKEN_REFRESHED' && !newSession) {
+        console.warn('Token refresh failed, clearing local session');
+        await supabase.auth.signOut();
+        return;
+      }
+      
       // Só processa mudanças após inicialização
       if (!initialized && event !== 'INITIAL_SESSION') {
         return;
@@ -100,17 +107,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Then check existing session
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const userProfile = await fetchUserProfile(session.user.id);
-          if (mounted) {
-            setProfile(userProfile);
+        // Handle invalid refresh token errors
+        if (error && error.message?.includes('Invalid Refresh Token')) {
+          console.warn('Invalid refresh token detected, clearing session');
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            const userProfile = await fetchUserProfile(session.user.id);
+            if (mounted) {
+              setProfile(userProfile);
+            }
           }
         }
         
@@ -120,7 +136,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Erro na inicialização da autenticação:', error);
+        // Clear session on any auth error
         if (mounted) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
           setInitializing(false);
           initialized = true;
         }

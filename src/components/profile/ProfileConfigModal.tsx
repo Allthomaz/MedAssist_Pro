@@ -18,15 +18,20 @@ interface ProfileConfigModalProps {
   children: React.ReactNode;
 }
 
-const PROFESSIONAL_ROLES = [
-  { value: 'medico', label: 'Médico', title: 'Dr.' },
-  { value: 'psicologo', label: 'Psicólogo', title: 'Psic.' },
-  { value: 'terapeuta', label: 'Terapeuta', title: 'Ter.' },
-  { value: 'nutricionista', label: 'Nutricionista', title: 'Nutr.' },
-  { value: 'enfermeiro', label: 'Enfermeiro', title: 'Enf.' },
-  { value: 'fisioterapeuta', label: 'Fisioterapeuta', title: 'Ft.' },
-  { value: 'dentista', label: 'Dentista', title: 'Dr.' },
-  { value: 'veterinario', label: 'Veterinário', title: 'Dr.' },
+const PROFESSIONAL_SPECIALTIES = [
+  { specialty: 'Medicina Geral', title: 'Dr.' },
+  { specialty: 'Psicologia', title: 'Psic.' },
+  { specialty: 'Terapia', title: 'Ter.' },
+  { specialty: 'Nutrição', title: 'Nutr.' },
+  { specialty: 'Enfermagem', title: 'Enf.' },
+  { specialty: 'Fisioterapia', title: 'Ft.' },
+  { specialty: 'Odontologia', title: 'Dr.' },
+  { specialty: 'Medicina Veterinária', title: 'Dr.' },
+];
+
+const USER_ROLES = [
+  { value: 'doctor', label: 'Profissional da Saúde' },
+  { value: 'patient', label: 'Paciente' },
 ];
 
 export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
@@ -38,7 +43,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   
   // Form states
   const [fullName, setFullName] = useState(profile?.full_name || '');
-  const [role, setRole] = useState(profile?.role || 'medico');
+  const [role, setRole] = useState(profile?.role || 'doctor');
   const [customTitle, setCustomTitle] = useState('');
   const [useCustomTitle, setUseCustomTitle] = useState(false);
   const [crm, setCrm] = useState(profile?.crm || '');
@@ -57,8 +62,9 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
     }
   }, [profile]);
 
-  const selectedRole = PROFESSIONAL_ROLES.find(r => r.value === role);
-  const displayTitle = useCustomTitle && customTitle ? customTitle : selectedRole?.title || 'Dr.';
+  const selectedRole = USER_ROLES.find(r => r.value === role);
+  const selectedSpecialty = PROFESSIONAL_SPECIALTIES.find(s => s.specialty === specialty);
+  const displayTitle = useCustomTitle && customTitle ? customTitle : selectedSpecialty?.title || 'Dr.';
 
   const validateForm = () => {
     const errors: string[] = [];
@@ -159,7 +165,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   const handleCancel = () => {
     // Reset form to original values
     setFullName(profile?.full_name || '');
-    setRole(profile?.role || 'medico');
+    setRole(profile?.role || 'doctor');
     setCustomTitle('');
     setUseCustomTitle(false);
     setCrm(profile?.crm || '');
@@ -193,7 +199,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                   {displayTitle} {fullName || 'Seu Nome'}
                 </h3>
                 <p className="text-sm text-medical-600 dark:text-medical-400">
-                  {selectedRole?.label || 'Profissional da Saúde'}
+                  {selectedRole?.label || 'Usuário'}
                   {specialty && ` • ${specialty}`}
                 </p>
               </div>
@@ -255,12 +261,12 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                 </Label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger className="medical-input">
-                    <SelectValue placeholder="Selecione sua profissão" />
+                    <SelectValue placeholder="Selecione seu tipo de usuário" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PROFESSIONAL_ROLES.map((roleOption) => (
+                    {USER_ROLES.map((roleOption) => (
                       <SelectItem key={roleOption.value} value={roleOption.value}>
-                        {roleOption.label} ({roleOption.title})
+                        {roleOption.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -287,13 +293,18 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                 <Sparkles className="w-4 h-4 text-medical-600" />
                 Especialidade
               </Label>
-              <Input
-                id="specialty"
-                value={specialty}
-                onChange={(e) => setSpecialty(e.target.value)}
-                placeholder="Ex: Cardiologia, Clínica Geral"
-                className="medical-input"
-              />
+              <Select value={specialty} onValueChange={setSpecialty}>
+                <SelectTrigger className="medical-input">
+                  <SelectValue placeholder="Selecione sua especialidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROFESSIONAL_SPECIALTIES.map((specialtyOption) => (
+                    <SelectItem key={specialtyOption.specialty} value={specialtyOption.specialty}>
+                      {specialtyOption.specialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
