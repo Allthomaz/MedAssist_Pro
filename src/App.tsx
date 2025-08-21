@@ -9,11 +9,14 @@ import Templates from "./pages/Templates";
 import Consultations from "./pages/Consultations";
 import Documents from "./pages/Documents";
 import Appointments from "./pages/Appointments";
+
+
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import AuthPage from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import { AuthProvider } from "@/contexts/AuthContext";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -74,7 +77,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -139,7 +139,7 @@ const Patients = () => {
           </div>
           <Button 
             variant="medical" 
-            className="gap-2"
+            className="gap-2 premium-button-primary"
             onClick={() => setShowPatientForm(true)}
           >
             <Plus className="w-4 h-4" />
@@ -148,7 +148,7 @@ const Patients = () => {
         </div>
 
         {/* Search and Filters */}
-        <Card>
+        <Card className="premium-form-card">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
@@ -191,7 +191,7 @@ const Patients = () => {
             filteredPatients.map((patient) => (
             <Card 
               key={patient.id} 
-              className="medical-card-hover cursor-pointer transition-all duration-200 hover:shadow-md"
+              className="premium-patient-card cursor-pointer premium-fade-in"
               onClick={() => setSelectedPatientId(patient.id)}
             >
               <CardContent className="p-6">

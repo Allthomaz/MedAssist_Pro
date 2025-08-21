@@ -36,10 +36,10 @@ export function MedicalSidebar() {
   const { signOut } = useAuth();
 
   return (
-    <div className="flex flex-col h-full bg-card border-r border-border">
+    <div className="premium-sidebar h-full flex flex-col">
       {/* Logo Section */}
       <div className="flex items-center gap-3 p-6 border-b border-border">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg medical-gradient">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg medical-gradient premium-glow">
           <Stethoscope className="w-6 h-6 text-white" />
         </div>
         <div>

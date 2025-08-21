@@ -75,45 +75,37 @@ export function RecentActivity() {
   };
 
   return (
-    <Card className="h-fit">
+    <Card className="premium-stats-card premium-fade-in">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Clock className="w-5 h-5 text-medical-blue" />
-          Atividade Recente
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Clock className="w-5 h-5 text-primary" />
+          Atividades Recentes
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 pt-0">
-        {recentActivities.map((activity) => (
-          <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/30 transition-all duration-200 border border-transparent hover:border-border/50">
-            <Avatar className="w-9 h-9 flex-shrink-0 mt-0.5">
-              <AvatarFallback className="bg-medical-blue/10 border border-medical-blue/20">
-                <activity.icon className="w-4 h-4 text-medical-blue" />
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 min-w-0 space-y-1.5">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-foreground leading-tight">
-                  {activity.title}
-                </p>
-                <p className="text-xs text-muted-foreground whitespace-nowrap">
-                  {activity.time}
-                </p>
+      <CardContent className="space-y-4 pt-0">
+        {recentActivities.map((activity) => {
+          const Icon = activity.icon;
+          return (
+            <div key={activity.id} className="premium-activity-item flex items-start gap-3 p-3">
+              <div className="icon-container flex items-center justify-center w-8 h-8 flex-shrink-0">
+                <Icon className="w-4 h-4 text-primary" />
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {activity.description}
-              </p>
-              <div className="pt-1">
-                <Badge 
-                  variant="outline" 
-                  className={`${getStatusColor(activity.status)} text-xs font-medium`}
-                >
-                  {getStatusText(activity.status)}
-                </Badge>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="font-medium text-foreground text-sm leading-tight">{activity.title}</h4>
+                  <Badge 
+                    variant="outline" 
+                    className={`premium-badge text-xs px-2 py-1 flex-shrink-0 ${getStatusColor(activity.status)}`}
+                  >
+                    {getStatusText(activity.status)}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{activity.description}</p>
+                <span className="text-xs text-muted-foreground mt-2 block">{activity.time}</span>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );

@@ -192,12 +192,12 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Dados Pessoais */}
-          <Card>
+          {/* Informações Básicas */}
+          <Card className="premium-form-card premium-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-medical-blue" />
-                Dados Pessoais
+                Informações Básicas
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -325,7 +325,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
           </Card>
 
           {/* Informações Clínicas */}
-          <Card>
+          <Card className="premium-form-card premium-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-medical-blue" />
@@ -390,7 +390,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
           </Card>
 
           {/* Anexos e Documentos */}
-          <Card>
+          <Card className="premium-form-card premium-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="w-5 h-5 text-medical-blue" />
@@ -438,7 +438,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
           </Card>
 
           {/* Tags */}
-          <Card>
+          <Card className="premium-form-card premium-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Tag className="w-5 h-5 text-medical-blue" />
@@ -481,10 +481,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
 
           {/* Botões de Ação */}
           <div className="flex gap-4 justify-end">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} className="premium-button-outline">
               Cancelar
             </Button>
-            <Button type="submit" variant="medical" disabled={isLoading}>
+            <Button type="submit" variant="medical" disabled={isLoading} className="premium-button-primary">
               {isLoading ? 'Salvando...' : 'Salvar Paciente'}
             </Button>
           </div>

@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "magic-mcp": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@21st-dev/magic-mcp",
+        "--key",
+        "2f1cd8f8-0b6b-4c88-8286-489f52f3ab9e",
+        "--profile",
+        "loose-cicada-gZTGeu"
+      ]
+    }
+  }
+}

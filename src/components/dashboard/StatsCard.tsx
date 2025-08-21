@@ -15,19 +15,19 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, description, icon: Icon, trend }: StatsCardProps) {
   return (
-    <Card className="medical-card-hover bg-card border-border/60 hover:border-border transition-all duration-200">
+    <Card className="premium-stats-card premium-fade-in">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             {title}
           </CardTitle>
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 border border-primary/20">
+          <div className="icon-container flex items-center justify-center w-9 h-9">
             <Icon className="w-4 h-4 text-primary" />
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="text-2xl font-bold text-foreground mb-2">{value}</div>
+        <div className="value text-2xl font-bold mb-2">{value}</div>
         <div className="flex items-center gap-2 text-sm">
           {trend && (
             <span className={`flex items-center gap-1 font-medium ${
