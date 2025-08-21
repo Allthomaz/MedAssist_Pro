@@ -34,7 +34,13 @@ export const useNotifications = () => {
     try {
       setLoading(true);
       const userNotifications = await NotificationService.getUserNotifications(user.id);
-      setNotifications(userNotifications);
+      setNotifications((userNotifications || []).map(n => ({
+        ...n,
+        status: (n.status as 'read' | 'unread') || 'unread',
+        priority: (n.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal',
+        channel: (n.channel as 'in_app' | 'email' | 'sms') || 'in_app',
+        delivery_status: (n.delivery_status as 'pending' | 'sent' | 'failed') || 'pending'
+      })));
       
       const unreadNotifications = await NotificationService.getUnreadCount(user.id);
       setUnreadCount(unreadNotifications);

@@ -24,10 +24,10 @@ interface AudioRecorderProps {
 
 interface Recording {
   id: string;
-  file_name: string;
-  file_size: number;
-  duration: number;
-  status: 'recording' | 'completed' | 'processing';
+  audio_file_name: string;
+  audio_file_size: number;
+  audio_duration: number;
+  recording_status: 'recording' | 'completed' | 'processing';
   created_at: string;
 }
 
@@ -74,7 +74,14 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRecordings(data || []);
+      setRecordings((data || []).map(record => ({
+        id: record.id,
+        audio_file_name: record.audio_file_name,
+        audio_file_size: record.audio_file_size || 0,
+        audio_duration: record.audio_duration || 0,
+        recording_status: (record.recording_status as 'recording' | 'completed' | 'processing') || 'completed',
+        created_at: record.created_at
+      })));
     } catch (err) {
       console.error('Erro ao buscar gravações:', err);
     }
@@ -196,8 +203,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         .from('recordings')
         .insert({
           consultation_id: consultationId,
-          file_name: fileName,
-          file_path: uploadData.path,
+          doctor_id: (await supabase.auth.getUser()).data.user?.id,
+          recording_name: fileName,
+          audio_file_name: fileName,
+          audio_url: uploadData.path,
           file_size: audioBlob.size,
           duration: recordingTime,
           status: 'completed'
@@ -251,7 +260,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         .from('transcriptions')
         .insert({
           recording_id: recordingId,
-          transcription_text: data.transcription,
+          consultation_id: consultationId,
+          transcript_text: data.transcription,
           confidence_score: data.confidence || 0.95,
           status: 'completed'
         })
@@ -479,9 +489,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
                   <div className="flex items-center gap-3">
                     <FileAudio className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{recording.file_name}</p>
+                      <p className="font-medium">{recording.audio_file_name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatFileSize(recording.file_size)} • {formatTime(recording.duration)}
+                        {formatFileSize(recording.audio_file_size)} • {formatTime(recording.audio_duration)}
                       </p>
                     </div>
                   </div>
@@ -489,16 +499,16 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
                   <div className="flex items-center gap-2">
                     <Badge 
                       className={
-                        recording.status === 'completed' 
+                        recording.recording_status === 'completed' 
                           ? 'bg-green-100 text-green-700' 
                           : 'bg-yellow-100 text-yellow-700'
                       }
                     >
-                      {recording.status === 'completed' ? 'Concluída' : 'Processando'}
+                      {recording.recording_status === 'completed' ? 'Concluída' : 'Processando'}
                     </Badge>
                     
                     <Button
-                      onClick={() => deleteRecording(recording.id, recording.file_name)}
+                      onClick={() => deleteRecording(recording.id, recording.audio_file_name)}
                       variant="ghost"
                       size="sm"
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"

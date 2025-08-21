@@ -86,12 +86,12 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       const { error: saveError } = await supabase
         .from('documents')
         .insert({
+          doctor_id: (await supabase.auth.getUser()).data.user?.id,
           consultation_id: consultationId,
           document_type: intention,
           title: data.title,
-          content: data.content,
-          generated_at: new Date().toISOString(),
-          status: 'generated'
+          content_html: data.content,
+          status: 'finalizado'
         });
 
       if (saveError) {

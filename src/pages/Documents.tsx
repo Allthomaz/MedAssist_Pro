@@ -11,10 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import { DocumentGenerator } from "@/components/documents/DocumentGenerator";
 import { Calendar, FileText, Microscope, Paperclip, Plus, Search, Upload, User, Mic, StopCircle, Brain, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/types/database.types";
+import { Database } from "@/integrations/supabase/types";
 
-type Patient = Database['public']['tables']['patients']['Row'];
-type Document = Database['public']['tables']['documents']['Row'];
+type Patient = Database['Tables']['patients']['Row'];
+type Document = Database['Tables']['documents']['Row'];
 
 const Documents: React.FC = () => {
   const { toast } = useToast();
