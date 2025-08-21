@@ -1,8 +1,39 @@
-# Welcome to your Lovable project
+# Doctor Brief AI - Sistema Médico Premium
 
-## Project info
+## Sobre o Projeto
 
-**URL**: https://lovable.dev/projects/17a5537f-945e-44a2-bdb7-22b95ba452b6
+Sistema médico premium com IA para geração de relatórios e gestão de consultas, implementado com Design System sofisticado.
+
+**Repositório**: https://github.com/Allthomaz/doctor-brief-ai-premium
+**Demo**: http://localhost:8081/showcase
+
+## Funcionalidades Premium
+
+- 🎨 **Design System Médico Premium** - Interface sofisticada com glassmorphism
+- 🏥 **Gestão Completa de Pacientes** - CRUD completo com validações
+- 📋 **Consultas Médicas** - Sistema completo de agendamento e histórico
+- 🤖 **IA para Relatórios** - Geração automática de relatórios médicos
+- 📊 **Dashboard Analytics** - Estatísticas e métricas em tempo real
+- 🔐 **Autenticação Segura** - Sistema completo com Supabase Auth
+- 📱 **Design Responsivo** - Interface otimizada para todos os dispositivos
+- ♿ **Acessibilidade** - Componentes acessíveis seguindo padrões WCAG
+
+## Design System Premium
+
+### Paleta de Cores Médica
+- **Primary**: Azul médico profissional (#2563eb)
+- **Secondary**: Verde saúde (#16a34a)
+- **Accent**: Laranja energia (#ea580c)
+- **Medical**: Tons específicos para ambiente médico
+
+### Componentes Premium
+- **StatsCard**: Cards com glassmorphism e micro-interações
+- **MedicalSidebar**: Navegação com efeitos visuais sofisticados
+- **Premium Buttons**: Botões com animações fluidas
+- **Medical Forms**: Campos otimizados para dados médicos
+
+### Showcase Interativo
+Visite `/showcase` para ver todas as melhorias visuais implementadas.
 
 ## How can I edit this code?
 
