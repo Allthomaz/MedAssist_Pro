@@ -159,6 +159,7 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
+    line-clamp: 1;
     overflow: hidden;
   }
 
@@ -166,6 +167,7 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    line-clamp: 2;
     overflow: hidden;
   }
 
@@ -373,5 +375,56 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
   .medical-grid-item {
     padding: 1.5rem;
     border-radius: calc(var(--radius) + 2px);
+  }
+
+  /* Responsive utilities */
+  @media (max-width: 768px) {
+    .hide-mobile {
+      display: none !important;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .hide-desktop {
+      display: none !important;
+    }
+  }
+
+  /* Additional CSS Variables */
+  :root {
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+  }
+
+  :root {
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+  }
+
+  /* Medical Loading Animation */
+  .medical-loading {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .medical-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--medical-blue)/0.1), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
   }
 }

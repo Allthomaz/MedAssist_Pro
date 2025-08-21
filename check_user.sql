@@ -1,0 +1,2 @@
+SELECT id, email, raw_user_meta_data FROM auth.users WHERE email = 'thomaz@example.com';
+SELECT id, user_id, role, full_name FROM public.profiles WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'thomaz@example.com');
