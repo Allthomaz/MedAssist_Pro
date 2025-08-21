@@ -25,84 +25,159 @@ interface AppointmentsListProps {
 }
 
 export function AppointmentsList({ appointments, onEdit, onDelete }: AppointmentsListProps) {
+  // Empty State - Enhanced design with better visual hierarchy
   if (appointments.length === 0) {
     return (
-      <Card className="border-medical-blue/20">
-        <CardContent className="pt-6">
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Nenhum agendamento encontrado.</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-12 px-6 text-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-2">
+          <Calendar className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-foreground">
+            Nenhum agendamento encontrado
+          </h3>
+          <p className="text-muted-foreground max-w-sm">
+            Não há consultas agendadas para esta data. Selecione outra data ou crie um novo agendamento.
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {appointments.map((appointment) => (
-        <Card key={appointment.id} className="border-medical-blue/20 hover:border-medical-blue/40 transition-colors">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex justify-between items-center">
-              <span>{appointment.patientName}</span>
-              <span className="text-sm font-medium text-medical-blue">
-                {appointment.appointmentType}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-medical-blue" />
-                  <span className="text-sm">
-                    {format(appointment.appointmentDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                  </span>
+    <div className="space-y-6">
+      {appointments.map((appointment, index) => (
+        <Card 
+          key={appointment.id} 
+          className="border-medical-blue/20 hover:border-medical-blue/40 hover:shadow-md transition-all duration-300 medical-card-hover bg-card"
+          style={{ 
+            animationDelay: `${index * 100}ms` 
+          }}
+        >
+          {/* Card Header - Improved mobile layout */}
+          <CardHeader className="pb-4 border-b border-border/30">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-medical-blue/10 flex items-center justify-center flex-shrink-0">
+                  <User className="w-5 h-5 text-medical-blue" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-medical-blue" />
-                  <span className="text-sm">
-                    {appointment.appointmentTime} ({appointment.appointmentDuration})
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-medical-blue" />
-                  <span className="text-sm">{appointment.patientName}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-medical-blue" />
-                  <span className="text-sm">{appointment.patientPhone}</span>
-                </div>
-                <div className="flex items-center gap-2 md:col-span-2">
-                  <MapPin className="h-4 w-4 text-medical-blue" />
-                  <span className="text-sm">{appointment.appointmentLocation}</span>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-foreground">
+                    {appointment.patientName}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Paciente
+                  </p>
                 </div>
               </div>
               
+              {/* Appointment Type Badge */}
+              <div className="flex items-center">
+                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-medical-blue/10 text-medical-blue border border-medical-blue/20">
+                  {appointment.appointmentType}
+                </span>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              
+              {/* Appointment Details Grid - Enhanced responsive design */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                
+                {/* Date and Time Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
+                    <Calendar className="h-5 w-5 text-medical-blue flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {format(appointment.appointmentDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Data da consulta
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
+                    <Clock className="h-5 w-5 text-medical-blue flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {appointment.appointmentTime}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Duração: {appointment.appointmentDuration}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Contact and Location Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
+                    <Phone className="h-5 w-5 text-medical-blue flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {appointment.patientPhone}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Telefone de contato
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
+                    <MapPin className="h-5 w-5 text-medical-blue flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {appointment.appointmentLocation}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Local da consulta
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Appointment Reason - Enhanced design */}
               {appointment.appointmentReason && (
-                <div className="pt-2 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">Motivo:</span> {appointment.appointmentReason}
-                  </p>
+                <div className="p-4 rounded-lg border border-border/50 bg-muted/30">
+                  <div className="flex items-start gap-2">
+                    <div className="w-2 h-2 rounded-full bg-medical-blue mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-1">
+                        Motivo da Consulta
+                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {appointment.appointmentReason}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
               
-              <div className="flex justify-end gap-2 pt-2">
+              {/* Action Buttons - Improved mobile layout */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border/30">
                 {onEdit && (
                   <Button 
-                    variant="outline" 
+                    variant="medical-outline" 
                     size="sm" 
                     onClick={() => onEdit(appointment)}
+                    className="w-full sm:w-auto transition-all duration-200 hover:scale-105"
                   >
-                    Editar
+                    Editar Agendamento
                   </Button>
                 )}
                 {onDelete && (
                   <Button 
-                    variant="destructive" 
+                    variant="medical-alert" 
                     size="sm" 
                     onClick={() => onDelete(appointment.id)}
+                    className="w-full sm:w-auto transition-all duration-200 hover:scale-105"
                   >
-                    Cancelar
+                    Cancelar Consulta
                   </Button>
                 )}
               </div>

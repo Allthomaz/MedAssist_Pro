@@ -400,80 +400,111 @@ const Appointments = () => {
 
   return (
     <MedicalLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Agendamentos</h1>
-            <p className="text-muted-foreground">Gerencie consultas e integre com plataformas externas</p>
+      {/* Main Container - Responsive padding and spacing */}
+      <div className="container mx-auto px-4 py-6 space-y-8 max-w-7xl">
+        
+        {/* Header Section - Improved mobile layout and visual hierarchy */}
+        <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between animate-fade-in">
+          <div className="space-y-3">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
+              Agendamentos
+            </h1>
+            <p className="text-base text-muted-foreground max-w-md leading-relaxed">
+              Gerencie consultas e acompanhe sua agenda médica em tempo real
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="medical" onClick={handleNewAppointment}>
+          
+          {/* Action Buttons - Better mobile stacking */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <Button 
+              variant="medical" 
+              onClick={handleNewAppointment}
+              className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all duration-300"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Novo Agendamento
             </Button>
           </div>
         </header>
 
-        <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="calendar">Calendário</TabsTrigger>
+        {/* Main Content Tabs - Improved spacing */}
+        <Tabs defaultValue="calendar" className="w-full space-y-6">
+          <TabsList className="grid w-full grid-cols-1 h-12 bg-muted/50">
+            <TabsTrigger 
+              value="calendar" 
+              className="text-base font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Visualização de Calendário
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="calendar" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-              <Card className="border-medical-blue/20 lg:col-span-4 lg:sticky lg:top-24 self-start animate-fade-in">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CalendarIcon className="w-5 h-5 text-medical-blue" />
+          <TabsContent value="calendar" className="space-y-6 mt-6">
+            {/* Grid Layout - Enhanced responsive behavior */}
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-12">
+              
+              {/* Calendar Sidebar - Improved mobile display */}
+              <Card className="xl:col-span-4 border-medical-blue/20 bg-card shadow-md hover:shadow-lg transition-shadow duration-300 xl:sticky xl:top-6 self-start animate-fade-in">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="p-2 rounded-lg bg-medical-blue/10">
+                      <CalendarIcon className="w-5 h-5 text-medical-blue" />
+                    </div>
                     Calendário
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  {/* Calendar Component */}
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    className="rounded-md border"
+                    className="rounded-lg border-0 bg-background/50"
                     locale={ptBR}
                   />
+                  
+                  {/* Selected Date Summary - Better visual design */}
                   {selectedDate && (
-                    <div className="mt-4 text-center">
-                      <p className="font-medium">
+                    <div className="p-4 rounded-lg bg-accent/50 border border-accent text-center space-y-2">
+                      <p className="font-semibold text-lg text-foreground">
                         {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {filteredAppointments.length} agendamento(s)
-                      </p>
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-medical-blue"></div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {filteredAppointments.length} agendamento{filteredAppointments.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              <div className="lg:col-span-8">
-                <Card className="border-medical-blue/20 animate-fade-in">
-                  <CardHeader>
-                    <CardTitle>
+              {/* Appointments List - Enhanced mobile layout */}
+              <div className="xl:col-span-8 space-y-6">
+                <Card className="border-medical-blue/20 bg-card shadow-md hover:shadow-lg transition-shadow duration-300 animate-fade-in">
+                  <CardHeader className="pb-4 border-b border-border/50">
+                    <CardTitle className="text-xl font-semibold">
                       {selectedDate
-                        ? `Agendamentos para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`
-                        : 'Selecione uma data'}
+                        ? `Agendamentos para ${format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`
+                        : 'Selecione uma data no calendário'}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="max-h-[60vh] md:max-h-[70vh] overflow-y-auto pr-1">
-                      <AppointmentsList
-                        appointments={filteredAppointments}
-                        onEdit={handleEditAppointment}
-                        onDelete={handleDeleteAppointment}
-                      />
+                  <CardContent className="p-0">
+                    {/* Appointments Container - Improved scrolling and spacing */}
+                    <div className="max-h-[60vh] xl:max-h-[70vh] overflow-y-auto">
+                      <div className="p-6">
+                        <AppointmentsList
+                          appointments={filteredAppointments}
+                          onEdit={handleEditAppointment}
+                          onDelete={handleDeleteAppointment}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
             </div>
           </TabsContent>
-          
-
         </Tabs>
 
         {/* Modal de formulário para criar/editar agendamento */}
