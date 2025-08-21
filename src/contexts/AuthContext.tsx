@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [initializing, setInitializing] = useState(true);
 
   // Função para buscar perfil do usuário
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -49,44 +49,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       if (error) {
-        console.error('Erro ao buscar perfil:', error);
-        // Retorna dados mockados de médico para desenvolvimento
-        return {
-          id: userId,
-          full_name: 'Thomaz Felipe',
-          role: 'medico',
-          email: 'tmz.contatos@gmail.com',
-          crm: 'CRM/SP 123456',
-          specialty: 'Clínica Geral',
-          clinic_name: 'Clínica Médica São Paulo'
-        };
-      }
-      
-      // Se o perfil existe mas tem role 'patient', converte para médico temporariamente
-      if (data && data.role === 'patient') {
-        return {
-          ...data,
-          full_name: data.full_name,
-          role: 'medico',
-          crm: 'CRM/SP 123456',
-          specialty: 'Clínica Geral',
-          clinic_name: 'Clínica Médica São Paulo'
-        };
+        console.error('Error fetching user profile:', error);
+        return null;
       }
       
       return data;
     } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
-      // Retorna dados mockados de médico para desenvolvimento
-      return {
-        id: userId,
-        full_name: 'Thomaz Felipe',
-        role: 'medico',
-        email: 'tmz.contatos@gmail.com',
-        crm: 'CRM/SP 123456',
-        specialty: 'Clínica Geral',
-        clinic_name: 'Clínica Médica São Paulo'
-      };
+      console.error('Error fetching user profile:', error);
+      return null;
     }
   };
 

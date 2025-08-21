@@ -13,11 +13,16 @@ interface NotificationPreference {
   id: string;
   user_id: string;
   notification_type: string;
-  channel: 'in_app' | 'email' | 'sms';
-  enabled: boolean;
-  frequency: 'immediate' | 'daily' | 'weekly';
-  quiet_hours_start?: string;
-  quiet_hours_end?: string;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  push_enabled: boolean;
+  whatsapp_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  allowed_days: number[];
+  created_at: string;
+  updated_at: string;
 }
 
 interface NotificationSettingsProps {
@@ -39,13 +44,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
     { key: 'document_ready', label: 'Documentos Prontos', icon: Mail },
     { key: 'consultation_completed', label: 'Consultas Finalizadas', icon: Bell },
     { key: 'system_updates', label: 'Atualizações do Sistema', icon: Settings },
-  ];
-
-  // Canais de notificação
-  const channels = [
-    { key: 'in_app', label: 'No App', icon: Bell },
-    { key: 'email', label: 'E-mail', icon: Mail },
-    { key: 'sms', label: 'SMS', icon: Smartphone },
   ];
 
   // Buscar preferências do usuário
@@ -112,31 +110,35 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
   };
 
   // Atualizar preferência específica
-  const updatePreference = (
-    notificationType: string,
-    channel: 'in_app' | 'email' | 'sms',
-    field: keyof NotificationPreference,
-    value: any
-  ) => {
-    const preferenceId = `${notificationType}_${channel}`;
-    
+  const updatePreference = (notificationType: string, field: keyof NotificationPreference, value: any) => {
     setPreferences(prev => {
-      const existing = prev.find(p => p.id === preferenceId);
+      const existingIndex = prev.findIndex(p => p.notification_type === notificationType);
       
-      if (existing) {
-        return prev.map(p => 
-          p.id === preferenceId 
-            ? { ...p, [field]: value }
-            : p
-        );
+      if (existingIndex >= 0) {
+        // Atualizar existente
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          [field]: value,
+          updated_at: new Date().toISOString()
+        };
+        return updated;
       } else {
+        // Criar novo
         return [...prev, {
-          id: preferenceId,
+          id: `${notificationType}_${user?.id}`,
           user_id: user?.id || '',
           notification_type: notificationType,
-          channel,
-          enabled: field === 'enabled' ? value : false,
-          frequency: field === 'frequency' ? value : 'immediate',
+          in_app_enabled: field === 'in_app_enabled' ? value : true,
+          email_enabled: field === 'email_enabled' ? value : true,
+          sms_enabled: field === 'sms_enabled' ? value : false,
+          push_enabled: field === 'push_enabled' ? value : true,
+          whatsapp_enabled: field === 'whatsapp_enabled' ? value : false,
+          quiet_hours_start: '22:00',
+          quiet_hours_end: '08:00',
+          allowed_days: [1, 2, 3, 4, 5, 6, 0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           [field]: value
         }];
       }
@@ -144,9 +146,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
   };
 
   // Obter preferência específica
-  const getPreference = (notificationType: string, channel: 'in_app' | 'email' | 'sms') => {
-    const preferenceId = `${notificationType}_${channel}`;
-    return preferences.find(p => p.id === preferenceId);
+  const getPreference = (notificationType: string) => {
+    return preferences.find(p => p.notification_type === notificationType);
   };
 
   useEffect(() => {
@@ -176,6 +177,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
             <div className="space-y-6">
               {notificationTypes.map(type => {
                 const Icon = type.icon;
+                const preference = getPreference(type.key);
+                
                 return (
                   <Card key={type.key}>
                     <CardHeader className="pb-3">
@@ -185,49 +188,46 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {channels.map(channel => {
-                          const ChannelIcon = channel.icon;
-                          const preference = getPreference(type.key, channel.key as any);
-                          
-                          return (
-                            <div key={channel.key} className="border rounded-lg p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <ChannelIcon className="h-4 w-4" />
-                                  <Label>{channel.label}</Label>
-                                </div>
-                                <Switch
-                                  checked={preference?.enabled || false}
-                                  onCheckedChange={(checked) => 
-                                    updatePreference(type.key, channel.key as any, 'enabled', checked)
-                                  }
-                                />
-                              </div>
-                              
-                              {preference?.enabled && (
-                                <div className="space-y-2">
-                                  <Label className="text-sm text-muted-foreground">Frequência</Label>
-                                  <Select
-                                    value={preference.frequency}
-                                    onValueChange={(value) => 
-                                      updatePreference(type.key, channel.key as any, 'frequency', value)
-                                    }
-                                  >
-                                    <SelectTrigger className="h-8">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="immediate">Imediato</SelectItem>
-                                      <SelectItem value="daily">Diário</SelectItem>
-                                      <SelectItem value="weekly">Semanal</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">No App</span>
+                          <Switch
+                            checked={preference?.in_app_enabled || false}
+                            onCheckedChange={(checked) => 
+                              updatePreference(type.key, 'in_app_enabled', checked)
+                            }
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">E-mail</span>
+                          <Switch
+                            checked={preference?.email_enabled || false}
+                            onCheckedChange={(checked) => 
+                              updatePreference(type.key, 'email_enabled', checked)
+                            }
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">SMS</span>
+                          <Switch
+                            checked={preference?.sms_enabled || false}
+                            onCheckedChange={(checked) => 
+                              updatePreference(type.key, 'sms_enabled', checked)
+                            }
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">Push</span>
+                          <Switch
+                            checked={preference?.push_enabled || false}
+                            onCheckedChange={(checked) => 
+                              updatePreference(type.key, 'push_enabled', checked)
+                            }
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
