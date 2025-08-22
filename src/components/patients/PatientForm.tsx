@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Upload, X, User, FileText, Tag, Plus } from 'lucide-react';
+import { CalendarIcon, Upload, X, User, FileText, Tag, Plus, Phone, Mail, Heart, Pill, AlertCircle, Save, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -295,7 +295,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        Telefone
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="(XX) XXXXX-XXXX"
@@ -313,7 +316,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>E-mail</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        E-mail
+                      </FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="email@exemplo.com" {...field} />
                       </FormControl>
@@ -339,7 +345,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                 name="chief_complaint"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sintomas e Queixas Principais</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      Sintomas e Queixas Principais
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Descreva os sintomas e motivo da consulta..."
@@ -357,7 +366,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                 name="family_history"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Histórico Médico</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <Heart className="w-4 h-4" />
+                      Histórico Médico
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Diagnósticos prévios, cirurgias, doenças crônicas..."
@@ -375,7 +387,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                 name="current_medications"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Medicações Atuais</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <Pill className="w-4 h-4" />
+                      Medicações Atuais
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Liste os medicamentos que o paciente já toma..."
@@ -427,6 +442,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                           variant="ghost"
                           size="sm"
                           onClick={() => removeFile(index)}
+                          aria-label={`Remover arquivo ${file.name}`}
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -459,7 +475,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                     }
                   }}
                 />
-                <Button type="button" variant="outline" onClick={addTag}>
+                <Button type="button" variant="outline" onClick={addTag} aria-label="Adicionar rótulo">
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
@@ -482,11 +498,22 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
 
           {/* Botões de Ação */}
           <div className="flex gap-4 justify-end">
-            <Button type="button" variant="outline" onClick={onCancel} className="premium-button-outline">
+            <Button type="button" variant="outline" onClick={onCancel} className="premium-button-outline flex items-center gap-2">
+              <X className="w-4 h-4" />
               Cancelar
             </Button>
-            <Button type="submit" variant="medical" disabled={isLoading} className="premium-button-primary">
-              {isLoading ? 'Salvando...' : 'Salvar Paciente'}
+            <Button type="submit" variant="medical" disabled={isLoading} className="premium-button-primary flex items-center gap-2">
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Salvar Paciente
+                </>
+              )}
             </Button>
           </div>
         </form>

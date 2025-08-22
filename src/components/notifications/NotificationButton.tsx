@@ -24,6 +24,7 @@ export function NotificationButton() {
         size="sm"
         onClick={handleToggle}
         className="relative"
+        aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (

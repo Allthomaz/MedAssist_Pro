@@ -24,6 +24,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
   } = useNotifications();
   
   const [showSettings, setShowSettings] = useState(false);
+  const hasRefreshedRef = React.useRef(false);
 
   // Excluir notificação (implementação simples - apenas remove do estado)
   const deleteNotification = async (notificationId: string) => {
@@ -34,8 +35,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
 
   // Atualizar notificações quando o modal abrir
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasRefreshedRef.current) {
+      console.log('NotificationCenter: Modal aberto, chamando refresh');
+      hasRefreshedRef.current = true;
       refresh();
+    } else if (!isOpen) {
+      hasRefreshedRef.current = false;
     }
   }, [isOpen, refresh]);
   

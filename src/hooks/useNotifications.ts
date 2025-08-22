@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { NotificationService } from '@/services/notificationService';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -26,14 +26,45 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isLoadingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Buscar notificações do usuário
-  const fetchNotifications = async () => {
-    if (!user) return;
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.id) {
+      console.log('useNotifications: Usuário não encontrado, definindo loading como false');
+      setLoading(false);
+      return;
+    }
+
+    // Evitar múltiplas requisições simultâneas
+    if (isLoadingRef.current) {
+      console.log('useNotifications: Já existe uma requisição em andamento, ignorando');
+      return;
+    }
+
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Criar novo AbortController
+    abortControllerRef.current = new AbortController();
+    isLoadingRef.current = true;
 
     try {
+      console.log('useNotifications: Iniciando busca de notificações para usuário:', user.id);
       setLoading(true);
+      
       const userNotifications = await NotificationService.getUserNotifications(user.id);
+      console.log('useNotifications: Notificações encontradas:', userNotifications?.length || 0);
+      
+      // Verificar se a requisição foi cancelada
+      if (abortControllerRef.current?.signal.aborted) {
+        console.log('useNotifications: Requisição cancelada');
+        return;
+      }
+      
       setNotifications((userNotifications || []).map(n => ({
         ...n,
         status: (n.status as 'read' | 'unread') || 'unread',
@@ -43,16 +74,26 @@ export const useNotifications = () => {
       })));
       
       const unreadNotifications = await NotificationService.getUnreadCount(user.id);
+      console.log('useNotifications: Notificações não lidas:', unreadNotifications);
       setUnreadCount(unreadNotifications);
       
       setError(null);
-    } catch (err) {
-      console.error('Erro ao buscar notificações:', err);
+      console.log('useNotifications: Busca concluída com sucesso');
+    } catch (err: any) {
+      // Ignorar erros de cancelamento
+      if (err.name === 'AbortError' || abortControllerRef.current?.signal.aborted) {
+        console.log('useNotifications: Requisição cancelada pelo usuário');
+        return;
+      }
+      
+      console.error('useNotifications: Erro ao buscar notificações:', err);
       setError('Erro ao carregar notificações');
     } finally {
+      console.log('useNotifications: Definindo loading como false');
+      isLoadingRef.current = false;
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   // Marcar notificação como lida
   const markAsRead = async (notificationId: string) => {
@@ -140,14 +181,26 @@ export const useNotifications = () => {
 
   // Efeito para carregar notificações quando o usuário mudar
   useEffect(() => {
-    if (user) {
+    console.log('useNotifications useEffect: user?.id =', user?.id);
+    if (user?.id) {
+      console.log('useNotifications useEffect: Chamando fetchNotifications');
       fetchNotifications();
     } else {
+      console.log('useNotifications useEffect: Usuário não encontrado, limpando estado');
       setNotifications([]);
       setUnreadCount(0);
       setLoading(false);
     }
-  }, [user]);
+
+    // Cleanup: cancelar requisições pendentes
+    return () => {
+      if (abortControllerRef.current) {
+        console.log('useNotifications cleanup: Cancelando requisições pendentes');
+        abortControllerRef.current.abort();
+      }
+      isLoadingRef.current = false;
+    };
+  }, [user?.id, fetchNotifications]);
 
   return {
     notifications,

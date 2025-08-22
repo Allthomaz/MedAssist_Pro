@@ -43,11 +43,29 @@ export const authService = {
   },
 
   async signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { user: data.user, session: data.session, error };
+    console.log('AuthService: Iniciando login para:', email);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('AuthService: Erro no login:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
+      } else {
+        console.log('AuthService: Login bem-sucedido para:', email);
+      }
+      
+      return { user: data.user, session: data.session, error };
+    } catch (err) {
+      console.error('AuthService: Erro inesperado no login:', err);
+      return { user: null, session: null, error: err as any };
+    }
   },
 
   async signOut() {

@@ -39,7 +39,7 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
             <NotificationButton />
             <ThemeToggle />
             <ProfileConfigModal>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label="Abrir configurações do perfil">
                 <UserCircle className="w-6 h-6" />
               </Button>
             </ProfileConfigModal>

@@ -12,6 +12,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Mail, 
+  Lock, 
+  User, 
+  Stethoscope, 
+  LogIn, 
+  ArrowLeft, 
+  UserPlus, 
+  KeyRound, 
+  Eye, 
+  EyeOff,
+  Loader2,
+  Shield
+} from "lucide-react";
 
 const emailSchema = z.string().email("Informe um e-mail válido");
 const passwordSchema = z
@@ -97,11 +111,27 @@ export const AuthPage: React.FC = () => {
 
   const onSignIn = async (values: z.infer<typeof signInSchema>) => {
     if (!acquire()) return;
+    
+    console.log('Tentando fazer login com:', values.email);
     const { error } = await signIn(values.email, values.password);
+    
     if (error) {
-      toast.error("Credenciais inválidas ou conta não confirmada.");
+      console.error('Erro de autenticação:', error);
+      
+      // Mensagens de erro mais específicas
+      if (error.message?.includes('Invalid login credentials')) {
+        toast.error("E-mail ou senha incorretos. Verifique suas credenciais.");
+      } else if (error.message?.includes('Email not confirmed')) {
+        toast.error("Conta não confirmada. Verifique seu e-mail e clique no link de confirmação.");
+      } else if (error.message?.includes('Too many requests')) {
+        toast.error("Muitas tentativas de login. Aguarde alguns minutos e tente novamente.");
+      } else {
+        toast.error(`Erro no login: ${error.message || 'Credenciais inválidas'}`);
+      }
       return;
     }
+    
+    console.log('Login realizado com sucesso');
     toast.success("Bem-vindo de volta!");
     navigate("/", { replace: true });
   };
@@ -133,26 +163,65 @@ export const AuthPage: React.FC = () => {
     if (!acquire()) return;
     const { error } = await requestPasswordReset(values.email);
     if (error) {
-      toast.info("Se existir uma conta, você receberá um e-mail para redefinir a senha.");
+      toast.error("Erro ao enviar e-mail de recuperação. Tente novamente.", {
+        description: "Verifique se o e-mail está correto e tente novamente."
+      });
     } else {
-      toast.info("Se existir uma conta, você receberá um e-mail para redefinir a senha.");
+      toast.success("E-mail de recuperação enviado!", {
+        description: "Verifique sua caixa de entrada e spam. O link expira em 1 hora."
+      });
+      // Em desenvolvimento, mostrar link do Inbucket
+      if (process.env.NODE_ENV === 'development') {
+        toast.info("Desenvolvimento: Verifique o Inbucket", {
+          description: "Acesse http://127.0.0.1:54324 para ver o e-mail."
+        });
+      }
     }
     setTab("signin");
   };
 
   const resend = async () => {
     const email = signInForm.getValues("email") || signUpForm.getValues("email");
-    if (!email) return toast.info("Informe seu e-mail primeiro");
+    if (!email) {
+      toast.warning("E-mail necessário", {
+        description: "Digite seu e-mail primeiro para reenviar a confirmação."
+      });
+      return;
+    }
+    
     const { error } = await resendConfirmation(email);
-    if (error) return toast.error("Não foi possível reenviar. Tente mais tarde.");
-    toast.success("E-mail de confirmação reenviado (se aplicável).");
+    if (error) {
+      toast.error("Erro ao reenviar confirmação", {
+        description: "Tente novamente em alguns minutos."
+      });
+      return;
+    }
+    
+    toast.success("E-mail de confirmação reenviado!", {
+      description: "Verifique sua caixa de entrada e spam."
+    });
+    
+    // Em desenvolvimento, mostrar link do Inbucket
+    if (process.env.NODE_ENV === 'development') {
+      toast.info("Desenvolvimento: Verifique o Inbucket", {
+        description: "Acesse http://127.0.0.1:54324 para ver o e-mail."
+      });
+    }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
       <Card className="w-full max-w-md shadow-lg border-blue-200">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-blue-900">Acesso Profissional</CardTitle>
+          <div className="flex items-center justify-center mb-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
+              <Stethoscope className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold text-blue-900 flex items-center justify-center gap-2">
+            <Shield className="w-5 h-5" />
+            Acesso Profissional
+          </CardTitle>
           <CardDescription className="text-blue-700">
             Plataforma exclusiva para profissionais da saúde
           </CardDescription>
@@ -160,9 +229,18 @@ export const AuthPage: React.FC = () => {
         <CardContent>
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="signin">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Criar conta</TabsTrigger>
-              <TabsTrigger value="forgot">Esqueci</TabsTrigger>
+              <TabsTrigger value="signin" className="flex items-center gap-2">
+                <LogIn className="w-4 h-4" />
+                Entrar
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Criar conta
+              </TabsTrigger>
+              <TabsTrigger value="forgot" className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4" />
+                Esqueci
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
@@ -173,7 +251,10 @@ export const AuthPage: React.FC = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>E-mail</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          E-mail
+                        </FormLabel>
                         <FormControl>
                           <Input type="email" autoComplete="email" placeholder="voce@clinica.com" {...field} />
                         </FormControl>
@@ -187,7 +268,10 @@ export const AuthPage: React.FC = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Senha</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          Senha
+                        </FormLabel>
                         <FormControl>
                           <Input type="password" autoComplete="current-password" {...field} />
                         </FormControl>
@@ -197,8 +281,14 @@ export const AuthPage: React.FC = () => {
                   />
 
                   <div className="flex items-center justify-between">
-                    <Button type="button" variant="ghost" onClick={() => setTab("forgot")}>Esqueci a senha</Button>
-                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={locked}>Entrar</Button>
+                    <Button type="button" variant="ghost" onClick={() => setTab("forgot")} className="flex items-center gap-2">
+                      <KeyRound className="w-4 h-4" />
+                      Esqueci a senha
+                    </Button>
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2" disabled={locked}>
+                      {locked ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+                      Entrar
+                    </Button>
                   </div>
 
                   <div className="text-xs text-muted-foreground text-right">
@@ -216,7 +306,10 @@ export const AuthPage: React.FC = () => {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome completo</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          Nome completo
+                        </FormLabel>
                         <FormControl>
                           <Input type="text" placeholder="Dr(a). Nome Sobrenome" {...field} />
                         </FormControl>
@@ -230,7 +323,10 @@ export const AuthPage: React.FC = () => {
                     name="profession"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Profissão</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Stethoscope className="w-4 h-4" />
+                          Profissão
+                        </FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -253,7 +349,10 @@ export const AuthPage: React.FC = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>E-mail</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          E-mail
+                        </FormLabel>
                         <FormControl>
                           <Input type="email" autoComplete="email" placeholder="voce@clinica.com" {...field} />
                         </FormControl>
@@ -267,7 +366,10 @@ export const AuthPage: React.FC = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Senha</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          Senha
+                        </FormLabel>
                         <FormControl>
                           <Input type="password" autoComplete="new-password" {...field} />
                         </FormControl>
@@ -281,7 +383,10 @@ export const AuthPage: React.FC = () => {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirmar senha</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          Confirmar senha
+                        </FormLabel>
                         <FormControl>
                           <Input type="password" autoComplete="new-password" {...field} />
                         </FormControl>
@@ -290,7 +395,10 @@ export const AuthPage: React.FC = () => {
                     )}
                   />
 
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={locked}>Criar conta</Button>
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2" disabled={locked}>
+                    {locked ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                    Criar conta
+                  </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
                     Ao continuar, você concorda com nossos termos de uso e política de privacidade.
@@ -300,24 +408,86 @@ export const AuthPage: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="forgot">
-              <Form {...forgotForm}>
-                <form onSubmit={forgotForm.handleSubmit(onForgot)} className="space-y-4" noValidate>
-                  <FormField
-                    control={forgotForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>E-mail</FormLabel>
-                        <FormControl>
-                          <Input type="email" autoComplete="email" placeholder="voce@clinica.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={locked}>Enviar link de redefinição</Button>
-                </form>
-              </Form>
+              <div className="space-y-4">
+                <div className="text-center space-y-2">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mx-auto">
+                    <KeyRound className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Recuperar Senha</h3>
+                  <p className="text-sm text-gray-600">
+                    Digite seu e-mail e enviaremos um link seguro para redefinir sua senha.
+                  </p>
+                </div>
+                
+                <Form {...forgotForm}>
+                  <form onSubmit={forgotForm.handleSubmit(onForgot)} className="space-y-4" noValidate>
+                    <FormField
+                      control={forgotForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Mail className="w-4 h-4" />
+                            E-mail cadastrado
+                          </FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="email" 
+                              autoComplete="email" 
+                              placeholder="seu.email@clinica.com" 
+                              className="h-11"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <Shield className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs text-blue-700">
+                          <p className="font-medium mb-1">Instruções importantes:</p>
+                          <ul className="space-y-1 list-disc list-inside">
+                            <li>Verifique sua caixa de entrada e spam</li>
+                            <li>O link expira em 1 hora por segurança</li>
+                            <li>Use apenas em dispositivos confiáveis</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center gap-2 h-11" 
+                      disabled={locked}
+                    >
+                      {locked ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4" />
+                          Enviar link de recuperação
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={() => setTab("signin")} 
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Voltar ao login
+                    </Button>
+                  </form>
+                </Form>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>
