@@ -138,18 +138,18 @@ const Consultations = () => {
     <MedicalLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-medical-blue/5 to-medical-green/5 rounded-2xl p-6 border border-medical-blue/10">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="bg-gradient-to-r from-medical-blue/5 to-medical-green/5 rounded-2xl p-8 border border-medical-blue/10">
+          <div className="text-center space-y-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-3">
                 Consultas Médicas
               </h1>
-              <p className="text-muted-foreground mt-2 text-base">
+              <p className="text-muted-foreground text-base max-w-2xl mx-auto">
                 Sistema inteligente de transcrição e análise médica
               </p>
             </div>
-            <Button variant="medical" className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-medical-blue to-medical-green hover:from-medical-blue/90 hover:to-medical-green/90" onClick={() => setShowNewConsultation(true)}>
-              <Stethoscope className="w-4 h-4" />
+            <Button variant="medical" className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-medical-blue to-medical-green hover:from-medical-blue/90 hover:to-medical-green/90 px-8 py-3 text-lg" onClick={() => setShowNewConsultation(true)}>
+              <Stethoscope className="w-5 h-5" />
               Nova Consulta
             </Button>
           </div>
@@ -166,28 +166,38 @@ const Consultations = () => {
         />
 
         {/* Recent Consultations */}
-        <Card className="min-h-[600px] shadow-lg border-medical-blue/20 bg-gradient-to-br from-white to-medical-blue/2">
-          <CardHeader className="bg-gradient-to-r from-medical-blue/10 to-medical-green/10 border-b border-medical-blue/20">
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-medical-blue to-medical-green">
-                <Brain className="w-5 h-5 text-white" />
-              </div>
-              <span className="bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent font-semibold">
-                Transcrição Inteligente
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
+        <Card className="min-h-[600px] shadow-2xl border-0 bg-gradient-to-br from-white via-gray-50/30 to-medical-blue/5 dark:from-gray-900 dark:via-gray-800/50 dark:to-gray-700/30 rounded-3xl overflow-hidden backdrop-blur-md">
+          <div className="relative">
+            {/* Decorative background elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-medical-blue/3 via-transparent to-medical-green/3 opacity-50"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-medical-blue/8 to-transparent rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-medical-green/8 to-transparent rounded-full blur-2xl"></div>
+            
+            <CardHeader className="relative bg-gradient-to-r from-medical-blue/8 via-medical-blue/5 to-medical-green/8 border-b border-medical-blue/15 backdrop-blur-sm">
+              <CardTitle className="flex items-center justify-center gap-4 py-4">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-medical-blue to-medical-green shadow-lg ring-2 ring-white/20">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-xl text-medical-blue dark:text-medical-green font-bold">
+                   Transcrição Inteligente
+                 </span>
+              </CardTitle>
+            </CardHeader>
+          </div>
+          <CardContent className="relative p-8 space-y-6">
             {loading ? (
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
                 <span className="ml-2 text-muted-foreground">Carregando consultas...</span>
               </div>
             ) : consultations.length === 0 ? (
-              <div className="text-center p-8">
-                <Stethoscope className="w-16 h-16 text-medical-blue/30 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Bem-vindo ao Sistema de Transcrição</h3>
-                <p className="text-muted-foreground mb-4">Clique em "Nova Consulta" para começar sua primeira transcrição inteligente</p>
+              <div className="text-center p-12">
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-r from-medical-blue/20 to-medical-green/20 rounded-full blur-xl"></div>
+                  <Stethoscope className="relative w-20 h-20 text-medical-blue mx-auto" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent">Bem-vindo ao Sistema de Transcrição</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">Clique em "Nova Consulta" para começar sua primeira transcrição inteligente</p>
               </div>
             ) : (
               consultations.map((consultation) => (

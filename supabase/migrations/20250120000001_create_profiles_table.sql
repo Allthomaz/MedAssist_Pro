@@ -89,7 +89,12 @@ BEGIN
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'patient'),
+    CASE 
+      WHEN NEW.raw_user_meta_data->>'profession' = 'medico' THEN 'doctor'
+      WHEN NEW.raw_user_meta_data->>'profession' = 'psicologo' THEN 'doctor'
+      WHEN NEW.raw_user_meta_data->>'profession' = 'terapeuta' THEN 'doctor'
+      ELSE 'patient'
+    END,
     NEW.email
   );
   RETURN NEW;

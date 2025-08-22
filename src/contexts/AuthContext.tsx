@@ -51,10 +51,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('id, full_name, role, email, crm, specialty, custom_title, phone, theme_preference, compact_mode, first_login_at')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 rows gracefully
       
       if (error) {
         console.error('Error fetching user profile:', error);
+        // Se o usuário não existe no banco, limpar a sessão
+        if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
+          console.warn('Usuário não encontrado no banco, limpando sessão');
+          await supabase.auth.signOut();
+        }
+        return null;
+      }
+      
+      // If no profile found, return null without error
+      if (!data) {
+        console.warn(`No profile found for user ID: ${userId}`);
+        // Se não há perfil, limpar a sessão
+        console.warn('Perfil não encontrado, limpando sessão');
+        await supabase.auth.signOut();
         return null;
       }
       

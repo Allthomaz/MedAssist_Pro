@@ -4,10 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LazyNotificationCenter } from './LazyNotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuth } from '@/hooks/useAuth';
 
 export function NotificationButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
   const { unreadCount } = useNotifications();
+  
+  // Não renderizar o botão se não há usuário autenticado
+  if (!user) {
+    return null;
+  }
 
   const handleToggle = () => {
     setIsOpen(!isOpen);

@@ -20,7 +20,8 @@ import {
   Upload, 
   CheckCircle, 
   Clock, 
-  AlertCircle 
+  AlertCircle,
+  Loader2 
 } from 'lucide-react';
 
 type IntentionType = 'gerar-relatorio' | 'evoluir-prontuario' | 'solicitar-exames';
@@ -41,6 +42,8 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
   const [uploadProgress, setUploadProgress] = useState(0);
   const [notes, setNotes] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [microphoneStatus, setMicrophoneStatus] = useState<'checking' | 'available' | 'denied' | 'error'>('checking');
+  const [recordingQuality, setRecordingQuality] = useState<'high' | 'medium' | 'low'>('high');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -49,12 +52,101 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
   const chunksRef = useRef<Blob[]>([]);
 
   const intentionOptions = [
-    { value: 'gerar-relatorio', label: 'Gerar Relatório' },
-    { value: 'evoluir-prontuario', label: 'Evoluir Prontuário' },
+    { value: 'gerar-relatorio', label: 'Gerar Relatorio' },
+    { value: 'evoluir-prontuario', label: 'Evoluir Prontuario' },
     { value: 'solicitar-exames', label: 'Solicitar Exames' }
   ];
 
+  const cleanupResources = () => {
+    try {
+      // Parar gravação se estiver ativa
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+      
+      // Limpar stream e suas tracks
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
+          track.stop();
+          track.enabled = false;
+        });
+        streamRef.current = null;
+      }
+      
+      // Limpar MediaRecorder
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.ondataavailable = null;
+        mediaRecorderRef.current.onstop = null;
+        mediaRecorderRef.current.onerror = null;
+        mediaRecorderRef.current = null;
+      }
+      
+      // Limpar timer
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      // Reset estados
+      setIsRecording(false);
+      setRecordingTime(0);
+      setRecordedBlob(null);
+      
+      console.log('Recursos de audio limpos com sucesso');
+    } catch (error) {
+      console.error('Erro ao limpar recursos:', error);
+      
+      // Forcar reset dos estados mesmo com erro
+      setIsRecording(false);
+      setRecordingTime(0);
+      setRecordedBlob(null);
+    }
+  };
+
+  // Check microphone permissions on component mount
+  useEffect(() => {
+    const checkMicrophonePermissions = async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setMicrophoneStatus('error');
+          return;
+        }
+
+        const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        
+        if (permission.state === 'granted') {
+          setMicrophoneStatus('available');
+        } else if (permission.state === 'denied') {
+          setMicrophoneStatus('denied');
+        } else {
+          setMicrophoneStatus('checking');
+        }
+
+        // Listen for permission changes
+        permission.onchange = () => {
+          if (permission.state === 'granted') {
+            setMicrophoneStatus('available');
+          } else if (permission.state === 'denied') {
+            setMicrophoneStatus('denied');
+          }
+        };
+      } catch (error) {
+        console.error('Erro ao verificar permissoes do microfone:', error);
+        setMicrophoneStatus('error');
+      }
+    };
+
+    checkMicrophonePermissions();
+  }, []);
+
   // Cleanup function
+  useEffect(() => {
+    return () => {
+      cleanupResources();
+    };
+  }, []);
+
+  // Cleanup on recordedUrl change
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -71,15 +163,48 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Verificar se o navegador suporta getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Seu navegador nao suporta gravacao de audio');
+      }
+
+      // Verificar permissões antes de solicitar acesso
+      const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      
+      if (permission.state === 'denied') {
+        throw new Error('Permissao de microfone negada. Por favor, habilite nas configuracoes do navegador.');
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 44100
+        } 
+      });
+      
       streamRef.current = stream;
       
+      // Verificar se MediaRecorder e suportado
+        if (!MediaRecorder.isTypeSupported('audio/webm')) {
+          console.warn('audio/webm nao suportado, usando formato padrao');
+          setRecordingQuality('medium');
+        } else {
+          setRecordingQuality('high');
+        }
+
+        // Atualizar status do microfone
+        setMicrophoneStatus('available');
+      
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
       });
+      
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
       
+      // Configurar event listeners com tratamento de erro
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
@@ -87,63 +212,173 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
       };
       
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        setRecordedBlob(blob);
-        const url = URL.createObjectURL(blob);
-        setRecordedUrl(url);
-        
-        // Stop all tracks
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
+        try {
+          const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+          setRecordedBlob(blob);
+          const url = URL.createObjectURL(blob);
+          setRecordedUrl(url);
+          
+          toast({
+            title: "Gravacao concluida",
+            description: "Audio gravado com sucesso!",
+          });
+        } catch (error) {
+          console.error('Erro ao processar gravacao:', error);
+          
+          // Tratamento específico para diferentes tipos de erro
+          if (error.name === 'NotAllowedError') {
+            setMicrophoneStatus('denied');
+            toast({
+              title: "Erro",
+              description: "Acesso ao microfone foi negado. Verifique as permissões do navegador.",
+              variant: "destructive"
+            });
+          } else if (error.name === 'NotFoundError') {
+            setMicrophoneStatus('error');
+            toast({
+              title: "Erro",
+              description: "Nenhum microfone encontrado no dispositivo.",
+              variant: "destructive"
+            });
+          } else if (error.name === 'NotSupportedError') {
+            setMicrophoneStatus('error');
+            toast({
+              title: "Erro",
+              description: "Gravação de áudio não é suportada neste navegador.",
+              variant: "destructive"
+            });
+          } else {
+            setMicrophoneStatus('error');
+            toast({
+              title: "Erro",
+              description: "Erro ao acessar o microfone: " + (error.message || "Erro desconhecido"),
+              variant: "destructive"
+            });
+          }
         }
       };
       
-      mediaRecorder.start(1000); // Collect data every second
+      mediaRecorder.onerror = (event) => {
+        console.error('Erro no MediaRecorder:', event);
+        toast({
+          title: "Erro de gravacao",
+          description: "Ocorreu um erro durante a gravacao.",
+          variant: "destructive"
+        });
+        setIsRecording(false);
+      };
+      
+      mediaRecorder.start(1000); // Capturar dados a cada segundo
       setIsRecording(true);
       setRecordingTime(0);
       
-      // Start timer
+      // Timer para contagem de tempo
       intervalRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
       
       toast({
-        title: "Gravação iniciada",
-        description: "A gravação de áudio foi iniciada com sucesso.",
-      });
+          title: "Gravacao iniciada",
+          description: "Fale proximo ao microfone para melhor qualidade.",
+        });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao iniciar gravação:', error);
+      
+      let errorMessage = 'Erro desconhecido ao acessar o microfone';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Permissao de microfone negada. Clique no icone de cadeado na barra de enderecos e permita o acesso ao microfone.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'Nenhum microfone encontrado. Verifique se ha um microfone conectado.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'Microfone esta sendo usado por outro aplicativo. Feche outros programas que possam estar usando o microfone.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = 'Configuracoes de audio nao suportadas pelo seu dispositivo.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Erro",
-        description: "Não foi possível acessar o microfone. Verifique as permissões.",
+        title: "Erro ao iniciar gravacao",
+        description: errorMessage,
         variant: "destructive"
       });
+      
+      setIsRecording(false);
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+    try {
+      if (mediaRecorderRef.current && isRecording) {
+        // Verificar se o MediaRecorder está em estado válido
+        if (mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+        }
+        
+        setIsRecording(false);
+        
+        // Limpar timer
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+        
+        // Parar todas as tracks do stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => {
+            track.stop();
+            track.enabled = false;
+          });
+        }
+        
+        toast({
+          title: "Gravacao finalizada",
+          description: "A gravacao foi finalizada com sucesso.",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao parar gravação:', error);
       
+      // Forcar reset dos estados mesmo com erro
+      setIsRecording(false);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
       
       toast({
-        title: "Gravação finalizada",
-        description: "A gravação foi finalizada com sucesso.",
+        title: "Aviso",
+        description: "Gravacao finalizada com alguns problemas tecnicos.",
+        variant: "destructive"
       });
     }
+  };
+
+  const playRecording = () => {
+    if (recordedUrl && audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleSendForProcessing = async () => {
     if (!recordedBlob) {
       toast({
         title: "Erro",
-        description: "Nenhuma gravação encontrada para processar.",
+        description: "Nenhuma gravacao encontrada para processar.",
         variant: "destructive"
       });
       return;
@@ -155,7 +390,7 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
     try {
       // Gerar nome único para o arquivo
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `recording-${selectedIntention}-${timestamp}.webm`;
+      const fileName = `recording-${timestamp}.webm`;
 
       // Simular progresso de upload
       const progressInterval = setInterval(() => {
@@ -168,54 +403,52 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
         });
       }, 200);
 
-      // Upload do arquivo para o Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      // Upload para Supabase Storage
+      const { data, error } = await supabase.storage
         .from('recordings')
         .upload(fileName, recordedBlob, {
           contentType: 'audio/webm',
           metadata: {
             intention: selectedIntention,
-            timestamp: new Date().toISOString(),
-            processed: 'false',
-            notes: notes,
-            duration: recordingTime.toString()
+            recordingTime: recordingTime.toString(),
+            notes: notes || 'Sem observacoes'
           }
         });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (uploadError) {
-        throw uploadError;
+      if (error) {
+        throw error;
       }
 
-      // Obter URL pública do arquivo
-      const { data: urlData } = supabase.storage
+      // Obter URL pública
+      const { data: { publicUrl } } = supabase.storage
         .from('recordings')
         .getPublicUrl(fileName);
 
       toast({
-        title: "Sucesso!",
-        description: `Áudio enviado para processamento com intenção: ${intentionOptions.find(opt => opt.value === selectedIntention)?.label}`,
+        title: "Upload concluido",
+        description: "Gravacao enviada com sucesso para processamento!",
       });
 
       // Callback para componente pai
       if (onProcessingComplete) {
-        onProcessingComplete(urlData.publicUrl, selectedIntention);
+        onProcessingComplete(publicUrl, selectedIntention);
       }
 
-      // Reset states
+      // Reset do componente
       setRecordedBlob(null);
       setRecordedUrl(null);
       setRecordingTime(0);
-      setUploadProgress(0);
       setNotes('');
+      setUploadProgress(0);
 
-    } catch (error) {
-      console.error('Erro ao enviar áudio:', error);
+    } catch (error: any) {
+      console.error('Erro no upload:', error);
       toast({
-        title: "Erro",
-        description: "Falha ao enviar áudio para processamento.",
+        title: "Erro no upload",
+        description: error.message || "Falha ao enviar gravacao.",
         variant: "destructive"
       });
     } finally {
@@ -223,422 +456,294 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
     }
   };
 
-  const toggleAudioPlayback = () => {
-    if (!audioRef.current) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play();
-      setIsPlaying(true);
-      audioRef.current.onended = () => setIsPlaying(false);
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    setUploadedFiles(prev => [...prev, ...files]);
+    const audioFiles = files.filter(file => file.type.startsWith('audio/'));
+    
+    if (audioFiles.length !== files.length) {
+      toast({
+        title: "Aviso",
+        description: "Apenas arquivos de audio sao aceitos.",
+        variant: "destructive"
+      });
+    }
+    
+    setUploadedFiles(prev => [...prev, ...audioFiles]);
   };
 
-  const removeFile = (index: number) => {
+  const removeUploadedFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
-    <div className={cn("w-full max-w-7xl mx-auto p-6", className)}>
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-          <Activity className="w-6 h-6 text-medical-blue" />
-          DoctorAssistant - Interface de Consulta
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Sistema integrado para gravação, análise e processamento de consultas médicas
-        </p>
-      </div>
+    <div className={cn("space-y-6", className)}>
+      {/* Seleção de Intenção */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Configuração do Processamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="intention">Intencao do Processamento</Label>
+            <Select value={selectedIntention} onValueChange={(value: IntentionType) => setSelectedIntention(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a intencao" />
+              </SelectTrigger>
+              <SelectContent>
+                {intentionOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observacoes (Opcional)</Label>
+            <Textarea
+              id="notes"
+              placeholder="Adicione observacoes sobre a consulta ou contexto adicional..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Layout de Três Colunas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* COLUNA 1: Controle e Gravação */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mic className="w-5 h-5 text-medical-blue" />
-              Controle de Gravação
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            
-            {/* Dropdown de Intenções */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Intenção do Processamento
-              </Label>
-              <Select
-                value={selectedIntention}
-                onValueChange={(value: IntentionType) => setSelectedIntention(value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Escolha uma intenção" />
-                </SelectTrigger>
-                <SelectContent>
-                  {intentionOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status da Gravação */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Status:</span>
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
-                  isRecording 
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
-                    : recordedBlob
-                    ? 'bg-green-100 text-green-700 border border-green-200'
-                    : 'bg-gray-100 text-gray-600 border border-gray-200'
-                }`}>
-                  {isRecording ? (
-                    <>
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                      Gravando
-                    </>
-                  ) : recordedBlob ? (
-                    <>
-                      <CheckCircle className="w-3 h-3" />
-                      Finalizada
-                    </>
+      {/* Gravação de Áudio */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mic className="h-5 w-5" />
+            Gravacao de Audio
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-center space-x-4">
+            {!isRecording ? (
+              <Button
+                  onClick={startRecording}
+                  size="lg"
+                  className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isUploading || microphoneStatus !== 'available'}
+                >
+                  {microphoneStatus === 'checking' ? (
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                   ) : (
-                    <>
-                      <Clock className="w-3 h-3" />
-                      Aguardando
-                    </>
+                    <Mic className="h-5 w-5 mr-2" />
                   )}
-                </div>
+                  {microphoneStatus === 'available' ? 'Iniciar Gravacao' :
+                   microphoneStatus === 'denied' ? 'Acesso ao Microfone Negado' :
+                   microphoneStatus === 'error' ? 'Microfone Indisponível' :
+                   'Verificando Microfone...'}
+                </Button>
+            ) : (
+              <Button
+                onClick={stopRecording}
+                size="lg"
+                variant="destructive"
+              >
+                <Square className="h-5 w-5 mr-2" />
+                Parar Gravacao
+              </Button>
+            )}
+          </div>
+
+          {isRecording && (
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center space-x-2">
+                <Activity className="h-4 w-4 text-red-500 animate-pulse" />
+                <span className="text-lg font-mono">{formatTime(recordingTime)}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Gravando... Fale proximo ao microfone</p>
+            </div>
+          )}
+
+          {recordedUrl && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center space-x-4">
+                <Button
+                  onClick={playRecording}
+                  variant="outline"
+                  size="sm"
+                >
+                  {isPlaying ? (
+                    <Pause className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Play className="h-4 w-4 mr-2" />
+                  )}
+                  {isPlaying ? 'Pausar' : 'Reproduzir'}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Duracao: {formatTime(recordingTime)}
+                </span>
               </div>
               
-              {/* Timer */}
-              {(isRecording || recordingTime > 0) && (
-                <div className="flex items-center justify-between text-sm">
-                  <span>Duração:</span>
-                  <span className="font-mono font-medium">{formatTime(recordingTime)}</span>
-                </div>
-              )}
+              <audio
+                ref={audioRef}
+                src={recordedUrl}
+                onEnded={() => setIsPlaying(false)}
+                className="hidden"
+              />
             </div>
+          )}
+        </CardContent>
+      </Card>
 
-            {/* Controles de Gravação */}
-            <div className="space-y-3">
-              {!isRecording ? (
-                <Button
-                  onClick={startRecording}
-                  className="w-full gap-2 bg-medical-blue hover:bg-medical-blue/90"
-                  size="lg"
-                  disabled={isUploading}
-                >
-                  <Mic className="w-4 h-4" />
-                  {recordedBlob ? 'Nova Gravação' : 'Iniciar Consulta'}
-                </Button>
-              ) : (
-                <Button
-                  onClick={stopRecording}
-                  className="w-full gap-2 bg-red-600 hover:bg-red-700"
-                  size="lg"
-                >
-                  <Square className="w-4 h-4" />
-                  Finalizar Consulta
-                </Button>
-              )}
-            </div>
+      {/* Upload de Arquivos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Upload de Arquivos de Audio
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <Input
+              type="file"
+              accept="audio/*"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+              id="audio-upload"
+            />
+            <Label htmlFor="audio-upload" className="cursor-pointer">
+              <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <p className="text-sm text-gray-600">Clique para selecionar arquivos de audio</p>
+              <p className="text-xs text-gray-400 mt-1">Suporta MP3, WAV, M4A, etc.</p>
+            </Label>
+          </div>
 
-            {/* Pré-visualização do Áudio */}
-            {recordedUrl && (
-              <div className="space-y-4 p-4 bg-muted/50 rounded-lg border">
-                <h4 className="font-medium text-sm flex items-center gap-2">
-                  <Play className="w-4 h-4" />
-                  Pré-visualização
-                </h4>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={toggleAudioPlayback}
-                      className="gap-2"
-                    >
-                      {isPlaying ? (
-                        <Pause className="w-3 h-3" />
-                      ) : (
-                        <Play className="w-3 h-3" />
-                      )}
-                      {isPlaying ? 'Pausar' : 'Reproduzir'}
-                    </Button>
-                  </div>
-                  
-                  <audio
-                    ref={audioRef}
-                    src={recordedUrl}
-                    className="w-full"
-                    controls
-                  />
-                </div>
-
-                {/* Botão de Envio */}
-                <div className="space-y-2">
-                  {isUploading && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span>Enviando...</span>
-                        <span>{uploadProgress}%</span>
-                      </div>
-                      <Progress value={uploadProgress} className="h-2" />
-                    </div>
-                  )}
-                  
+          {uploadedFiles.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-medium">Arquivos Selecionados:</h4>
+              {uploadedFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <span className="text-sm">{file.name}</span>
                   <Button
-                    onClick={handleSendForProcessing}
-                    disabled={isUploading}
-                    className="w-full gap-2 bg-medical-success hover:bg-medical-success/90"
-                    size="lg"
+                    onClick={() => removeUploadedFile(index)}
+                    variant="ghost"
+                    size="sm"
                   >
-                    <Send className="w-4 h-4" />
-                    {isUploading ? 'Enviando...' : 'Enviar para Processamento'}
+                    ×
                   </Button>
                 </div>
-              </div>
-            )}
-
-            {/* Fluxo de Processamento */}
-            <div className="bg-card rounded-lg p-3 border">
-              <h4 className="font-medium text-sm mb-3">Fluxo de Processamento</h4>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <div className="w-5 h-5 rounded-full bg-medical-blue text-white flex items-center justify-center text-xs">1</div>
-                  Gravação do áudio
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <div className="w-5 h-5 rounded-full bg-medical-success text-white flex items-center justify-center text-xs">2</div>
-                  Agente Roteador analisa
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <div className="w-5 h-5 rounded-full bg-accent text-foreground flex items-center justify-center text-xs">3</div>
-                  Especialista processa
-                </div>
-              </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* COLUNA 2: Análise e Anotações */}
-        <Card className="lg:col-span-1">
+      {/* Envio para Processamento */}
+      {(recordedBlob || uploadedFiles.length > 0) && (
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-medical-success" />
-              Anotações da Consulta
+              <Send className="h-5 w-5" />
+              Enviar para Processamento
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Observações e Anotações
-              </Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Digite suas observações durante a consulta..."
-                className="min-h-[200px] resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                {notes.length}/1000 caracteres
-              </p>
-            </div>
-
-            {/* Informações da Sessão */}
-            <div className="bg-muted/50 rounded-lg p-3 border">
-              <h4 className="font-medium text-sm mb-2">Informações da Sessão</h4>
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Intenção:</span>
-                  <span className="font-medium">
-                    {intentionOptions.find(opt => opt.value === selectedIntention)?.label}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Duração:</span>
-                  <span className="font-medium">{formatTime(recordingTime)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="font-medium">
-                    {isRecording ? 'Em andamento' : recordedBlob ? 'Finalizada' : 'Não iniciada'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Atalhos de Texto */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Atalhos Rápidos</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setNotes(prev => prev + '\n• Paciente relata: ')}
-                  className="text-xs"
-                >
-                  + Relato
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setNotes(prev => prev + '\n• Exame físico: ')}
-                  className="text-xs"
-                >
-                  + Exame
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setNotes(prev => prev + '\n• Diagnóstico: ')}
-                  className="text-xs"
-                >
-                  + Diagnóstico
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setNotes(prev => prev + '\n• Prescrição: ')}
-                  className="text-xs"
-                >
-                  + Prescrição
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* COLUNA 3: Informações Adicionais */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="w-5 h-5 text-accent" />
-              Documentos e Exames
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            
-            {/* Upload de Arquivos */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                Anexar Documentos
-              </Label>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center">
-                <Input
-                  type="file"
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <Label htmlFor="file-upload" className="cursor-pointer">
-                  <div className="space-y-2">
-                    <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      Clique para selecionar arquivos
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      PDF, Imagens, Documentos
-                    </p>
-                  </div>
-                </Label>
-              </div>
-            </div>
-
-            {/* Lista de Arquivos Anexados */}
-            {uploadedFiles.length > 0 && (
+            {isUploading && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Arquivos Anexados</Label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded border">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-xs truncate" title={file.name}>
-                          {file.name}
-                        </span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFile(index)}
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between text-sm">
+                  <span>Enviando...</span>
+                  <span>{uploadProgress}%</span>
                 </div>
+                <Progress value={uploadProgress} className="w-full" />
               </div>
             )}
-
-            {/* Informações do Sistema */}
-            <div className="bg-muted/50 rounded-lg p-3 border">
-              <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                Informações do Sistema
-              </h4>
-              <div className="space-y-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span>Supabase Storage: Conectado</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span>MediaRecorder API: Disponível</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                  <span>Agente IA: Aguardando</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Configurações Rápidas */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Configurações</Label>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span>Qualidade do Áudio:</span>
-                  <span className="font-medium">Alta (WebM)</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span>Auto-save:</span>
-                  <span className="font-medium">Ativado</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span>Backup:</span>
-                  <span className="font-medium">Supabase</span>
-                </div>
-              </div>
-            </div>
-
+            
+            <Button
+              onClick={handleSendForProcessing}
+              className="w-full"
+              disabled={isUploading || (!recordedBlob && uploadedFiles.length === 0)}
+            >
+              {isUploading ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar para {intentionOptions.find(opt => opt.value === selectedIntention)?.label}
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
-      </div>
+      )}
+
+      {/* Status e Informações */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            Status do Sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span>Microfone:</span>
+                <span className={`font-medium ${
+                  microphoneStatus === 'available' ? 'text-green-600' :
+                  microphoneStatus === 'denied' ? 'text-red-600' :
+                  microphoneStatus === 'error' ? 'text-red-600' :
+                  'text-yellow-600'
+                }`}>
+                  {microphoneStatus === 'available' ? 'Disponível' :
+                   microphoneStatus === 'denied' ? 'Acesso Negado' :
+                   microphoneStatus === 'error' ? 'Erro' :
+                   'Verificando...'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Qualidade do Audio:</span>
+                <span className={`font-medium ${
+                  recordingQuality === 'high' ? 'text-green-600' :
+                  recordingQuality === 'medium' ? 'text-yellow-600' :
+                  'text-red-600'
+                }`}>
+                  {recordingQuality === 'high' ? 'Alta (WebM)' :
+                   recordingQuality === 'medium' ? 'Média' :
+                   'Baixa'}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span>Auto-save:</span>
+                <span className="font-medium">Ativado</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Backup:</span>
+                <span className="font-medium">Supabase</span>
+              </div>
+            </div>
+          </div>
+          {microphoneStatus === 'denied' && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              <AlertCircle className="h-4 w-4 inline mr-2" />
+              Para usar a gravação, clique no ícone de cadeado na barra de endereços e permita o acesso ao microfone.
+            </div>
+          )}
+          {microphoneStatus === 'error' && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              <AlertCircle className="h-4 w-4 inline mr-2" />
+              Seu navegador não suporta gravação de áudio ou não há microfone disponível.
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

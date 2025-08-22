@@ -182,7 +182,7 @@ otp_expiry = 3600
 
 # Use Mailpit for local development SMTP
 [auth.email.smtp]
-enabled = false
+enabled = true
 host = "supabase_inbucket_doctor-brief-ai-premium-1"
 port = 1025
 user = "mailpit"

@@ -11,7 +11,8 @@ import {
   AlertCircle, 
   Loader2,
   Download,
-  Eye
+  Eye,
+  FileText
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import AudioProcessor from '../consultations/AudioProcessor';
