@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { 
   Mic, 
   Square, 
@@ -33,23 +34,36 @@ interface AudioProcessorProps {
 
 const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, className }) => {
   const [selectedIntention, setSelectedIntention] = useState<IntentionType>('gerar-relatorio');
-  const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
-  const [recordedUrl, setRecordedUrl] = useState<string | null>(null);
-  const [recordingTime, setRecordingTime] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [notes, setNotes] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [microphoneStatus, setMicrophoneStatus] = useState<'checking' | 'available' | 'denied' | 'error'>('checking');
-  const [recordingQuality, setRecordingQuality] = useState<'high' | 'medium' | 'low'>('high');
   
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  
+  // Usar o hook customizado para gravação de áudio
+  const {
+    isRecording,
+    recordedBlob,
+    recordedUrl,
+    recordingTime,
+    microphoneStatus,
+    recordingQuality,
+    startRecording,
+    stopRecording,
+    clearRecording,
+    cleanup
+  } = useAudioRecorder({
+    onRecordingComplete: (blob, url) => {
+      // Callback quando gravação é concluída com sucesso
+      console.log('Gravação concluída:', { blob, url });
+    },
+    onError: (error) => {
+      // Callback para tratamento de erros
+      console.error('Erro na gravação:', error);
+    }
+  });
 
   const intentionOptions = [
     { value: 'gerar-relatorio', label: 'Gerar Relatorio' },
@@ -57,304 +71,26 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
     { value: 'solicitar-exames', label: 'Solicitar Exames' }
   ];
 
-  const cleanupResources = () => {
-    try {
-      // Parar gravação se estiver ativa
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        mediaRecorderRef.current.stop();
-      }
-      
-      // Limpar stream e suas tracks
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => {
-          track.stop();
-          track.enabled = false;
-        });
-        streamRef.current = null;
-      }
-      
-      // Limpar MediaRecorder
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.ondataavailable = null;
-        mediaRecorderRef.current.onstop = null;
-        mediaRecorderRef.current.onerror = null;
-        mediaRecorderRef.current = null;
-      }
-      
-      // Limpar timer
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      
-      // Reset estados
-      setIsRecording(false);
-      setRecordingTime(0);
-      setRecordedBlob(null);
-      
-      console.log('Recursos de audio limpos com sucesso');
-    } catch (error) {
-      console.error('Erro ao limpar recursos:', error);
-      
-      // Forcar reset dos estados mesmo com erro
-      setIsRecording(false);
-      setRecordingTime(0);
-      setRecordedBlob(null);
-    }
+  // Função de limpeza simplificada - agora delegada ao hook
+  const handleCleanup = () => {
+    cleanup();
+    setNotes('');
+    setUploadProgress(0);
+    setUploadedFiles([]);
   };
 
-  // Check microphone permissions on component mount
-  useEffect(() => {
-    const checkMicrophonePermissions = async () => {
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          setMicrophoneStatus('error');
-          return;
-        }
+  // Verificação de permissões agora é feita pelo hook useAudioRecorder
 
-        const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-        
-        if (permission.state === 'granted') {
-          setMicrophoneStatus('available');
-        } else if (permission.state === 'denied') {
-          setMicrophoneStatus('denied');
-        } else {
-          setMicrophoneStatus('checking');
-        }
-
-        // Listen for permission changes
-        permission.onchange = () => {
-          if (permission.state === 'granted') {
-            setMicrophoneStatus('available');
-          } else if (permission.state === 'denied') {
-            setMicrophoneStatus('denied');
-          }
-        };
-      } catch (error) {
-        console.error('Erro ao verificar permissoes do microfone:', error);
-        setMicrophoneStatus('error');
-      }
-    };
-
-    checkMicrophonePermissions();
-  }, []);
-
-  // Cleanup function
+  // Cleanup na desmontagem do componente
   useEffect(() => {
     return () => {
-      cleanupResources();
+      handleCleanup();
     };
   }, []);
 
-  // Cleanup on recordedUrl change
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (recordedUrl) {
-        URL.revokeObjectURL(recordedUrl);
-      }
-    };
-  }, [recordedUrl]);
+  // Função startRecording agora é fornecida pelo hook useAudioRecorder
 
-  const startRecording = async () => {
-    try {
-      // Verificar se o navegador suporta getUserMedia
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Seu navegador nao suporta gravacao de audio');
-      }
-
-      // Verificar permissões antes de solicitar acesso
-      const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-      
-      if (permission.state === 'denied') {
-        throw new Error('Permissao de microfone negada. Por favor, habilite nas configuracoes do navegador.');
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 44100
-        } 
-      });
-      
-      streamRef.current = stream;
-      
-      // Verificar se MediaRecorder e suportado
-        if (!MediaRecorder.isTypeSupported('audio/webm')) {
-          console.warn('audio/webm nao suportado, usando formato padrao');
-          setRecordingQuality('medium');
-        } else {
-          setRecordingQuality('high');
-        }
-
-        // Atualizar status do microfone
-        setMicrophoneStatus('available');
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
-      });
-      
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-      
-      // Configurar event listeners com tratamento de erro
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = () => {
-        try {
-          const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-          setRecordedBlob(blob);
-          const url = URL.createObjectURL(blob);
-          setRecordedUrl(url);
-          
-          toast({
-            title: "Gravacao concluida",
-            description: "Audio gravado com sucesso!",
-          });
-        } catch (error) {
-          console.error('Erro ao processar gravacao:', error);
-          
-          // Tratamento específico para diferentes tipos de erro
-          if (error.name === 'NotAllowedError') {
-            setMicrophoneStatus('denied');
-            toast({
-              title: "Erro",
-              description: "Acesso ao microfone foi negado. Verifique as permissões do navegador.",
-              variant: "destructive"
-            });
-          } else if (error.name === 'NotFoundError') {
-            setMicrophoneStatus('error');
-            toast({
-              title: "Erro",
-              description: "Nenhum microfone encontrado no dispositivo.",
-              variant: "destructive"
-            });
-          } else if (error.name === 'NotSupportedError') {
-            setMicrophoneStatus('error');
-            toast({
-              title: "Erro",
-              description: "Gravação de áudio não é suportada neste navegador.",
-              variant: "destructive"
-            });
-          } else {
-            setMicrophoneStatus('error');
-            toast({
-              title: "Erro",
-              description: "Erro ao acessar o microfone: " + (error.message || "Erro desconhecido"),
-              variant: "destructive"
-            });
-          }
-        }
-      };
-      
-      mediaRecorder.onerror = (event) => {
-        console.error('Erro no MediaRecorder:', event);
-        toast({
-          title: "Erro de gravacao",
-          description: "Ocorreu um erro durante a gravacao.",
-          variant: "destructive"
-        });
-        setIsRecording(false);
-      };
-      
-      mediaRecorder.start(1000); // Capturar dados a cada segundo
-      setIsRecording(true);
-      setRecordingTime(0);
-      
-      // Timer para contagem de tempo
-      intervalRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-      
-      toast({
-          title: "Gravacao iniciada",
-          description: "Fale proximo ao microfone para melhor qualidade.",
-        });
-      
-    } catch (error: any) {
-      console.error('Erro ao iniciar gravação:', error);
-      
-      let errorMessage = 'Erro desconhecido ao acessar o microfone';
-      
-      if (error.name === 'NotAllowedError') {
-        errorMessage = 'Permissao de microfone negada. Clique no icone de cadeado na barra de enderecos e permita o acesso ao microfone.';
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = 'Nenhum microfone encontrado. Verifique se ha um microfone conectado.';
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = 'Microfone esta sendo usado por outro aplicativo. Feche outros programas que possam estar usando o microfone.';
-      } else if (error.name === 'OverconstrainedError') {
-        errorMessage = 'Configuracoes de audio nao suportadas pelo seu dispositivo.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: "Erro ao iniciar gravacao",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
-      setIsRecording(false);
-    }
-  };
-
-  const stopRecording = () => {
-    try {
-      if (mediaRecorderRef.current && isRecording) {
-        // Verificar se o MediaRecorder está em estado válido
-        if (mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.stop();
-        }
-        
-        setIsRecording(false);
-        
-        // Limpar timer
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-        
-        // Parar todas as tracks do stream
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => {
-            track.stop();
-            track.enabled = false;
-          });
-        }
-        
-        toast({
-          title: "Gravacao finalizada",
-          description: "A gravacao foi finalizada com sucesso.",
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao parar gravação:', error);
-      
-      // Forcar reset dos estados mesmo com erro
-      setIsRecording(false);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      
-      toast({
-        title: "Aviso",
-        description: "Gravacao finalizada com alguns problemas tecnicos.",
-        variant: "destructive"
-      });
-    }
-  };
+  // Função stopRecording agora é fornecida pelo hook useAudioRecorder
 
   const playRecording = () => {
     if (recordedUrl && audioRef.current) {
@@ -368,6 +104,7 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
     }
   };
 
+  // Função para formatar tempo de gravação
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -438,9 +175,7 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
       }
 
       // Reset do componente
-      setRecordedBlob(null);
-      setRecordedUrl(null);
-      setRecordingTime(0);
+      handleCleanup();
       setNotes('');
       setUploadProgress(0);
 
@@ -568,7 +303,15 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
             <div className="space-y-4">
               <div className="flex items-center justify-center space-x-4">
                 <Button
-                  onClick={playRecording}
+                  onClick={() => {
+                    if (recordedUrl) {
+                      const audio = new Audio(recordedUrl);
+                      audio.play().catch(error => {
+                        console.error('Erro ao reproduzir audio:', error);
+                        toast.error('Erro ao reproduzir o audio gravado');
+                      });
+                    }
+                  }}
                   variant="outline"
                   size="sm"
                 >

@@ -1,10 +1,5 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "@supabase/supabase-js";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 interface TranscribeRequest {
   recordingId: string;
@@ -13,6 +8,7 @@ interface TranscribeRequest {
     prompt?: string;
     temperature?: number;
     response_format?: string;
+    timestamp_granularities?: ('word' | 'segment')[];
   };
 }
 
@@ -26,11 +22,6 @@ interface TranscribeResponse {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
   try {
     // Verificar se é uma requisição POST
     if (req.method !== 'POST') {
@@ -38,20 +29,20 @@ serve(async (req) => {
         JSON.stringify({ error: 'Method not allowed' }),
         { 
           status: 405, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { 'Content-Type': 'application/json' } 
         }
       );
     }
 
     // Parse do body da requisição
-    const { recordingId }: TranscribeRequest = await req.json();
+    const { recordingId, options = {} }: TranscribeRequest = await req.json();
 
     if (!recordingId) {
       return new Response(
         JSON.stringify({ error: 'Recording ID is required' }),
         { 
           status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { 'Content-Type': 'application/json' } 
         }
       );
     }
@@ -59,6 +50,17 @@ serve(async (req) => {
     // Inicializar cliente Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Supabase environment variables not configured' }),
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Buscar informações da gravação
@@ -73,7 +75,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'Recording not found' }),
         { 
           status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { 'Content-Type': 'application/json' } 
         }
       );
     }
@@ -105,20 +107,20 @@ serve(async (req) => {
         JSON.stringify({ error: 'Failed to download audio file' }),
         { 
           status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { 'Content-Type': 'application/json' } 
         }
       );
     }
 
     // Preparar dados para OpenAI Whisper API
-    const openaiApiKey = Deno.env.get?.('OPENAI_API_KEY') ?? process.env.OPENAI_API_KEY;
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     
     if (!openaiApiKey) {
       return new Response(
         JSON.stringify({ error: 'OpenAI API key not configured' }),
         { 
           status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { 'Content-Type': 'application/json' } 
         }
       );
     }
@@ -127,9 +129,11 @@ serve(async (req) => {
     const formData = new FormData();
     formData.append('file', audioFile, recording.audio_file_name);
     formData.append('model', 'whisper-1');
-    formData.append('language', recording.language_code || 'pt');
-    formData.append('response_format', 'verbose_json');
-    formData.append('timestamp_granularities[]', 'word');
+    formData.append('language', options.language || recording.language_code || 'pt');
+    if (options.prompt) formData.append('prompt', options.prompt);
+    if (options.temperature !== undefined) formData.append('temperature', options.temperature.toString());
+    formData.append('response_format', options.response_format || 'verbose_json');
+    if (options.timestamp_granularities) formData.append('timestamp_granularities[]', options.timestamp_granularities.join(','));
 
     // Chamar OpenAI Whisper API
     const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -153,10 +157,10 @@ serve(async (req) => {
         .eq('id', recordingId);
 
       return new Response(
-        JSON.stringify({ error: 'Transcription service failed' }),
+        JSON.stringify({ error: 'Transcription service failed', details: errorText }),
         { 
           status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { 'Content-Type': 'application/json' } 
         }
       );
     }
@@ -194,15 +198,15 @@ serve(async (req) => {
         .from('recordings')
         .update({ 
           recording_status: 'failed',
-          processing_error: 'Failed to save transcription'
+          processing_error: 'Failed to save transcription: ' + transcriptionError.message
         })
         .eq('id', recordingId);
 
       return new Response(
-        JSON.stringify({ error: 'Failed to save transcription' }),
+        JSON.stringify({ error: 'Failed to save transcription', details: transcriptionError.message }),
         { 
           status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { 'Content-Type': 'application/json' } 
         }
       );
     }
@@ -256,21 +260,22 @@ serve(async (req) => {
       JSON.stringify(response),
       { 
         status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { 'Content-Type': 'application/json' } 
       }
     );
 
   } catch (error) {
-    console.error('Transcription error:', error);
+    console.error('Transcription error:', error.stack || error);
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        details: error.message 
+        details: errorMessage 
       }),
       { 
         status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { 'Content-Type': 'application/json' } 
       }
     );
   }

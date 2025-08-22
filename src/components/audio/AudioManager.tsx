@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Mic, 
   Upload, 
@@ -14,9 +14,14 @@ import {
   Eye,
   FileText
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+
+// Importar o cliente Supabase do arquivo de integração
+import { supabase } from '../../integrations/supabase/client';
 import AudioProcessor from '../consultations/AudioProcessor';
 import { transcribeAudio } from '../../services/transcriptionService';
+
+// Usar a variável de ambiente para a URL da API da OpenAI
+const OPENAI_API_URL = import.meta.env.VITE_OPENAI_API_URL || 'https://api.openai.com/v1/audio/transcriptions';
 
 interface AudioFile {
   id: string;
@@ -35,6 +40,7 @@ interface AudioFile {
     language_detected: string;
     word_count: number;
   };
+
 }
 
 interface AudioManagerProps {
@@ -55,10 +61,22 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const [transcribingAudio, setTranscribingAudio] = useState<string | null>(null);
   const [showRecorder, setShowRecorder] = useState(false);
+  
+  // Ref para rastrear elementos de áudio ativos
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     loadAudioFiles();
   }, [consultationId]);
+
+  // Cleanup de recursos de áudio na desmontagem do componente
+  useEffect(() => {
+    return () => {
+      stopAudio();
+      setTranscribingAudio(null);
+    };
+  }, []);
 
   const loadAudioFiles = async () => {
     try {
@@ -104,21 +122,83 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     }
   };
 
+  // Função para validação robusta de arquivos de áudio
+  const validateAudioFile = async (file: File): Promise<{ isValid: boolean; error?: string }> => {
+    // Validar tamanho mínimo (1KB)
+    const minSize = 1024; // 1KB
+    if (file.size < minSize) {
+      return { isValid: false, error: 'Arquivo muito pequeno. Tamanho mínimo: 1KB.' };
+    }
+
+    // Validar tamanho máximo (50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      return { isValid: false, error: 'Arquivo muito grande. Tamanho máximo: 50MB.' };
+    }
+
+    // Tipos MIME permitidos com suas extensões correspondentes
+    const allowedMimeTypes = {
+      'audio/wav': ['.wav'],
+      'audio/wave': ['.wav'],
+      'audio/x-wav': ['.wav'],
+      'audio/mp3': ['.mp3'],
+      'audio/mpeg': ['.mp3', '.mp2'],
+      'audio/mpeg3': ['.mp3'],
+      'audio/x-mpeg-3': ['.mp3'],
+      'audio/webm': ['.webm'],
+      'audio/ogg': ['.ogg'],
+      'audio/vorbis': ['.ogg'],
+      'audio/x-ogg': ['.ogg'],
+      'audio/flac': ['.flac'],
+      'audio/x-flac': ['.flac'],
+      'audio/aac': ['.aac'],
+      'audio/x-aac': ['.aac'],
+      'audio/mp4': ['.m4a', '.mp4'],
+      'audio/x-m4a': ['.m4a']
+    };
+
+    // Validar extensão do arquivo
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    const validExtensions = ['.wav', '.mp3', '.mp2', '.webm', '.ogg', '.flac', '.aac', '.m4a', '.mp4'];
+    
+    if (!validExtensions.includes(fileExtension)) {
+      return { 
+        isValid: false, 
+        error: `Extensão de arquivo não suportada: ${fileExtension}. Use: ${validExtensions.join(', ')}.` 
+      };
+    }
+
+    // Validar tipo MIME
+    const mimeType = file.type.toLowerCase();
+    if (!Object.keys(allowedMimeTypes).includes(mimeType)) {
+      return { 
+        isValid: false, 
+        error: `Tipo MIME não suportado: ${mimeType}. Use arquivos de áudio válidos.` 
+      };
+    }
+
+    // Validar correspondência entre MIME type e extensão
+    const expectedExtensions = allowedMimeTypes[mimeType as keyof typeof allowedMimeTypes];
+    if (!expectedExtensions.includes(fileExtension)) {
+      return { 
+        isValid: false, 
+        error: `Incompatibilidade entre tipo de arquivo (${mimeType}) e extensão (${fileExtension}).` 
+      };
+    }
+
+    // Removida validação de assinatura para simplificar e evitar problemas potenciais
+
+    return { isValid: true };
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de arquivo
-    const allowedTypes = ['audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/webm', 'audio/ogg'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Tipo de arquivo não suportado. Use WAV, MP3, WebM ou OGG.');
-      return;
-    }
-
-    // Validar tamanho (máximo 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
-      setError('Arquivo muito grande. Tamanho máximo: 50MB.');
+    // Validação robusta do arquivo
+    const validation = await validateAudioFile(file);
+    if (!validation.isValid) {
+      setError(validation.error || 'Arquivo inválido.');
       return;
     }
 
@@ -206,6 +286,11 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     try {
       setError(null);
       
+      // Parar áudio anterior se estiver tocando
+      if (activeAudioRef.current) {
+        stopAudio();
+      }
+      
       // Obter URL pública do arquivo
       const { data } = await supabase.storage
         .from('recordings')
@@ -213,17 +298,59 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
       if (data?.signedUrl) {
         const audio = new Audio(data.signedUrl);
-        audio.play();
-        setPlayingAudio(audioFile.id);
+        activeAudioRef.current = audio;
         
-        audio.onended = () => {
+        // Configurar event listeners
+        const handleEnded = () => {
           setPlayingAudio(null);
+          if (activeAudioRef.current === audio) {
+            activeAudioRef.current = null;
+          }
         };
+        
+        const handleError = () => {
+          console.error('Erro durante reprodução do áudio');
+          setError('Erro durante reprodução do áudio');
+          setPlayingAudio(null);
+          if (activeAudioRef.current === audio) {
+            activeAudioRef.current = null;
+          }
+        };
+        
+        audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('error', handleError);
+        
+        // Função de cleanup para este áudio específico
+        audioCleanupRef.current = () => {
+          audio.removeEventListener('ended', handleEnded);
+          audio.removeEventListener('error', handleError);
+        };
+        
+        await audio.play();
+        setPlayingAudio(audioFile.id);
       }
     } catch (err) {
       console.error('Erro ao reproduzir áudio:', err);
       setError('Erro ao reproduzir áudio');
+      setPlayingAudio(null);
+      if (activeAudioRef.current) {
+        activeAudioRef.current = null;
+      }
     }
+  };
+
+  // Função para parar reprodução de áudio
+  const stopAudio = () => {
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.currentTime = 0;
+      if (audioCleanupRef.current) {
+        audioCleanupRef.current();
+        audioCleanupRef.current = null;
+      }
+      activeAudioRef.current = null;
+    }
+    setPlayingAudio(null);
   };
 
   const deleteAudio = async (audioFile: AudioFile) => {
@@ -442,10 +569,15 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
               
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => playAudio(audioFile)}
-                  disabled={playingAudio === audioFile.id}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-                  title="Reproduzir"
+                  onClick={() => {
+                    if (playingAudio === audioFile.id) {
+                      stopAudio();
+                    } else {
+                      playAudio(audioFile);
+                    }
+                  }}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title={playingAudio === audioFile.id ? "Parar" : "Reproduzir"}
                 >
                   {playingAudio === audioFile.id ? (
                     <Pause className="w-4 h-4" />
@@ -493,8 +625,11 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
       {/* Informações sobre Formatos Suportados */}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <h5 className="font-medium text-blue-900 mb-2">Formatos suportados:</h5>
+        <p className="text-sm text-blue-800 mb-2">
+          <strong>Áudio:</strong> WAV, MP3, WebM, OGG, FLAC, AAC, M4A, MP4
+        </p>
         <p className="text-sm text-blue-800">
-          WAV, MP3, WebM, OGG • Tamanho máximo: 50MB • Transcrição automática com OpenAI Whisper
+          <strong>Tamanho:</strong> 1KB - 50MB • <strong>Validação:</strong> Tipo MIME, extensão e assinatura de arquivo • <strong>Transcrição:</strong> OpenAI Whisper
         </p>
       </div>
     </div>

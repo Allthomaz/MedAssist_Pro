@@ -1,11 +1,8 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
-// Configurações da API OpenAI
-const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
-const OPENAI_API_URL = 'https://api.openai.com/v1/audio/transcriptions';
-
-// Configurações da API Anthropic (alternativa)
-const ANTHROPIC_API_KEY = process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || '';
+// Usar as variáveis de ambiente corretas para o Vite
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+const OPENAI_API_URL = import.meta.env.VITE_OPENAI_API_URL || 'https://api.openai.com/v1/audio/transcriptions';
 
 interface TranscriptionResult {
   text: string;
@@ -37,6 +34,40 @@ class TranscriptionService {
   constructor() {
     this.apiKey = OPENAI_API_KEY;
     this.baseUrl = OPENAI_API_URL;
+    this.ensureApiAvailability();
+  }
+
+  /**
+   * Valida se as API keys necessárias estão configuradas
+   */
+  private async validateApiKeys(): Promise<{ openai: boolean; supabase: boolean }> {
+    const openaiValid = Boolean(OPENAI_API_KEY && OPENAI_API_KEY.trim() !== '');
+    let supabaseValid = false;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      supabaseValid = !!session;
+    } catch {
+      supabaseValid = false;
+    }
+    return {
+      openai: openaiValid,
+      supabase: supabaseValid
+    };
+  }
+
+  /**
+   * Verifica se pelo menos uma API está disponível para transcrição
+   */
+  private async ensureApiAvailability(): Promise<void> {
+    const { openai, supabase: supabaseValid } = await this.validateApiKeys();
+    
+    if (!openai && !supabaseValid) {
+      throw new Error(
+        'Nenhuma API de transcrição está configurada. Configure pelo menos uma das seguintes:\n' +
+        '- VITE_OPENAI_API_KEY para OpenAI Whisper\n' +
+        '- Configurações do Supabase para transcrição via Edge Function'
+      );
+    }
   }
 
   /**
@@ -46,8 +77,9 @@ class TranscriptionService {
     audioFile: File | Blob,
     options: TranscriptionOptions = {}
   ): Promise<TranscriptionResult> {
-    if (!this.apiKey) {
-      throw new Error('OpenAI API key não configurada. Configure NEXT_PUBLIC_OPENAI_API_KEY.');
+    const { openai } = this.validateApiKeys();
+    if (!openai) {
+      throw new Error('OpenAI API key não configurada. Configure VITE_OPENAI_API_KEY.');
     }
 
     try {
@@ -207,24 +239,22 @@ class TranscriptionService {
     consultationId: string,
     options: TranscriptionOptions = {}
   ): Promise<{ transcriptionId: string; text: string; confidence: number }> {
+    // Verificar se pelo menos uma API está disponível
+    this.ensureApiAvailability();
+    
     const startTime = Date.now();
 
     try {
       // Configurar prompt médico padrão se não fornecido
-      const medicalPrompt = options.prompt || 
-        'Esta é uma transcrição de consulta médica. ' +
-        'Inclua termos médicos precisos, nomes de medicamentos, ' +
-        'procedimentos, sintomas e diagnósticos. ' +
-        'Mantenha a terminologia médica correta.';
-
-      const transcriptionOptions: TranscriptionOptions = {
+      const defaultOptions: TranscriptionOptions = {
         language: 'pt',
-        temperature: 0.1, // Baixa temperatura para maior precisão
+        temperature: 0.1,
         response_format: 'verbose_json',
         timestamp_granularities: ['segment'],
-        ...options,
-        prompt: medicalPrompt
+        prompt: 'Esta é uma transcrição de consulta médica. Inclua termos médicos precisos, nomes de medicamentos, procedimentos, sintomas e diagnósticos. Mantenha a terminologia médica correta.'
       };
+
+      const transcriptionOptions = { ...defaultOptions, ...options };
 
       // Tentar transcrição com OpenAI primeiro
       let transcriptionResult: TranscriptionResult;
@@ -417,10 +447,46 @@ ${transcriptionText}
   /**
    * Converte áudio para formato suportado se necessário
    */
-  async convertAudioFormat(audioBlob: Blob): Promise<Blob> {
-    // Para implementação futura: conversão de formato usando Web Audio API
-    // Por enquanto, retorna o blob original
-    return audioBlob;
+
+  /**
+   * Método principal para transcrever áudio (wrapper)
+   */
+  async transcribeAudio(
+    audioFile: File | Blob,
+    options: TranscriptionOptions = {}
+  ): Promise<TranscriptionResult> {
+    // Verificar se pelo menos uma API está disponível
+    this.ensureApiAvailability();
+    
+    const { openai, supabase: supabaseValid } = this.validateApiKeys();
+    
+    // Tentar OpenAI primeiro se disponível
+    if (openai) {
+      try {
+        return await this.transcribeWithOpenAI(audioFile, options);
+      } catch (error) {
+        console.warn('Falha na transcrição OpenAI:', error);
+        
+        // Fallback para Supabase se disponível
+        if (supabaseValid) {
+          console.log('Tentando fallback para Supabase...');
+          // Para usar Supabase, precisamos de um recordingId
+          const recordingId = `temp_${Date.now()}`;
+          return await this.transcribeWithSupabase(recordingId, options);
+        }
+        
+        throw error;
+      }
+    }
+    
+    // Se OpenAI não está disponível, usar Supabase
+    if (supabaseValid) {
+      const recordingId = `temp_${Date.now()}`;
+      return await this.transcribeWithSupabase(recordingId, options);
+    }
+    
+    // Isso nunca deveria acontecer devido ao ensureApiAvailability
+    throw new Error('Nenhuma API de transcrição disponível');
   }
 }
 
@@ -428,12 +494,31 @@ ${transcriptionText}
 export const transcriptionService = new TranscriptionService();
 
 // Funções wrapper para compatibilidade
-export const transcribeAudio = (audioFile: File | Blob, options?: TranscriptionOptions) => {
-  return transcriptionService.transcribeAudio(audioFile, options);
+export const transcribeAudio = async (
+  recordingId: string,
+  options?: TranscriptionOptions
+): Promise<{ transcription?: string; error?: string; confidence?: number }> => {
+  try {
+    const result = await transcriptionService.transcribeWithSupabase(recordingId, options);
+    return {
+      transcription: result.text,
+      confidence: result.confidence
+    };
+  } catch (error) {
+    console.error('Erro na transcrição:', error);
+    return {
+      error: error instanceof Error ? error.message : 'Erro desconhecido na transcrição'
+    };
+  }
 };
 
-export const saveTranscription = (recordingId: string, transcriptionText: string, metadata?: any) => {
-  return transcriptionService.saveTranscription(recordingId, transcriptionText, metadata);
+export const saveTranscription = (
+  recordingId: string, 
+  consultationId: string, 
+  transcriptionResult: TranscriptionResult, 
+  processingTime?: number
+) => {
+  return transcriptionService.saveTranscription(recordingId, consultationId, transcriptionResult, processingTime);
 };
 
 // Exportar tipos para uso em outros componentes

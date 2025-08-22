@@ -20,6 +20,12 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AuthPage = lazy(() => import("@/pages/Auth"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const DesignShowcase = lazy(() => import("@/components/showcase/DesignShowcase").then(module => ({ default: module.DesignShowcase })));
+const SimpleTranscriptionTest = lazy(() => import('./components/test/SimpleTranscriptionTest'));
+const ReportTest = lazy(() => import('./components/test/ReportTest'));
+const StorageTest = lazy(() => import('./components/test/StorageTest'));
+const AuthTest = lazy(() => import('@/components/test/AuthTest'));
+const RLSTest = lazy(() => import('@/components/test/RLSTest'));
+const TestNavigation = lazy(() => import('@/components/test/TestNavigation'));
 
 const queryClient = new QueryClient();
 
@@ -113,6 +119,36 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/test-transcription" element={
+                <ProtectedRoute>
+                  <SimpleTranscriptionTest />
+                </ProtectedRoute>
+              } />
+              <Route path="/test-reports" element={
+                <ProtectedRoute>
+                  <ReportTest />
+                </ProtectedRoute>
+              } />
+              <Route path="/test-storage" element={
+                <ProtectedRoute>
+                  <StorageTest />
+                </ProtectedRoute>
+              } />
+              <Route path="/test-auth" element={
+                <ProtectedRoute>
+                  <AuthTest />
+                </ProtectedRoute>
+              } />
+              <Route path="/test-rls" element={
+                <ProtectedRoute>
+                  <RLSTest />
+                </ProtectedRoute>
+              } />
+              <Route path="/tests" element={
+                <ProtectedRoute>
+                  <TestNavigation />
+                </ProtectedRoute>
+              } />
 
 
               <Route path="*" element={<NotFound />} />
