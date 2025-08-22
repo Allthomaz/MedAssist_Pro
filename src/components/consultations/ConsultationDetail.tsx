@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { AudioRecorder } from './AudioRecorder';
 
 // Lazy load heavy components
-const ReportGenerator = lazy(() => import('./ReportGenerator'));
+const ReportGenerator = lazy(() => import('../reports/ReportGenerator'));
 import { supabase } from '@/integrations/supabase/client';
 import {
   Calendar,
@@ -550,9 +550,11 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       }>
         <ReportGenerator
           consultationId={consultation.id}
-          transcriptionText={consultation.clinical_notes || ''}
           patientName={patient.full_name}
-          doctorName="Dr. [Nome do Médico]"
+          consultationDate={consultation.consultation_date}
+          onReportGenerated={(filePath) => {
+            console.log('Relatório gerado:', filePath);
+          }}
         />
       </Suspense>
 

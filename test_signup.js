@@ -13,7 +13,7 @@ async function createTestUser() {
   console.log('🚀 Criando usuário de teste...');
   
   const testUser = {
-    email: 'test@medassist.com',
+    email: 'test@localhost',
     password: '123456',
     fullName: 'Dr. Teste',
     profession: 'medico'

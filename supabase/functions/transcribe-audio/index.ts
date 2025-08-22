@@ -8,6 +8,12 @@ const corsHeaders = {
 
 interface TranscribeRequest {
   recordingId: string;
+  options?: {
+    language?: string;
+    prompt?: string;
+    temperature?: number;
+    response_format?: string;
+  };
 }
 
 interface TranscribeResponse {
@@ -15,6 +21,8 @@ interface TranscribeResponse {
   confidence: number;
   language?: string;
   duration?: number;
+  segments?: any[];
+  error?: string;
 }
 
 serve(async (req) => {
@@ -103,7 +111,7 @@ serve(async (req) => {
     }
 
     // Preparar dados para OpenAI Whisper API
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openaiApiKey = Deno.env.get?.('OPENAI_API_KEY') ?? process.env.OPENAI_API_KEY;
     
     if (!openaiApiKey) {
       return new Response(

@@ -15,6 +15,7 @@ import {
   FileAudio,
   Loader2
 } from 'lucide-react';
+import { transcribeAudio, saveTranscription } from '../../services/transcriptionService';
 
 interface AudioRecorderProps {
   consultationId: string;
@@ -248,33 +249,32 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       setIsTranscribing(true);
       setError(null);
 
-      // Chamar função do Supabase para transcrição
-      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-        body: { recordingId }
+      // Usar o novo serviço de transcrição
+      const result = await transcribeAudio(recordingId, {
+        language: 'pt',
+        response_format: 'verbose_json'
       });
 
-      if (error) throw error;
+      if (result.error) {
+        throw new Error(result.error);
+      }
 
-      // Salvar transcrição no banco
-      const { data: transcriptionData, error: transcriptionError } = await supabase
-        .from('transcriptions')
-        .insert({
-          recording_id: recordingId,
-          consultation_id: consultationId,
-          transcript_text: data.transcription,
-          confidence_score: data.confidence || 0.95,
-          status: 'completed'
-        })
-        .select()
-        .single();
+      // Salvar transcrição usando o serviço
+      const transcriptionData = await saveTranscription({
+        recordingId,
+        consultationId,
+        transcriptText: result.transcription,
+        confidenceScore: result.confidence || 0.95,
+        languageDetected: result.language || 'pt',
+        wordCount: result.transcription.split(/\s+/).length,
+        transcriptionService: 'openai'
+      });
 
-      if (transcriptionError) throw transcriptionError;
-
-      setTranscriptionText(data.transcription);
+      setTranscriptionText(result.transcription);
       
       // Callback para notificar componente pai
       if (onTranscriptionComplete) {
-        onTranscriptionComplete(transcriptionData.id, data.transcription);
+        onTranscriptionComplete(transcriptionData.id, result.transcription);
       }
 
     } catch (err) {

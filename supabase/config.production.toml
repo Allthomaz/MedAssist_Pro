@@ -1,0 +1,117 @@
+# Configuração de Produção - MedAssist
+# Este arquivo serve como template para configuração de produção
+# IMPORTANTE: Não commitar este arquivo com credenciais reais!
+
+[api]
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+port = 54323
+api_url = "https://sua-api-url.supabase.co"
+
+[inbucket]
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+file_size_limit = "50MiB"
+
+[auth]
+site_url = "https://medassist.com"
+additional_redirect_urls = ["https://medassist.com/auth/callback"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+min_password_length = 8
+
+# Configuração SMTP para Produção
+[auth.email.smtp]
+enabled = true
+
+# Opção 1: SendGrid (Recomendado)
+host = "smtp.sendgrid.net"
+port = 587
+user = "apikey"
+pass = "SG.SUBSTITUA_PELA_SUA_API_KEY_SENDGRID"
+admin_email = "admin@medassist.com"
+sender_name = "MedAssist"
+
+# Opção 2: AWS SES (Descomente para usar)
+# host = "email-smtp.us-east-1.amazonaws.com"
+# port = 587
+# user = "SUBSTITUA_PELO_SEU_ACCESS_KEY_ID"
+# pass = "SUBSTITUA_PELA_SUA_SECRET_ACCESS_KEY"
+# admin_email = "admin@medassist.com"
+# sender_name = "MedAssist"
+
+# Opção 3: Mailgun (Descomente para usar)
+# host = "smtp.mailgun.org"
+# port = 587
+# user = "postmaster@mg.medassist.com"
+# pass = "SUBSTITUA_PELA_SUA_API_KEY_MAILGUN"
+# admin_email = "admin@medassist.com"
+# sender_name = "MedAssist"
+
+# Templates de Email Personalizados
+[auth.email.template.invite]
+subject = "Você foi convidado para o MedAssist"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.confirmation]
+subject = "Confirme seu email - MedAssist"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Recuperação de senha - MedAssist"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Confirmação de mudança de email - MedAssist"
+content_path = "./supabase/templates/email_change.html"
+
+# Configurações de Rate Limiting
+[auth.email.rate_limit]
+per = "hour"
+count = 10
+
+# Configurações de Segurança
+[auth.security]
+update_password_require_reauthentication = true
+refresh_token_rotation_enabled = true
+
+# Configurações de Logs
+[analytics]
+enabled = true
+port = 54327
+vector_port = 54328
+
+# Edge Functions
+[functions]
+verify_jwt = false
+
+# Configurações de Rede
+[experimental]
+orientation = "landscape"
+websocket_url = "wss://sua-api-url.supabase.co/realtime/v1/websocket"
+
+# Variáveis de Ambiente Recomendadas para Produção:
+# SUPABASE_URL=https://sua-api-url.supabase.co
+# SUPABASE_ANON_KEY=sua_chave_anonima
+# SUPABASE_SERVICE_ROLE_KEY=sua_chave_service_role
+# SMTP_HOST=smtp.sendgrid.net
+# SMTP_PORT=587
+# SMTP_USER=apikey
+# SMTP_PASS=SG.sua_api_key_sendgrid
+# SMTP_ADMIN_EMAIL=admin@medassist.com
+# SMTP_SENDER_NAME=MedAssist

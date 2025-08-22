@@ -170,7 +170,7 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -180,14 +180,14 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use Inbucket for local development SMTP
+# Use Mailpit for local development SMTP
 [auth.email.smtp]
-enabled = true
-host = "localhost"
-port = 54325
-user = "inbucket"
-pass = "inbucket"
-admin_email = "admin@medassist.com"
+enabled = false
+host = "supabase_inbucket_doctor-brief-ai-premium-1"
+port = 1025
+user = "mailpit"
+pass = "mailpit"
+admin_email = "admin@localhost"
 sender_name = "MedAssist"
 
 # Uncomment to customize email template
