@@ -6,14 +6,28 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Lazy load pages for better performance
+// Lazy load pages for better performance with strategic preloading
 const Index = lazy(() => import('./pages/Index'));
-const Patients = lazy(() => import('./pages/Patients'));
+const Patients = lazy(() =>
+  import('./pages/Patients').then(module => {
+    // Preload related pages after Patients loads
+    import('./pages/Consultations');
+    import('./pages/Documents');
+    return module;
+  })
+);
 const Templates = lazy(() => import('./pages/Templates'));
 const Consultations = lazy(() => import('./pages/Consultations'));
 const Documents = lazy(() => import('./pages/Documents'));
-const Appointments = lazy(() => import('./pages/Appointments'));
+const Appointments = lazy(() =>
+  import('./pages/Appointments').then(module => {
+    // Preload Analytics as it's commonly accessed after Appointments
+    import('./pages/Analytics');
+    return module;
+  })
+);
 const Settings = lazy(() => import('./pages/Settings'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -43,144 +57,146 @@ const LoadingSpinner = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <BrowserRouter>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/auth/reset" element={<ResetPassword />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/patients"
-                element={
-                  <ProtectedRoute>
-                    <Patients />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/consultations"
-                element={
-                  <ProtectedRoute>
-                    <Consultations />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/templates"
-                element={
-                  <ProtectedRoute>
-                    <Templates />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/appointments"
-                element={
-                  <ProtectedRoute>
-                    <Appointments />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/documents"
-                element={
-                  <ProtectedRoute>
-                    <Documents />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/analytics"
-                element={
-                  <ProtectedRoute>
-                    <Analytics />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/showcase"
-                element={
-                  <ProtectedRoute>
-                    <DesignShowcase />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/test-transcription"
-                element={
-                  <ProtectedRoute>
-                    <SimpleTranscriptionTest />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/test-reports"
-                element={
-                  <ProtectedRoute>
-                    <ReportTest />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/test-storage"
-                element={
-                  <ProtectedRoute>
-                    <StorageTest />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/test-auth"
-                element={
-                  <ProtectedRoute>
-                    <AuthTest />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/test-rls"
-                element={
-                  <ProtectedRoute>
-                    <RLSTest />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tests"
-                element={
-                  <ProtectedRoute>
-                    <TestNavigation />
-                  </ProtectedRoute>
-                }
-              />
+  <ErrorBoundary showDetails={process.env.NODE_ENV === 'development'}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <BrowserRouter>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/auth/reset" element={<ResetPassword />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/patients"
+                  element={
+                    <ProtectedRoute>
+                      <Patients />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/consultations"
+                  element={
+                    <ProtectedRoute>
+                      <Consultations />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/templates"
+                  element={
+                    <ProtectedRoute>
+                      <Templates />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/appointments"
+                  element={
+                    <ProtectedRoute>
+                      <Appointments />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/documents"
+                  element={
+                    <ProtectedRoute>
+                      <Documents />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <Analytics />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/showcase"
+                  element={
+                    <ProtectedRoute>
+                      <DesignShowcase />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test-transcription"
+                  element={
+                    <ProtectedRoute>
+                      <SimpleTranscriptionTest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test-reports"
+                  element={
+                    <ProtectedRoute>
+                      <ReportTest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test-storage"
+                  element={
+                    <ProtectedRoute>
+                      <StorageTest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test-auth"
+                  element={
+                    <ProtectedRoute>
+                      <AuthTest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test-rls"
+                  element={
+                    <ProtectedRoute>
+                      <RLSTest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tests"
+                  element={
+                    <ProtectedRoute>
+                      <TestNavigation />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

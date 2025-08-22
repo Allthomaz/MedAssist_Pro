@@ -1,0 +1,74 @@
+{
+  "files": [
+    {
+      "path": "dist/assets/index-*.js",
+      "maxSize": "150kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/react-vendor-*.js",
+      "maxSize": "50kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/ui-vendor-*.js",
+      "maxSize": "80kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/supabase-vendor-*.js",
+      "maxSize": "40kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/sentry-vendor-*.js",
+      "maxSize": "30kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/pdf-vendor-*.js",
+      "maxSize": "200kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/patients-*.js",
+      "maxSize": "60kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/consultations-*.js",
+      "maxSize": "60kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/documents-*.js",
+      "maxSize": "60kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/appointments-*.js",
+      "maxSize": "60kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/analytics-*.js",
+      "maxSize": "40kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/shared-ui-*.js",
+      "maxSize": "100kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/styles/*.css",
+      "maxSize": "50kb",
+      "compression": "gzip"
+    }
+  ],
+  "defaultCompression": "gzip",
+  "ci": {
+    "trackBranches": ["main", "master", "develop"],
+    "repoBranchBase": "main"
+  }
+}
