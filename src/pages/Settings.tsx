@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { N8nIntegrationSettings } from '@/components/settings/N8nIntegrationSettings';
 import {
   Settings as SettingsIcon,
   User,
@@ -32,7 +33,8 @@ import {
   Globe,
   Key,
   UserCircle,
-  Stethoscope
+  Stethoscope,
+  Webhook
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -66,7 +68,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Perfil
@@ -86,6 +88,10 @@ export default function Settings() {
             <TabsTrigger value="data" className="flex items-center gap-2">
               <Database className="w-4 h-4" />
               Dados
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Webhook className="w-4 h-4" />
+              Integrações
             </TabsTrigger>
           </TabsList>
 
@@ -370,6 +376,11 @@ export default function Settings() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          {/* Integrações */}
+          <TabsContent value="integrations" className="space-y-6">
+            <N8nIntegrationSettings onSaved={handleSave} />
           </TabsContent>
         </Tabs>
 
