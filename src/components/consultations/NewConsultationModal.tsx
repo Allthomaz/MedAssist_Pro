@@ -14,7 +14,7 @@ interface NewConsultationModalProps {
 export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
   isOpen,
   onClose,
-  onConsultationCreated
+  onConsultationCreated,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -59,21 +59,21 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className={cn(
-          "absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300",
-          isAnimating ? "opacity-100" : "opacity-0"
+          'absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300',
+          isAnimating ? 'opacity-100' : 'opacity-0'
         )}
         onClick={handleClose}
       />
-      
+
       {/* Modal Content */}
-      <div 
+      <div
         className={cn(
-          "relative w-full max-w-6xl max-h-[90vh] mx-4 transition-all duration-300 ease-out",
-          isAnimating 
-            ? "opacity-100 scale-100 translate-y-0" 
-            : "opacity-0 scale-95 translate-y-4"
+          'relative w-full max-w-6xl max-h-[90vh] mx-4 transition-all duration-300 ease-out',
+          isAnimating
+            ? 'opacity-100 scale-100 translate-y-0'
+            : 'opacity-0 scale-95 translate-y-4'
         )}
       >
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md">
@@ -92,7 +92,7 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
                   </p>
                 </div>
               </div>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -102,11 +102,11 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
                 <X className="w-5 h-5" />
               </Button>
             </div>
-            
+
             {/* Decorative gradient line */}
             <div className="absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-medical-blue/30 to-transparent" />
           </CardHeader>
-          
+
           <CardContent className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -121,7 +121,7 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200/50">
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-500/10">
                   <Clock className="w-5 h-5 text-green-600" />
@@ -129,11 +129,14 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
                 <div>
                   <p className="text-sm font-medium text-green-900">Horário</p>
                   <p className="text-xs text-green-700">
-                    {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    {new Date().toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500/10">
                   <User className="w-5 h-5 text-purple-600" />
@@ -144,15 +147,15 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Audio Processor */}
             <div className="bg-gradient-to-br from-gray-50/50 to-white border border-gray-200/50 rounded-2xl p-6">
-              <AudioProcessor 
+              <AudioProcessor
                 onProcessingComplete={handleProcessingComplete}
                 className="border-0 shadow-none bg-transparent"
               />
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200/50">
               <Button

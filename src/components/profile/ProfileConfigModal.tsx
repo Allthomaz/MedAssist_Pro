@@ -1,12 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
-import { UserCircle, Settings, User, Palette, Save, X, ArrowRight, Briefcase, Phone, Sparkles, Eye, Monitor } from 'lucide-react';
+import {
+  UserCircle,
+  Settings,
+  User,
+  Palette,
+  Save,
+  X,
+  ArrowRight,
+  Briefcase,
+  Phone,
+  Sparkles,
+  Eye,
+  Monitor,
+} from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,7 +65,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Form states
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [role, setRole] = useState(profile?.role || 'doctor');
@@ -49,11 +74,11 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   const [crm, setCrm] = useState(profile?.crm || '');
   const [specialty, setSpecialty] = useState(profile?.specialty || '');
   const [phone, setPhone] = useState(profile?.phone || '');
-  
+
   // Theme preferences
   const { theme, setTheme } = useTheme();
   const [compactMode, setCompactMode] = useState(false);
-  
+
   // Initialize theme state
   useEffect(() => {
     if (profile?.custom_title) {
@@ -63,28 +88,36 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   }, [profile]);
 
   const selectedRole = USER_ROLES.find(r => r.value === role);
-  const selectedSpecialty = PROFESSIONAL_SPECIALTIES.find(s => s.specialty === specialty);
-  const displayTitle = useCustomTitle && customTitle ? customTitle : selectedSpecialty?.title || 'Dr.';
+  const selectedSpecialty = PROFESSIONAL_SPECIALTIES.find(
+    s => s.specialty === specialty
+  );
+  const displayTitle =
+    useCustomTitle && customTitle
+      ? customTitle
+      : selectedSpecialty?.title || 'Dr.';
 
   const validateForm = () => {
     const errors: string[] = [];
-    
+
     if (!fullName.trim()) {
       errors.push('Nome completo é obrigatório');
     }
-    
+
     if (fullName.trim().length < 2) {
       errors.push('Nome deve ter pelo menos 2 caracteres');
     }
-    
+
     if (useCustomTitle && !customTitle.trim()) {
       errors.push('Título personalizado não pode estar vazio');
     }
-    
-    if (phone && !/^\(?\d{2}\)?[\s-]?\d{4,5}[\s-]?\d{4}$/.test(phone.replace(/\D/g, ''))) {
+
+    if (
+      phone &&
+      !/^\(?\d{2}\)?[\s-]?\d{4,5}[\s-]?\d{4}$/.test(phone.replace(/\D/g, ''))
+    ) {
       errors.push('Formato de telefone inválido');
     }
-    
+
     return errors;
   };
 
@@ -93,9 +126,9 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   const handleSave = async (redirectToDashboard = false) => {
     if (!user?.id) {
       toast({
-        title: "Erro",
-        description: "Usuário não encontrado",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Usuário não encontrado',
+        variant: 'destructive',
       });
       return;
     }
@@ -103,20 +136,21 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
       toast({
-        title: "Erro de Validação",
+        title: 'Erro de Validação',
         description: validationErrors.join(', '),
-        variant: "destructive",
+        variant: 'destructive',
       });
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const updateData = {
         full_name: fullName.trim(),
         role: role,
-        custom_title: useCustomTitle && customTitle.trim() ? customTitle.trim() : null,
+        custom_title:
+          useCustomTitle && customTitle.trim() ? customTitle.trim() : null,
         crm: crm.trim() || null,
         specialty: specialty.trim() || null,
         phone: phone.trim() || null,
@@ -133,14 +167,14 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
       if (error) throw error;
 
       toast({
-        title: "Sucesso",
-        description: redirectToDashboard 
-          ? "Configurações salvas! Redirecionando para o dashboard..."
-          : "Configurações salvas com sucesso!",
+        title: 'Sucesso',
+        description: redirectToDashboard
+          ? 'Configurações salvas! Redirecionando para o dashboard...'
+          : 'Configurações salvas com sucesso!',
       });
-      
+
       setOpen(false);
-      
+
       if (redirectToDashboard) {
         // Redirect to dashboard after a short delay
         setTimeout(() => {
@@ -153,9 +187,12 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao salvar configurações",
-        variant: "destructive",
+        title: 'Erro',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Erro ao salvar configurações',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -176,9 +213,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
@@ -186,7 +221,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
             Configurações do Perfil
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           {/* Preview Card */}
           <div className="bg-gradient-to-r from-medical-50 to-medical-100 dark:from-medical-900/20 dark:to-medical-800/20 p-4 rounded-lg border border-medical-200 dark:border-medical-700">
@@ -210,9 +245,11 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-medical-600" />
-              <h3 className="font-medium text-medical-900 dark:text-medical-100">Informações Pessoais</h3>
+              <h3 className="font-medium text-medical-900 dark:text-medical-100">
+                Informações Pessoais
+              </h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="flex items-center gap-2">
@@ -222,12 +259,12 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                 <Input
                   id="fullName"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={e => setFullName(e.target.value)}
                   placeholder="Digite seu nome completo"
                   className="medical-input"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-medical-600" />
@@ -236,7 +273,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                 <Input
                   id="phone"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={e => setPhone(e.target.value)}
                   placeholder="(11) 99999-9999"
                   className="medical-input"
                 />
@@ -250,9 +287,11 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-medical-600" />
-              <h3 className="font-medium text-medical-900 dark:text-medical-100">Informações Profissionais</h3>
+              <h3 className="font-medium text-medical-900 dark:text-medical-100">
+                Informações Profissionais
+              </h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="role" className="flex items-center gap-2">
@@ -264,15 +303,18 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                     <SelectValue placeholder="Selecione seu tipo de usuário" />
                   </SelectTrigger>
                   <SelectContent>
-                    {USER_ROLES.map((roleOption) => (
-                      <SelectItem key={roleOption.value} value={roleOption.value}>
+                    {USER_ROLES.map(roleOption => (
+                      <SelectItem
+                        key={roleOption.value}
+                        value={roleOption.value}
+                      >
                         {roleOption.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="crm" className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-medical-600" />
@@ -281,13 +323,13 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                 <Input
                   id="crm"
                   value={crm}
-                  onChange={(e) => setCrm(e.target.value)}
+                  onChange={e => setCrm(e.target.value)}
                   placeholder="Ex: CRM 123456"
                   className="medical-input"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="specialty" className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-medical-600" />
@@ -298,8 +340,11 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                   <SelectValue placeholder="Selecione sua especialidade" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROFESSIONAL_SPECIALTIES.map((specialtyOption) => (
-                    <SelectItem key={specialtyOption.specialty} value={specialtyOption.specialty}>
+                  {PROFESSIONAL_SPECIALTIES.map(specialtyOption => (
+                    <SelectItem
+                      key={specialtyOption.specialty}
+                      value={specialtyOption.specialty}
+                    >
                       {specialtyOption.specialty}
                     </SelectItem>
                   ))}
@@ -314,35 +359,45 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-medical-600" />
-              <h3 className="font-medium text-medical-900 dark:text-medical-100">Personalização do Título</h3>
+              <h3 className="font-medium text-medical-900 dark:text-medical-100">
+                Personalização do Título
+              </h3>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="useCustomTitle"
                 checked={useCustomTitle}
                 onCheckedChange={setUseCustomTitle}
               />
-              <Label htmlFor="useCustomTitle" className="flex items-center gap-2">
+              <Label
+                htmlFor="useCustomTitle"
+                className="flex items-center gap-2"
+              >
                 <Sparkles className="w-4 h-4 text-medical-600" />
                 Usar título personalizado
               </Label>
             </div>
-            
+
             {useCustomTitle && (
               <div className="space-y-2">
-                <Label htmlFor="customTitle" className="flex items-center gap-2">
+                <Label
+                  htmlFor="customTitle"
+                  className="flex items-center gap-2"
+                >
                   <Sparkles className="w-4 h-4 text-medical-600" />
                   Título Personalizado
                 </Label>
                 <Input
                   id="customTitle"
                   value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
+                  onChange={e => setCustomTitle(e.target.value)}
                   placeholder="Ex: Prof., Dra., Mestre"
                   className="medical-input"
                 />
-                <p className="text-xs text-muted-foreground">Este título aparecerá no seu dashboard</p>
+                <p className="text-xs text-muted-foreground">
+                  Este título aparecerá no seu dashboard
+                </p>
               </div>
             )}
           </div>
@@ -353,9 +408,11 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Palette className="w-4 h-4 text-medical-600" />
-              <h3 className="font-medium text-medical-900 dark:text-medical-100">Preferências de Interface</h3>
+              <h3 className="font-medium text-medical-900 dark:text-medical-100">
+                Preferências de Interface
+              </h3>
             </div>
-            
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -363,22 +420,31 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
                     <Palette className="w-4 h-4 text-medical-600" />
                     Modo Escuro
                   </Label>
-                  <p className="text-sm text-muted-foreground">Ativar tema escuro da interface</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ativar tema escuro da interface
+                  </p>
                 </div>
                 <Switch
                   id="darkMode"
                   checked={theme === 'dark'}
-                  onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                  onCheckedChange={checked =>
+                    setTheme(checked ? 'dark' : 'light')
+                  }
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="compactMode" className="flex items-center gap-2">
+                  <Label
+                    htmlFor="compactMode"
+                    className="flex items-center gap-2"
+                  >
                     <Monitor className="w-4 h-4 text-medical-600" />
                     Modo Compacto
                   </Label>
-                  <p className="text-sm text-muted-foreground">Interface mais compacta com menos espaçamento</p>
+                  <p className="text-sm text-muted-foreground">
+                    Interface mais compacta com menos espaçamento
+                  </p>
                 </div>
                 <Switch
                   id="compactMode"

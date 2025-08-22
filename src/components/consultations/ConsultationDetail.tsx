@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  lazy,
+} from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +29,7 @@ import {
   Stethoscope,
   Pill,
   ClipboardList,
-  Mic
+  Mic,
 } from 'lucide-react';
 
 interface Patient {
@@ -61,7 +68,7 @@ interface ConsultationDetailProps {
 export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
   consultationId,
   onSave,
-  onStatusChange
+  onStatusChange,
 }) => {
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -79,7 +86,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     diagnosis: '',
     treatment_plan: '',
     prescriptions: '',
-    follow_up_date: ''
+    follow_up_date: '',
   });
 
   useEffect(() => {
@@ -94,7 +101,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
         diagnosis: consultation.diagnosis || '',
         treatment_plan: consultation.treatment_plan || '',
         prescriptions: consultation.prescriptions || '',
-        follow_up_date: consultation.follow_up_date || ''
+        follow_up_date: consultation.follow_up_date || '',
       });
       setHasRecording(consultation.has_recording);
     }
@@ -106,11 +113,12 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       setError(null);
 
       // Buscar dados da consulta
-      const { data: consultationData, error: consultationError } = await supabase
-        .from('consultations')
-        .select('*')
-        .eq('id', consultationId)
-        .single();
+      const { data: consultationData, error: consultationError } =
+        await supabase
+          .from('consultations')
+          .select('*')
+          .eq('id', consultationId)
+          .single();
 
       if (consultationError) throw consultationError;
       setConsultation(consultationData);
@@ -124,7 +132,6 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
 
       if (patientError) throw patientError;
       setPatient(patientData);
-
     } catch (err) {
       console.error('Erro ao carregar dados da consulta:', err);
       setError('Erro ao carregar dados da consulta');
@@ -145,7 +152,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
         .update({
           ...formData,
           has_recording: hasRecording,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', consultationId)
         .select()
@@ -159,7 +166,6 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       if (onSave) {
         onSave(data);
       }
-
     } catch (err) {
       console.error('Erro ao salvar consulta:', err);
       setError('Erro ao salvar consulta');
@@ -168,56 +174,64 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     }
   }, [consultation, formData, hasRecording, consultationId, onSave]);
 
-  const handleStatusChange = useCallback(async (newStatus: string) => {
-    if (!consultation) return;
+  const handleStatusChange = useCallback(
+    async (newStatus: string) => {
+      if (!consultation) return;
 
-    try {
-      const { data, error } = await supabase
-        .from('consultations')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', consultationId)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('consultations')
+          .update({
+            status: newStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', consultationId)
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setConsultation(data);
+        setConsultation(data);
 
-      if (onStatusChange) {
-        onStatusChange(newStatus);
+        if (onStatusChange) {
+          onStatusChange(newStatus);
+        }
+      } catch (err) {
+        console.error('Erro ao atualizar status:', err);
+        setError('Erro ao atualizar status da consulta');
       }
+    },
+    [consultation, consultationId, onStatusChange]
+  );
 
-    } catch (err) {
-      console.error('Erro ao atualizar status:', err);
-      setError('Erro ao atualizar status da consulta');
-    }
-  }, [consultation, consultationId, onStatusChange]);
+  const handleRecordingComplete = useCallback(
+    (recordingId: string) => {
+      setHasRecording(true);
+      // Atualizar automaticamente o status has_recording na consulta
+      supabase
+        .from('consultations')
+        .update({ has_recording: true })
+        .eq('id', consultationId)
+        .then(() => {
+          console.log('Status de gravação atualizado');
+        });
+    },
+    [consultationId]
+  );
 
-  const handleRecordingComplete = useCallback((recordingId: string) => {
-    setHasRecording(true);
-    // Atualizar automaticamente o status has_recording na consulta
-    supabase
-      .from('consultations')
-      .update({ has_recording: true })
-      .eq('id', consultationId)
-      .then(() => {
-        console.log('Status de gravação atualizado');
-      });
-  }, [consultationId]);
-
-  const handleTranscriptionComplete = useCallback((transcriptionId: string, text: string) => {
-    setTranscriptionText(text);
-    // Adicionar automaticamente a transcrição às notas clínicas
-    setFormData(prev => ({
-      ...prev,
-      clinical_notes: prev.clinical_notes 
-        ? `${prev.clinical_notes}\n\n--- Transcrição Automática ---\n${text}`
-        : `--- Transcrição Automática ---\n${text}`
-    }));
-  }, []);
+  const handleTranscriptionComplete = useCallback(
+    (transcriptionId: string, text: string) => {
+      setTranscriptionText(text);
+      // Adicionar automaticamente a transcrição às notas clínicas
+      setFormData(prev => ({
+        ...prev,
+        clinical_notes: prev.clinical_notes
+          ? `${prev.clinical_notes}\n\n--- Transcrição Automática ---\n${text}`
+          : `--- Transcrição Automática ---\n${text}`,
+      }));
+    },
+    []
+  );
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -228,11 +242,14 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   }, []);
 
@@ -282,7 +299,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">{error || 'Consulta não encontrada'}</p>
+          <p className="text-red-600 mb-4">
+            {error || 'Consulta não encontrada'}
+          </p>
           <Button onClick={fetchConsultationData} variant="outline">
             Tentar novamente
           </Button>
@@ -300,7 +319,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">
-                  {consultation.consultation_type.replace('_', ' ').toUpperCase()}
+                  {consultation.consultation_type
+                    .replace('_', ' ')
+                    .toUpperCase()}
                 </h1>
                 <Badge className={getStatusColor(consultation.status)}>
                   {getStatusLabel(consultation.status)}
@@ -312,7 +333,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
                   </Badge>
                 )}
               </div>
-              
+
               <div className="flex items-center gap-4 text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <User className="w-4 h-4" />
@@ -327,16 +348,20 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
                   {consultation.consultation_time}
                 </div>
               </div>
-              
+
               <p className="text-sm text-muted-foreground">
-                {patient.gender === 'male' ? 'Masculino' : patient.gender === 'female' ? 'Feminino' : 'Outro'}, 
-                {calculateAge(patient.birth_date)} anos
+                {patient.gender === 'male'
+                  ? 'Masculino'
+                  : patient.gender === 'female'
+                    ? 'Feminino'
+                    : 'Outro'}
+                ,{calculateAge(patient.birth_date)} anos
               </p>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {consultation.status === 'agendada' && (
-                <Button 
+                <Button
                   onClick={() => handleStatusChange('em_andamento')}
                   className="gap-2"
                   variant="medical"
@@ -345,9 +370,9 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
                   Iniciar Consulta
                 </Button>
               )}
-              
+
               {consultation.status === 'em_andamento' && (
-                <Button 
+                <Button
                   onClick={() => handleStatusChange('finalizada')}
                   className="gap-2"
                   variant="medical"
@@ -356,7 +381,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
                   Finalizar Consulta
                 </Button>
               )}
-              
+
               <Button
                 onClick={() => setIsEditing(!isEditing)}
                 variant="outline"
@@ -391,7 +416,12 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
               {isEditing ? (
                 <Textarea
                   value={formData.chief_complaint}
-                  onChange={(e) => setFormData(prev => ({ ...prev, chief_complaint: e.target.value }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      chief_complaint: e.target.value,
+                    }))
+                  }
                   placeholder="Descreva a queixa principal do paciente..."
                   className="min-h-[100px]"
                 />
@@ -415,7 +445,12 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
               {isEditing ? (
                 <Textarea
                   value={formData.clinical_notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, clinical_notes: e.target.value }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      clinical_notes: e.target.value,
+                    }))
+                  }
                   placeholder="Anote observações, exames físicos, sintomas..."
                   className="min-h-[200px]"
                 />
@@ -439,7 +474,12 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
               {isEditing ? (
                 <Textarea
                   value={formData.diagnosis}
-                  onChange={(e) => setFormData(prev => ({ ...prev, diagnosis: e.target.value }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      diagnosis: e.target.value,
+                    }))
+                  }
                   placeholder="Diagnóstico médico..."
                   className="min-h-[100px]"
                 />
@@ -466,7 +506,12 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
               {isEditing ? (
                 <Textarea
                   value={formData.treatment_plan}
-                  onChange={(e) => setFormData(prev => ({ ...prev, treatment_plan: e.target.value }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      treatment_plan: e.target.value,
+                    }))
+                  }
                   placeholder="Descreva o plano de tratamento..."
                   className="min-h-[150px]"
                 />
@@ -490,7 +535,12 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
               {isEditing ? (
                 <Textarea
                   value={formData.prescriptions}
-                  onChange={(e) => setFormData(prev => ({ ...prev, prescriptions: e.target.value }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      prescriptions: e.target.value,
+                    }))
+                  }
                   placeholder="Medicamentos prescritos, dosagens, instruções..."
                   className="min-h-[150px]"
                 />
@@ -515,14 +565,18 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
                 <Input
                   type="date"
                   value={formData.follow_up_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, follow_up_date: e.target.value }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      follow_up_date: e.target.value,
+                    }))
+                  }
                 />
               ) : (
                 <p className="text-sm">
-                  {consultation.follow_up_date 
+                  {consultation.follow_up_date
                     ? formatDate(consultation.follow_up_date)
-                    : 'Não agendado'
-                  }
+                    : 'Não agendado'}
                 </p>
               )}
             </CardContent>
@@ -541,19 +595,23 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       )}
 
       {/* Gerador de Relatórios */}
-      <Suspense fallback={
-        <Card>
-          <CardContent className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
-            <span className="text-muted-foreground">Carregando gerador de relatórios...</span>
-          </CardContent>
-        </Card>
-      }>
+      <Suspense
+        fallback={
+          <Card>
+            <CardContent className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
+              <span className="text-muted-foreground">
+                Carregando gerador de relatórios...
+              </span>
+            </CardContent>
+          </Card>
+        }
+      >
         <ReportGenerator
           consultationId={consultation.id}
           patientName={patient.full_name}
           consultationDate={consultation.consultation_date}
-          onReportGenerated={(filePath) => {
+          onReportGenerated={filePath => {
             console.log('Relatório gerado:', filePath);
           }}
         />
@@ -571,7 +629,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
             <Save className="w-4 h-4" />
             {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
-          
+
           <Button
             onClick={() => {
               setIsEditing(false);
@@ -583,7 +641,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
                   diagnosis: consultation.diagnosis || '',
                   treatment_plan: consultation.treatment_plan || '',
                   prescriptions: consultation.prescriptions || '',
-                  follow_up_date: consultation.follow_up_date || ''
+                  follow_up_date: consultation.follow_up_date || '',
                 });
               }
             }}

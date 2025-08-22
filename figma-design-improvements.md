@@ -5,6 +5,7 @@
 Baseado na análise do código, identifiquei os seguintes pontos do design atual:
 
 ### ✅ **Pontos Fortes Existentes**
+
 - Design system bem estruturado com variáveis CSS customizadas
 - Paleta de cores médica profissional (navy, medical blue, success green)
 - Uso consistente do shadcn/ui como base
@@ -16,34 +17,44 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 ## 1. **Hierarquia Visual Sofisticada**
 
 ### **Cards com Elevação Sutil**
+
 ```css
 /* Adicionar ao index.css */
 .premium-card {
-  background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--card)/0.98) 100%);
-  border: 1px solid hsl(var(--border)/0.5);
-  box-shadow: 
-    0 1px 3px 0 hsl(var(--foreground)/0.05),
-    0 1px 2px -1px hsl(var(--foreground)/0.05),
-    inset 0 1px 0 0 hsl(var(--background)/0.8);
+  background: linear-gradient(
+    145deg,
+    hsl(var(--card)) 0%,
+    hsl(var(--card) / 0.98) 100%
+  );
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow:
+    0 1px 3px 0 hsl(var(--foreground) / 0.05),
+    0 1px 2px -1px hsl(var(--foreground) / 0.05),
+    inset 0 1px 0 0 hsl(var(--background) / 0.8);
   backdrop-filter: blur(8px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .premium-card:hover {
   transform: translateY(-2px);
-  box-shadow: 
-    0 8px 25px -8px hsl(var(--foreground)/0.12),
-    0 4px 12px -4px hsl(var(--foreground)/0.08);
+  box-shadow:
+    0 8px 25px -8px hsl(var(--foreground) / 0.12),
+    0 4px 12px -4px hsl(var(--foreground) / 0.08);
 }
 ```
 
 ### **Tipografia com Peso Visual**
+
 ```css
 .medical-heading {
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.2;
-  background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--foreground)/0.8) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--foreground)) 0%,
+    hsl(var(--foreground) / 0.8) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -59,6 +70,7 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 ## 2. **Micro-interações Elegantes**
 
 ### **Botões com Estados Refinados**
+
 ```css
 .premium-button {
   position: relative;
@@ -73,7 +85,12 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, hsl(var(--background)/0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--background) / 0.2),
+    transparent
+  );
   transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -87,6 +104,7 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 ```
 
 ### **Animações de Entrada Suaves**
+
 ```css
 @keyframes fadeInUp {
   from {
@@ -103,14 +121,21 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
   animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.premium-fade-in:nth-child(2) { animation-delay: 0.1s; }
-.premium-fade-in:nth-child(3) { animation-delay: 0.2s; }
-.premium-fade-in:nth-child(4) { animation-delay: 0.3s; }
+.premium-fade-in:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.premium-fade-in:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.premium-fade-in:nth-child(4) {
+  animation-delay: 0.3s;
+}
 ```
 
 ## 3. **Espaçamento e Layout Sofisticado**
 
 ### **Grid System Médico**
+
 ```css
 .medical-grid {
   display: grid;
@@ -129,13 +154,16 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 ```
 
 ### **Sidebar com Glassmorphism**
+
 ```css
 .premium-sidebar {
-  background: linear-gradient(180deg, 
-    hsl(var(--sidebar-background)/0.95) 0%, 
-    hsl(var(--sidebar-background)/0.9) 100%);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--sidebar-background) / 0.95) 0%,
+    hsl(var(--sidebar-background) / 0.9) 100%
+  );
   backdrop-filter: blur(12px);
-  border-right: 1px solid hsl(var(--sidebar-border)/0.5);
+  border-right: 1px solid hsl(var(--sidebar-border) / 0.5);
 }
 
 .premium-sidebar-item {
@@ -165,12 +193,15 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 ## 4. **Componentes Médicos Específicos**
 
 ### **Stats Cards Premium**
+
 ```css
 .premium-stats-card {
-  background: linear-gradient(135deg, 
-    hsl(var(--card)) 0%, 
-    hsl(var(--card)/0.95) 100%);
-  border: 1px solid hsl(var(--border)/0.3);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--card)) 0%,
+    hsl(var(--card) / 0.95) 100%
+  );
+  border: 1px solid hsl(var(--border) / 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -182,33 +213,40 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, 
-    hsl(var(--medical-blue)) 0%, 
-    hsl(var(--medical-success)) 50%, 
-    hsl(var(--medical-blue)) 100%);
+  background: linear-gradient(
+    90deg,
+    hsl(var(--medical-blue)) 0%,
+    hsl(var(--medical-success)) 50%,
+    hsl(var(--medical-blue)) 100%
+  );
 }
 
 .premium-stats-card .icon-container {
-  background: linear-gradient(135deg, 
-    hsl(var(--medical-blue)/0.1) 0%, 
-    hsl(var(--medical-blue)/0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--medical-blue) / 0.1) 0%,
+    hsl(var(--medical-blue) / 0.05) 100%
+  );
   border-radius: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .premium-stats-card:hover .icon-container {
-  background: linear-gradient(135deg, 
-    hsl(var(--medical-blue)/0.15) 0%, 
-    hsl(var(--medical-blue)/0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--medical-blue) / 0.15) 0%,
+    hsl(var(--medical-blue) / 0.1) 100%
+  );
   transform: scale(1.05);
 }
 ```
 
 ### **Form Inputs Médicos**
+
 ```css
 .medical-input {
   background: hsl(var(--input));
-  border: 1.5px solid hsl(var(--border)/0.5);
+  border: 1.5px solid hsl(var(--border) / 0.5);
   border-radius: calc(var(--radius) - 1px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -216,9 +254,9 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 
 .medical-input:focus {
   border-color: hsl(var(--medical-blue));
-  box-shadow: 
-    0 0 0 3px hsl(var(--medical-blue)/0.1),
-    inset 0 1px 2px hsl(var(--foreground)/0.05);
+  box-shadow:
+    0 0 0 3px hsl(var(--medical-blue) / 0.1),
+    inset 0 1px 2px hsl(var(--foreground) / 0.05);
   transform: translateY(-1px);
 }
 
@@ -251,21 +289,26 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 ## 5. **Dark Mode Refinado**
 
 ### **Gradientes Sutis para Dark Mode**
+
 ```css
 .dark .premium-card {
-  background: linear-gradient(145deg, 
-    hsl(var(--card)) 0%, 
-    hsl(var(--card)/0.95) 100%);
-  border: 1px solid hsl(var(--border)/0.3);
-  box-shadow: 
+  background: linear-gradient(
+    145deg,
+    hsl(var(--card)) 0%,
+    hsl(var(--card) / 0.95) 100%
+  );
+  border: 1px solid hsl(var(--border) / 0.3);
+  box-shadow:
     0 4px 12px -4px hsl(0 0% 0% / 0.25),
-    inset 0 1px 0 0 hsl(var(--foreground)/0.05);
+    inset 0 1px 0 0 hsl(var(--foreground) / 0.05);
 }
 
 .dark .medical-gradient {
-  background: linear-gradient(135deg, 
-    hsl(var(--medical-blue)) 0%, 
-    hsl(var(--medical-blue)/0.8) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--medical-blue)) 0%,
+    hsl(var(--medical-blue) / 0.8) 100%
+  );
 }
 ```
 
@@ -280,6 +323,7 @@ Baseado na análise do código, identifiquei os seguintes pontos do design atual
 5. **Testar responsividade em diferentes dispositivos**
 
 ### **Componentes Prioritários para Upgrade:**
+
 - ✅ StatsCard (já tem estrutura boa)
 - 🔄 MedicalSidebar (adicionar glassmorphism)
 - 🔄 PatientProfile (melhorar hierarquia visual)

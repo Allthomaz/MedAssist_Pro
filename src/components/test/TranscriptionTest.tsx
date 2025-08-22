@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mic, Play, Square, Upload } from 'lucide-react';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
@@ -16,7 +22,8 @@ interface TranscriptionResult {
 
 export const TranscriptionTest: React.FC = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [transcriptionResult, setTranscriptionResult] = useState<TranscriptionResult | null>(null);
+  const [transcriptionResult, setTranscriptionResult] =
+    useState<TranscriptionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
 
@@ -30,17 +37,17 @@ export const TranscriptionTest: React.FC = () => {
     startRecording,
     stopRecording,
     clearRecording,
-    cleanup
+    cleanup,
   } = useAudioRecorder({
-    onRecordingComplete: (blob) => {
+    onRecordingComplete: blob => {
       console.log('Gravação concluída:', blob);
       toast.success('Gravação concluída com sucesso!');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Erro na gravação:', error);
       toast.error(`Erro na gravação: ${error}`);
       setError(error);
-    }
+    },
   });
 
   const formatTime = (seconds: number): string => {
@@ -70,19 +77,24 @@ export const TranscriptionTest: React.FC = () => {
 
     try {
       console.log('Iniciando transcrição...', audioSource);
-      
-      const result = await transcriptionService.transcribeWithOpenAI(audioSource, {
-        language: 'pt',
-        response_format: 'verbose_json',
-        temperature: 0.2,
-        prompt: 'Transcrição de consulta médica em português brasileiro. Inclua termos médicos e sintomas mencionados pelo paciente.'
-      });
+
+      const result = await transcriptionService.transcribeWithOpenAI(
+        audioSource,
+        {
+          language: 'pt',
+          response_format: 'verbose_json',
+          temperature: 0.2,
+          prompt:
+            'Transcrição de consulta médica em português brasileiro. Inclua termos médicos e sintomas mencionados pelo paciente.',
+        }
+      );
 
       console.log('Resultado da transcrição:', result);
       setTranscriptionResult(result);
       toast.success('Transcrição concluída com sucesso!');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido na transcrição';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro desconhecido na transcrição';
       console.error('Erro na transcrição:', err);
       setError(errorMessage);
       toast.error(`Erro na transcrição: ${errorMessage}`);
@@ -122,37 +134,50 @@ export const TranscriptionTest: React.FC = () => {
             Teste de Transcrição de Áudio Médico
           </CardTitle>
           <CardDescription>
-            Teste o sistema de transcrição usando OpenAI Whisper para áudios médicos
+            Teste o sistema de transcrição usando OpenAI Whisper para áudios
+            médicos
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Status do Microfone */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Status do Microfone:</span>
-            <span className={`text-sm px-2 py-1 rounded ${
-              microphoneStatus === 'granted' ? 'bg-green-100 text-green-800' :
-              microphoneStatus === 'denied' ? 'bg-red-100 text-red-800' :
-              'bg-yellow-100 text-yellow-800'
-            }`}>
-              {microphoneStatus === 'granted' ? 'Permitido' :
-               microphoneStatus === 'denied' ? 'Negado' : 'Verificando...'}
+            <span
+              className={`text-sm px-2 py-1 rounded ${
+                microphoneStatus === 'granted'
+                  ? 'bg-green-100 text-green-800'
+                  : microphoneStatus === 'denied'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-yellow-100 text-yellow-800'
+              }`}
+            >
+              {microphoneStatus === 'granted'
+                ? 'Permitido'
+                : microphoneStatus === 'denied'
+                  ? 'Negado'
+                  : 'Verificando...'}
             </span>
           </div>
 
           {/* Seção de Gravação */}
           <div className="border rounded-lg p-4 space-y-4">
             <h3 className="font-semibold">Gravar Novo Áudio</h3>
-            
+
             <div className="flex items-center gap-4">
               <Button
                 onClick={isRecording ? stopRecording : startRecording}
-                variant={isRecording ? "destructive" : "default"}
+                variant={isRecording ? 'destructive' : 'default'}
                 disabled={microphoneStatus !== 'granted'}
               >
                 {isRecording ? (
-                  <><Square className="h-4 w-4 mr-2" /> Parar ({formatTime(recordingTime)})</>
+                  <>
+                    <Square className="h-4 w-4 mr-2" /> Parar (
+                    {formatTime(recordingTime)})
+                  </>
                 ) : (
-                  <><Mic className="h-4 w-4 mr-2" /> Gravar</>
+                  <>
+                    <Mic className="h-4 w-4 mr-2" /> Gravar
+                  </>
                 )}
               </Button>
 
@@ -164,13 +189,16 @@ export const TranscriptionTest: React.FC = () => {
                   <Button onClick={clearRecording} variant="outline">
                     Limpar
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleTranscribeRecording}
                     disabled={isTranscribing}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     {isTranscribing ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Transcrevendo...</>
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />{' '}
+                        Transcrevendo...
+                      </>
                     ) : (
                       <>Transcrever Gravação</>
                     )}
@@ -189,7 +217,7 @@ export const TranscriptionTest: React.FC = () => {
           {/* Seção de Upload */}
           <div className="border rounded-lg p-4 space-y-4">
             <h3 className="font-semibold">Upload de Arquivo de Áudio</h3>
-            
+
             <div className="flex items-center gap-4">
               <label className="cursor-pointer">
                 <input
@@ -208,15 +236,19 @@ export const TranscriptionTest: React.FC = () => {
               {audioFile && (
                 <>
                   <span className="text-sm text-gray-600">
-                    {audioFile.name} ({(audioFile.size / 1024 / 1024).toFixed(2)} MB)
+                    {audioFile.name} (
+                    {(audioFile.size / 1024 / 1024).toFixed(2)} MB)
                   </span>
-                  <Button 
+                  <Button
                     onClick={handleTranscribeFile}
                     disabled={isTranscribing}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     {isTranscribing ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Transcrevendo...</>
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />{' '}
+                        Transcrevendo...
+                      </>
                     ) : (
                       <>Transcrever Arquivo</>
                     )}
@@ -230,7 +262,9 @@ export const TranscriptionTest: React.FC = () => {
           {transcriptionResult && (
             <Card className="bg-green-50 border-green-200">
               <CardHeader>
-                <CardTitle className="text-green-800">Resultado da Transcrição</CardTitle>
+                <CardTitle className="text-green-800">
+                  Resultado da Transcrição
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
@@ -239,10 +273,11 @@ export const TranscriptionTest: React.FC = () => {
                     {transcriptionResult.text}
                   </p>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <strong>Confiança:</strong> {(transcriptionResult.confidence * 100).toFixed(1)}%
+                    <strong>Confiança:</strong>{' '}
+                    {(transcriptionResult.confidence * 100).toFixed(1)}%
                   </div>
                   {transcriptionResult.language && (
                     <div>
@@ -251,7 +286,8 @@ export const TranscriptionTest: React.FC = () => {
                   )}
                   {transcriptionResult.duration && (
                     <div>
-                      <strong>Duração:</strong> {transcriptionResult.duration.toFixed(1)}s
+                      <strong>Duração:</strong>{' '}
+                      {transcriptionResult.duration.toFixed(1)}s
                     </div>
                   )}
                 </div>
@@ -271,20 +307,24 @@ export const TranscriptionTest: React.FC = () => {
           {/* Informações de Configuração */}
           <Card className="bg-blue-50 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-blue-800 text-sm">Informações de Configuração</CardTitle>
+              <CardTitle className="text-blue-800 text-sm">
+                Informações de Configuração
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-2">
               <div>
-                <strong>OpenAI API Key:</strong> {import.meta.env.VITE_OPENAI_API_KEY ? 
-                  `Configurada (${import.meta.env.VITE_OPENAI_API_KEY.substring(0, 10)}...)` : 
-                  'Não configurada - Configure VITE_OPENAI_API_KEY no .env'
-                }
+                <strong>OpenAI API Key:</strong>{' '}
+                {import.meta.env.VITE_OPENAI_API_KEY
+                  ? `Configurada (${import.meta.env.VITE_OPENAI_API_KEY.substring(0, 10)}...)`
+                  : 'Não configurada - Configure VITE_OPENAI_API_KEY no .env'}
               </div>
               <div>
-                <strong>Supabase URL:</strong> {import.meta.env.VITE_SUPABASE_URL || 'Não configurada'}
+                <strong>Supabase URL:</strong>{' '}
+                {import.meta.env.VITE_SUPABASE_URL || 'Não configurada'}
               </div>
               <div>
-                <strong>Formatos Suportados:</strong> audio/webm, audio/mp4, audio/wav, audio/mp3
+                <strong>Formatos Suportados:</strong> audio/webm, audio/mp4,
+                audio/wav, audio/mp3
               </div>
             </CardContent>
           </Card>

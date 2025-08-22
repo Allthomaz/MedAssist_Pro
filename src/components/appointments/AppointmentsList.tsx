@@ -24,7 +24,11 @@ interface AppointmentsListProps {
   onDelete?: (appointmentId: string) => void;
 }
 
-export function AppointmentsList({ appointments, onEdit, onDelete }: AppointmentsListProps) {
+export function AppointmentsList({
+  appointments,
+  onEdit,
+  onDelete,
+}: AppointmentsListProps) {
   // Empty State - Enhanced design with better visual hierarchy
   if (appointments.length === 0) {
     return (
@@ -37,7 +41,8 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
             Nenhum agendamento encontrado
           </h3>
           <p className="text-muted-foreground max-w-sm">
-            Não há consultas agendadas para esta data. Selecione outra data ou crie um novo agendamento.
+            Não há consultas agendadas para esta data. Selecione outra data ou
+            crie um novo agendamento.
           </p>
         </div>
       </div>
@@ -47,11 +52,11 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
   return (
     <div className="space-y-6">
       {appointments.map((appointment, index) => (
-        <Card 
-          key={appointment.id} 
+        <Card
+          key={appointment.id}
           className="border-medical-blue/20 hover:border-medical-blue/40 hover:shadow-md transition-all duration-300 medical-card-hover bg-card"
-          style={{ 
-            animationDelay: `${index * 100}ms` 
+          style={{
+            animationDelay: `${index * 100}ms`,
           }}
         >
           {/* Card Header - Improved mobile layout */}
@@ -65,12 +70,10 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
                   <CardTitle className="text-xl font-semibold text-foreground">
                     {appointment.patientName}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Paciente
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">Paciente</p>
                 </div>
               </div>
-              
+
               {/* Appointment Type Badge */}
               <div className="flex items-center">
                 <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-medical-blue/10 text-medical-blue border border-medical-blue/20">
@@ -79,27 +82,29 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="pt-6">
             <div className="space-y-6">
-              
               {/* Appointment Details Grid - Enhanced responsive design */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                
                 {/* Date and Time Information */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
                     <Calendar className="h-5 w-5 text-medical-blue flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-foreground">
-                        {format(appointment.appointmentDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                        {format(
+                          appointment.appointmentDate,
+                          "EEEE, dd 'de' MMMM",
+                          { locale: ptBR }
+                        )}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Data da consulta
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
                     <Clock className="h-5 w-5 text-medical-blue flex-shrink-0" />
                     <div>
@@ -112,7 +117,7 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Contact and Location Information */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
@@ -126,7 +131,7 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30">
                     <MapPin className="h-5 w-5 text-medical-blue flex-shrink-0" />
                     <div>
@@ -140,7 +145,7 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
                   </div>
                 </div>
               </div>
-              
+
               {/* Appointment Reason - Enhanced design */}
               {appointment.appointmentReason && (
                 <div className="p-4 rounded-lg border border-border/50 bg-muted/30">
@@ -157,13 +162,13 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
                   </div>
                 </div>
               )}
-              
+
               {/* Action Buttons - Improved mobile layout */}
               <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border/30">
                 {onEdit && (
-                  <Button 
-                    variant="medical-outline" 
-                    size="sm" 
+                  <Button
+                    variant="medical-outline"
+                    size="sm"
                     onClick={() => onEdit(appointment)}
                     className="w-full sm:w-auto transition-all duration-200 hover:scale-105"
                   >
@@ -171,9 +176,9 @@ export function AppointmentsList({ appointments, onEdit, onDelete }: Appointment
                   </Button>
                 )}
                 {onDelete && (
-                  <Button 
-                    variant="medical-alert" 
-                    size="sm" 
+                  <Button
+                    variant="medical-alert"
+                    size="sm"
                     onClick={() => onDelete(appointment.id)}
                     className="w-full sm:w-auto transition-all duration-200 hover:scale-105"
                   >

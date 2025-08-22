@@ -47,7 +47,7 @@ export class ReportService {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   }
 
@@ -61,35 +61,43 @@ export class ReportService {
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   }
 
-  static async generateConsultationReport(consultationId: string): Promise<Blob> {
+  static async generateConsultationReport(
+    consultationId: string
+  ): Promise<Blob> {
     try {
       // Buscar dados da consulta
       const { data: consultation, error: consultationError } = await supabase
         .from('consultations')
-        .select(`
+        .select(
+          `
           *,
           patients (*),
           users (name, email)
-        `)
+        `
+        )
         .eq('id', consultationId)
         .single();
 
       if (consultationError) throw consultationError;
 
       // Buscar transcrições da consulta
-      const { data: transcriptions, error: transcriptionsError } = await supabase
-        .from('transcriptions')
-        .select('*')
-        .eq('consultation_id', consultationId)
-        .order('created_at', { ascending: true });
+      const { data: transcriptions, error: transcriptionsError } =
+        await supabase
+          .from('transcriptions')
+          .select('*')
+          .eq('consultation_id', consultationId)
+          .order('created_at', { ascending: true });
 
       if (transcriptionsError) throw transcriptionsError;
 
@@ -99,7 +107,7 @@ export class ReportService {
           ...consultation,
           doctor_name: consultation.users?.name,
         },
-        transcriptions: transcriptions || []
+        transcriptions: transcriptions || [],
       };
 
       return this.createPDFReport(reportData);
@@ -114,7 +122,7 @@ export class ReportService {
     let yPosition = 20;
     const pageWidth = doc.internal.pageSize.width;
     const margin = 20;
-    const contentWidth = pageWidth - (margin * 2);
+    const contentWidth = pageWidth - margin * 2;
 
     // Configurar fonte padrão
     doc.setFont('helvetica');
@@ -127,7 +135,9 @@ export class ReportService {
 
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
-    doc.text('MedAssist - Sistema de Gestão Médica', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text('MedAssist - Sistema de Gestão Médica', pageWidth / 2, yPosition, {
+      align: 'center',
+    });
     yPosition += 20;
 
     // Linha separadora
@@ -143,7 +153,7 @@ export class ReportService {
 
     doc.setFontSize(10);
     doc.setTextColor(60, 60, 60);
-    
+
     const patientInfo = [
       `Nome: ${data.patient.name}`,
       `Email: ${data.patient.email || 'Não informado'}`,
@@ -152,7 +162,9 @@ export class ReportService {
 
     if (data.patient.birth_date) {
       const age = this.calculateAge(data.patient.birth_date);
-      patientInfo.push(`Data de Nascimento: ${this.formatBirthDate(data.patient.birth_date)} (${age} anos)`);
+      patientInfo.push(
+        `Data de Nascimento: ${this.formatBirthDate(data.patient.birth_date)} (${age} anos)`
+      );
     }
 
     if (data.patient.gender) {
@@ -178,7 +190,7 @@ export class ReportService {
 
     doc.setFontSize(10);
     doc.setTextColor(60, 60, 60);
-    
+
     const consultationInfo = [
       `Data: ${this.formatDate(data.consultation.consultation_date)}`,
       `Tipo: ${data.consultation.consultation_type}`,
@@ -186,7 +198,9 @@ export class ReportService {
     ];
 
     if (data.consultation.chief_complaint) {
-      consultationInfo.push(`Queixa Principal: ${data.consultation.chief_complaint}`);
+      consultationInfo.push(
+        `Queixa Principal: ${data.consultation.chief_complaint}`
+      );
     }
 
     consultationInfo.forEach(info => {
@@ -217,14 +231,21 @@ export class ReportService {
 
         doc.setFontSize(9);
         doc.setTextColor(100, 100, 100);
-        doc.text(`Data: ${this.formatDate(transcription.created_at)} | Confiança: ${(transcription.confidence_score * 100).toFixed(1)}% | Palavras: ${transcription.word_count}`, margin, yPosition);
+        doc.text(
+          `Data: ${this.formatDate(transcription.created_at)} | Confiança: ${(transcription.confidence_score * 100).toFixed(1)}% | Palavras: ${transcription.word_count}`,
+          margin,
+          yPosition
+        );
         yPosition += 10;
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        
+
         // Quebrar texto em linhas
-        const lines = doc.splitTextToSize(transcription.transcript_text, contentWidth);
+        const lines = doc.splitTextToSize(
+          transcription.transcript_text,
+          contentWidth
+        );
         lines.forEach((line: string) => {
           if (yPosition > 280) {
             doc.addPage();
@@ -258,7 +279,10 @@ export class ReportService {
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        const diagnosisLines = doc.splitTextToSize(data.consultation.diagnosis, contentWidth);
+        const diagnosisLines = doc.splitTextToSize(
+          data.consultation.diagnosis,
+          contentWidth
+        );
         diagnosisLines.forEach((line: string) => {
           doc.text(line, margin, yPosition);
           yPosition += 5;
@@ -274,7 +298,10 @@ export class ReportService {
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        const treatmentLines = doc.splitTextToSize(data.consultation.treatment_plan, contentWidth);
+        const treatmentLines = doc.splitTextToSize(
+          data.consultation.treatment_plan,
+          contentWidth
+        );
         treatmentLines.forEach((line: string) => {
           doc.text(line, margin, yPosition);
           yPosition += 5;
@@ -296,7 +323,10 @@ export class ReportService {
 
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
-      const notesLines = doc.splitTextToSize(data.consultation.notes, contentWidth);
+      const notesLines = doc.splitTextToSize(
+        data.consultation.notes,
+        contentWidth
+      );
       notesLines.forEach((line: string) => {
         if (yPosition > 280) {
           doc.addPage();
@@ -324,28 +354,29 @@ export class ReportService {
     return doc.output('blob');
   }
 
-  static async saveReportToStorage(consultationId: string, reportBlob: Blob): Promise<string> {
+  static async saveReportToStorage(
+    consultationId: string,
+    reportBlob: Blob
+  ): Promise<string> {
     try {
       const fileName = `relatorio_consulta_${consultationId}_${Date.now()}.pdf`;
-      
+
       const { data, error } = await supabase.storage
         .from('reports')
         .upload(fileName, reportBlob, {
-          contentType: 'application/pdf'
+          contentType: 'application/pdf',
         });
 
       if (error) throw error;
 
       // Salvar referência no banco de dados
-      await supabase
-        .from('consultation_reports')
-        .insert({
-          consultation_id: consultationId,
-          file_name: fileName,
-          file_path: data.path,
-          report_type: 'consultation_summary',
-          generated_at: new Date().toISOString()
-        });
+      await supabase.from('consultation_reports').insert({
+        consultation_id: consultationId,
+        file_name: fileName,
+        file_path: data.path,
+        report_type: 'consultation_summary',
+        generated_at: new Date().toISOString(),
+      });
 
       return data.path;
     } catch (error) {

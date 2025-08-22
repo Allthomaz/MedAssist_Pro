@@ -8,14 +8,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Upload, 
-  FileText, 
-  Brain, 
-  Loader2, 
-  AlertCircle, 
+import { PDFContentItem } from '@/types/common';
+import {
+  Upload,
+  FileText,
+  Brain,
+  Loader2,
+  AlertCircle,
   CheckCircle,
-  X
+  X,
 } from 'lucide-react';
 import { pdfjsLib } from '@/utils/pdfWorker';
 import mammoth from 'mammoth';
@@ -32,13 +33,14 @@ interface DocumentGeneratorProps {
   onDocumentGenerated?: (document: GeneratedDocument) => void;
 }
 
-export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ 
-  onDocumentGenerated 
+export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
+  onDocumentGenerated,
 }) => {
   const [transcription, setTranscription] = useState('');
   const [intention, setIntention] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedDocument, setGeneratedDocument] = useState<GeneratedDocument | null>(null);
+  const [generatedDocument, setGeneratedDocument] =
+    useState<GeneratedDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
@@ -51,70 +53,92 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
       if (file.type === 'text/plain') {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.onerror = () => reject(new Error('Erro ao ler arquivo de texto'));
+          reader.onload = e => resolve(e.target?.result as string);
+          reader.onerror = () =>
+            reject(new Error('Erro ao ler arquivo de texto'));
           reader.readAsText(file);
         });
-      } 
-      
-      else if (file.type === 'application/pdf') {
+      } else if (file.type === 'application/pdf') {
         return new Promise(async (resolve, reject) => {
           try {
             const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer })
+              .promise;
             let text = '';
-            
+
             for (let i = 1; i <= pdf.numPages; i++) {
               const page = await pdf.getPage(i);
               const content = await page.getTextContent();
               const pageText = content.items
-                .filter(item => 'str' in item)
-                .map(item => (item as any).str)
+                .filter(
+                  (item): item is PDFContentItem =>
+                    'str' in item &&
+                    typeof (item as PDFContentItem).str === 'string'
+                )
+                .map(item => item.str!)
                 .join(' ');
               text += pageText + '\n';
             }
-            
+
             if (!text.trim()) {
               reject(new Error('Não foi possível extrair texto do PDF'));
               return;
             }
-            
+
             resolve(text);
           } catch (error) {
-            reject(new Error('Erro ao processar PDF: ' + (error instanceof Error ? error.message : 'Erro desconhecido')));
+            reject(
+              new Error(
+                'Erro ao processar PDF: ' +
+                  (error instanceof Error ? error.message : 'Erro desconhecido')
+              )
+            );
           }
         });
-      } 
-      
-      else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      } else if (
+        file.type ===
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ) {
         return new Promise(async (resolve, reject) => {
           try {
             const arrayBuffer = await file.arrayBuffer();
             const result = await mammoth.extractRawText({ arrayBuffer });
-            
+
             if (!result.value.trim()) {
-              reject(new Error('Não foi possível extrair texto do documento DOCX'));
+              reject(
+                new Error('Não foi possível extrair texto do documento DOCX')
+              );
               return;
             }
-            
+
             resolve(result.value);
           } catch (error) {
-            reject(new Error('Erro ao processar DOCX: ' + (error instanceof Error ? error.message : 'Erro desconhecido')));
+            reject(
+              new Error(
+                'Erro ao processar DOCX: ' +
+                  (error instanceof Error ? error.message : 'Erro desconhecido')
+              )
+            );
           }
         });
-      } 
-      
-      else if (file.type === 'application/msword') {
+      } else if (file.type === 'application/msword') {
         // DOC files are more complex, fallback to binary reading
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = (e) => {
+          reader.onload = e => {
             try {
               const result = e.target?.result as string;
               // Basic text extraction for DOC files (limited)
-              const text = result.replace(/[^\x20-\x7E\s]/g, ' ').replace(/\s+/g, ' ').trim();
+              const text = result
+                .replace(/[^\x20-\x7E\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
               if (!text) {
-                reject(new Error('Não foi possível extrair texto do arquivo DOC. Tente converter para DOCX ou TXT.'));
+                reject(
+                  new Error(
+                    'Não foi possível extrair texto do arquivo DOC. Tente converter para DOCX ou TXT.'
+                  )
+                );
                 return;
               }
               resolve(text);
@@ -125,18 +149,23 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
           reader.onerror = () => reject(new Error('Erro ao ler arquivo DOC'));
           reader.readAsText(file, 'utf-8');
         });
-      } 
-      
-      else {
-        throw new Error('Tipo de arquivo não suportado. Use arquivos .txt, .pdf, .doc ou .docx');
+      } else {
+        throw new Error(
+          'Tipo de arquivo não suportado. Use arquivos .txt, .pdf, .doc ou .docx'
+        );
       }
     } catch (error) {
-      throw new Error('Erro ao processar arquivo: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+      throw new Error(
+        'Erro ao processar arquivo: ' +
+          (error instanceof Error ? error.message : 'Erro desconhecido')
+      );
     }
   };
 
   // Manipular upload de arquivo
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -145,14 +174,15 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
       'text/plain',
       'application/pdf',
       'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
 
     if (!acceptedTypes.includes(file.type)) {
       toast({
-        title: "Erro",
-        description: "Tipo de arquivo não suportado. Use arquivos .txt, .pdf, .doc ou .docx",
-        variant: "destructive"
+        title: 'Erro',
+        description:
+          'Tipo de arquivo não suportado. Use arquivos .txt, .pdf, .doc ou .docx',
+        variant: 'destructive',
       });
       return;
     }
@@ -165,15 +195,17 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
       const extractedText = await extractTextFromFile(file);
       setTranscription(extractedText);
       toast({
-        title: "Sucesso",
-        description: "Texto extraído do arquivo com sucesso!"
+        title: 'Sucesso',
+        description: 'Texto extraído do arquivo com sucesso!',
       });
     } catch (err) {
-      setError(`Erro ao processar arquivo: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
+      setError(
+        `Erro ao processar arquivo: ${err instanceof Error ? err.message : 'Erro desconhecido'}`
+      );
       toast({
-        title: "Erro",
-        description: "Falha ao extrair texto do arquivo",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Falha ao extrair texto do arquivo',
+        variant: 'destructive',
       });
     } finally {
       setIsProcessingFile(false);
@@ -193,18 +225,19 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
   const generateDocument = async () => {
     if (!transcription.trim()) {
       toast({
-        title: "Erro",
-        description: "Por favor, adicione uma transcrição antes de gerar o documento",
-        variant: "destructive"
+        title: 'Erro',
+        description:
+          'Por favor, adicione uma transcrição antes de gerar o documento',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!intention.trim()) {
       toast({
-        title: "Erro",
-        description: "Por favor, informe a intenção do documento",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Por favor, informe a intenção do documento',
+        variant: 'destructive',
       });
       return;
     }
@@ -214,13 +247,16 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
     setGeneratedDocument(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-report', {
-        body: {
-          transcription: transcription.trim(),
-          intention: intention.trim(),
-          timestamp: new Date().toISOString()
+      const { data, error } = await supabase.functions.invoke(
+        'generate-report',
+        {
+          body: {
+            transcription: transcription.trim(),
+            intention: intention.trim(),
+            timestamp: new Date().toISOString(),
+          },
         }
-      });
+      );
 
       if (error) {
         throw new Error(error.message || 'Erro ao gerar documento');
@@ -231,24 +267,26 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
         title: data.title || 'Documento Gerado',
         content: data.content || data.report || 'Conteúdo não disponível',
         createdAt: new Date().toISOString(),
-        type: 'generated_report'
+        type: 'generated_report',
       };
 
       setGeneratedDocument(document);
       onDocumentGenerated?.(document);
-      
-      toast({
-        title: "Sucesso",
-        description: "Documento gerado com sucesso!"
-      });
 
+      toast({
+        title: 'Sucesso',
+        description: 'Documento gerado com sucesso!',
+      });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao gerar documento';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Erro desconhecido ao gerar documento';
       setError(errorMessage);
       toast({
-        title: "Erro",
+        title: 'Erro',
         description: errorMessage,
-        variant: "destructive"
+        variant: 'destructive',
       });
     } finally {
       setIsGenerating(false);
@@ -320,7 +358,7 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
               id="transcription"
               placeholder="Cole aqui a transcrição da consulta ou deixe que o upload do arquivo preencha automaticamente..."
               value={transcription}
-              onChange={(e) => setTranscription(e.target.value)}
+              onChange={e => setTranscription(e.target.value)}
               rows={8}
               className="resize-none"
             />
@@ -333,7 +371,7 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
               id="intention"
               placeholder="Ex: Gerar relatório clínico resumido, Criar laudo de exame, Elaborar prescrição médica..."
               value={intention}
-              onChange={(e) => setIntention(e.target.value)}
+              onChange={e => setIntention(e.target.value)}
             />
           </div>
 
@@ -341,7 +379,9 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
           <div className="flex items-center gap-3">
             <Button
               onClick={generateDocument}
-              disabled={isGenerating || !transcription.trim() || !intention.trim()}
+              disabled={
+                isGenerating || !transcription.trim() || !intention.trim()
+              }
               className="flex items-center gap-2"
             >
               {isGenerating ? (
@@ -356,7 +396,7 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
                 </>
               )}
             </Button>
-            
+
             <Button
               variant="outline"
               onClick={clearForm}
@@ -390,36 +430,42 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
               <div>
                 <h3 className="font-semibold">{generatedDocument.title}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Gerado em {new Date(generatedDocument.createdAt).toLocaleString('pt-BR')}
+                  Gerado em{' '}
+                  {new Date(generatedDocument.createdAt).toLocaleString(
+                    'pt-BR'
+                  )}
                 </p>
               </div>
               <Badge variant="outline">Relatório IA</Badge>
             </div>
-            
+
             <div className="bg-muted/50 rounded-lg p-4">
               <pre className="whitespace-pre-wrap text-sm font-mono">
                 {generatedDocument.content}
               </pre>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 onClick={() => {
                   navigator.clipboard.writeText(generatedDocument.content);
                   toast({
-                    title: "Copiado",
-                    description: "Documento copiado para a área de transferência"
+                    title: 'Copiado',
+                    description:
+                      'Documento copiado para a área de transferência',
                   });
                 }}
               >
                 Copiar Texto
               </Button>
-              
+
               <Button
                 variant="outline"
                 onClick={() => {
-                  const blob = new Blob([generatedDocument.content], { type: 'text/plain' });
+                  const blob = new Blob([generatedDocument.content], {
+                    type: 'text/plain',
+                  });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;

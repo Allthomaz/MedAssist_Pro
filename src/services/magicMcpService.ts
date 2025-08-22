@@ -11,23 +11,26 @@ if (typeof window === 'undefined') {
   try {
     const mcpModule = require('@modelcontextprotocol/sdk/server/mcp.js');
     McpServer = mcpModule.McpServer;
-    
+
     const stdioModule = require('@modelcontextprotocol/sdk/server/stdio.js');
     StdioServerTransport = stdioModule.StdioServerTransport;
-    
+
     const createUiModule = require('../../magic-mcp/src/tools/create-ui.js');
     CreateUiTool = createUiModule.CreateUiTool;
-    
+
     const fetchUiModule = require('../../magic-mcp/src/tools/fetch-ui.js');
     FetchUiTool = fetchUiModule.FetchUiTool;
-    
+
     const refineUiModule = require('../../magic-mcp/src/tools/refine-ui.js');
     RefineUiTool = refineUiModule.RefineUiTool;
-    
+
     const logoSearchModule = require('../../magic-mcp/src/tools/logo-search.js');
     LogoSearchTool = logoSearchModule.LogoSearchTool;
   } catch (error) {
-    console.warn('Magic MCP tools not available in browser environment:', error);
+    console.warn(
+      'Magic MCP tools not available in browser environment:',
+      error
+    );
   }
 }
 
@@ -48,18 +51,18 @@ interface GeneratedComponent {
 
 /**
  * Serviço para integração com o Magic MCP (21st.dev)
- * 
+ *
  * ⚠️ APENAS PARA USO EM DESENVOLVIMENTO ⚠️
- * 
+ *
  * Este serviço permite gerar componentes médicos personalizados usando IA
  * durante o desenvolvimento, mas não está exposto na interface do usuário.
- * 
+ *
  * Funcionalidades disponíveis para desenvolvedores:
  * - Geração de componentes React/TypeScript
  * - Busca de inspiração de componentes
  * - Refinamento de componentes existentes
  * - Biblioteca de logos médicos
- * 
+ *
  * @see https://21st.dev/magic
  */
 export class MagicMcpService {
@@ -72,22 +75,26 @@ export class MagicMcpService {
   private isAvailable: boolean = false;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_TWENTYFIRST_API_KEY || '2f1cd8f8-0b6b-4c88-8286-489f52f3ab9e';
+    this.apiKey =
+      import.meta.env.VITE_TWENTYFIRST_API_KEY ||
+      '2f1cd8f8-0b6b-4c88-8286-489f52f3ab9e';
     this.isAvailable = typeof window === 'undefined' && !!McpServer;
-    
+
     if (this.isAvailable) {
       this.server = new McpServer({
         name: 'medassist-magic',
         version: '1.0.0',
       });
-      
+
       // Inicializar os tools do Magic MCP
       this.createUiTool = new CreateUiTool();
       this.fetchUiTool = new FetchUiTool();
       this.refineUiTool = new RefineUiTool();
       this.logoSearchTool = new LogoSearchTool();
     } else {
-      console.info('Magic MCP rodando em modo de demonstração (browser environment)');
+      console.info(
+        'Magic MCP rodando em modo de demonstração (browser environment)'
+      );
     }
   }
 
@@ -101,7 +108,9 @@ export class MagicMcpService {
     }
 
     if (!this.apiKey) {
-      throw new Error('API Key do 21st.dev não configurada. Configure TWENTYFIRST_API_KEY no arquivo .env');
+      throw new Error(
+        'API Key do 21st.dev não configurada. Configure TWENTYFIRST_API_KEY no arquivo .env'
+      );
     }
 
     console.log('Magic MCP Service inicializado com sucesso');
@@ -115,7 +124,13 @@ export class MagicMcpService {
    */
   async generateMedicalComponent(
     description: string,
-    componentType: 'form' | 'card' | 'table' | 'dialog' | 'dashboard' | 'chart' = 'card'
+    componentType:
+      | 'form'
+      | 'card'
+      | 'table'
+      | 'dialog'
+      | 'dashboard'
+      | 'chart' = 'card'
   ): Promise<string> {
     if (!this.isAvailable || !this.createUiTool) {
       console.info('Usando template de demonstração para componente médico');
@@ -129,10 +144,13 @@ export class MagicMcpService {
         searchQuery: `medical ${componentType}`.trim(),
         absolutePathToCurrentFile: process.cwd() + '/src/components/generated',
         absolutePathToProjectDirectory: process.cwd(),
-        componentQuery: `${componentType} médico com ${description}`
+        componentQuery: `${componentType} médico com ${description}`,
       });
 
-      return result.content[0]?.text || this.getMedicalComponentTemplate(description, componentType);
+      return (
+        result.content[0]?.text ||
+        this.getMedicalComponentTemplate(description, componentType)
+      );
     } catch (error) {
       console.error('Erro ao gerar componente médico:', error);
       // Fallback para template de exemplo
@@ -143,40 +161,65 @@ export class MagicMcpService {
   /**
    * Gera um componente médico usando o Magic MCP com configuração avançada
    */
-  async generateAdvancedMedicalComponent(request: ComponentRequest): Promise<GeneratedComponent> {
+  async generateAdvancedMedicalComponent(
+    request: ComponentRequest
+  ): Promise<GeneratedComponent> {
     if (!this.isAvailable || !this.createUiTool) {
-      console.info('Usando template de demonstração para componente médico avançado');
+      console.info(
+        'Usando template de demonstração para componente médico avançado'
+      );
       return {
-        code: this.getMedicalComponentTemplate(request.description, request.type),
+        code: this.getMedicalComponentTemplate(
+          request.description,
+          request.type
+        ),
         name: `Medical${request.type.charAt(0).toUpperCase() + request.type.slice(1)}`,
         description: request.description,
-        dependencies: ['@radix-ui/react-dialog', '@radix-ui/react-form', 'lucide-react']
+        dependencies: [
+          '@radix-ui/react-dialog',
+          '@radix-ui/react-form',
+          'lucide-react',
+        ],
       };
     }
 
     try {
       const result = await this.createUiTool.execute({
-        message: request.message || `Criar um ${request.type} médico para ${request.specialty || 'uso geral'}: ${request.description}`,
-        searchQuery: `medical ${request.type} ${request.specialty || ''}`.trim(),
+        message:
+          request.message ||
+          `Criar um ${request.type} médico para ${request.specialty || 'uso geral'}: ${request.description}`,
+        searchQuery:
+          `medical ${request.type} ${request.specialty || ''}`.trim(),
         absolutePathToCurrentFile: process.cwd() + '/src/components/generated',
         absolutePathToProjectDirectory: process.cwd(),
-        componentQuery: `${request.type} médico com ${request.description}`
+        componentQuery: `${request.type} médico com ${request.description}`,
       });
 
       return {
         code: result.content[0]?.text || '',
         name: `Medical${request.type.charAt(0).toUpperCase() + request.type.slice(1)}`,
         description: request.description,
-        dependencies: ['@radix-ui/react-dialog', '@radix-ui/react-form', 'lucide-react']
+        dependencies: [
+          '@radix-ui/react-dialog',
+          '@radix-ui/react-form',
+          'lucide-react',
+        ],
       };
     } catch (error) {
       console.error('Erro ao gerar componente com Magic MCP:', error);
       // Fallback para template de exemplo
       return {
-        code: this.getMedicalComponentTemplate(request.description, request.type),
+        code: this.getMedicalComponentTemplate(
+          request.description,
+          request.type
+        ),
         name: `Medical${request.type.charAt(0).toUpperCase() + request.type.slice(1)}`,
         description: request.description,
-        dependencies: ['@radix-ui/react-dialog', '@radix-ui/react-form', 'lucide-react']
+        dependencies: [
+          '@radix-ui/react-dialog',
+          '@radix-ui/react-form',
+          'lucide-react',
+        ],
       };
     }
   }
@@ -184,16 +227,21 @@ export class MagicMcpService {
   /**
    * Busca inspiração de componentes usando o Magic MCP
    */
-  async fetchComponentInspiration(searchQuery: string, message: string): Promise<string> {
+  async fetchComponentInspiration(
+    searchQuery: string,
+    message: string
+  ): Promise<string> {
     if (!this.isAvailable || !this.fetchUiTool) {
-      console.info('Fetch de inspiração não disponível em modo de demonstração');
+      console.info(
+        'Fetch de inspiração não disponível em modo de demonstração'
+      );
       return `Inspiração para: ${searchQuery}\n\nEm modo de demonstração, esta funcionalidade retornaria sugestões de componentes baseadas na busca.`;
     }
 
     try {
       const result = await this.fetchUiTool.execute({
         message,
-        searchQuery
+        searchQuery,
       });
       return result.content[0]?.text || '';
     } catch (error) {
@@ -205,9 +253,15 @@ export class MagicMcpService {
   /**
    * Refina um componente existente usando o Magic MCP
    */
-  async refineComponent(filePath: string, userMessage: string, context: string): Promise<string> {
+  async refineComponent(
+    filePath: string,
+    userMessage: string,
+    context: string
+  ): Promise<string> {
     if (!this.isAvailable || !this.refineUiTool) {
-      console.info('Refinamento de componente não disponível em modo de demonstração');
+      console.info(
+        'Refinamento de componente não disponível em modo de demonstração'
+      );
       return `Refinamento solicitado para: ${filePath}\n\nMensagem: ${userMessage}\n\nEm modo de demonstração, esta funcionalidade retornaria o componente refinado.`;
     }
 
@@ -215,7 +269,7 @@ export class MagicMcpService {
       const result = await this.refineUiTool.execute({
         userMessage,
         absolutePathToRefiningFile: filePath,
-        context
+        context,
       });
       return result.content[0]?.text || '';
     } catch (error) {
@@ -227,7 +281,10 @@ export class MagicMcpService {
   /**
    * Busca logos médicos usando o Magic MCP
    */
-  async searchMedicalLogos(queries: string[], format: 'JSX' | 'TSX' | 'SVG' = 'TSX'): Promise<string> {
+  async searchMedicalLogos(
+    queries: string[],
+    format: 'JSX' | 'TSX' | 'SVG' = 'TSX'
+  ): Promise<string> {
     if (!this.isAvailable || !this.logoSearchTool) {
       console.info('Busca de logos não disponível em modo de demonstração');
       return `// Logos médicos para: ${queries.join(', ')}\n// Formato: ${format}\n\n// Em modo de demonstração, esta funcionalidade retornaria componentes de logo em ${format}`;
@@ -236,7 +293,7 @@ export class MagicMcpService {
     try {
       const result = await this.logoSearchTool.execute({
         queries,
-        format
+        format,
       });
       return result.content[0]?.text || '';
     } catch (error) {
@@ -253,7 +310,7 @@ export class MagicMcpService {
     componentType: 'form' | 'card' | 'table' | 'dialog' | 'dashboard' | 'chart'
   ): string {
     const componentName = `Medical${componentType.charAt(0).toUpperCase() + componentType.slice(1)}`;
-    
+
     const templates = {
       form: `import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -448,7 +505,7 @@ export function ${componentName}() {
       </CardContent>
     </Card>
   );
-}`
+}`,
     };
 
     return templates[componentType] || templates.card;
@@ -672,9 +729,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import { MedicalCallbackData } from '../types/common';
+
 interface MedicalDialogProps {
   trigger?: React.ReactNode;
-  onSave?: (data: any) => void;
+  onSave?: (data: MedicalCallbackData) => void;
 }
 
 export function MedicalDialog({ trigger, onSave }: MedicalDialogProps) {
@@ -870,11 +929,27 @@ export function MedicalChart({ title = 'Gráfico Médico', data = [] }: MedicalC
    */
   async searchMedicalComponents(category: string): Promise<string[]> {
     const medicalCategories = {
-      'prontuario': ['Formulário de Anamnese', 'Histórico Médico', 'Exames Realizados'],
-      'consulta': ['Agenda de Consultas', 'Ficha de Consulta', 'Prescrição Médica'],
-      'paciente': ['Cadastro de Paciente', 'Perfil do Paciente', 'Histórico de Consultas'],
-      'relatorio': ['Relatório de Consulta', 'Laudo Médico', 'Receituário'],
-      'dashboard': ['Painel de Controle', 'Estatísticas Médicas', 'Alertas de Saúde'],
+      prontuario: [
+        'Formulário de Anamnese',
+        'Histórico Médico',
+        'Exames Realizados',
+      ],
+      consulta: [
+        'Agenda de Consultas',
+        'Ficha de Consulta',
+        'Prescrição Médica',
+      ],
+      paciente: [
+        'Cadastro de Paciente',
+        'Perfil do Paciente',
+        'Histórico de Consultas',
+      ],
+      relatorio: ['Relatório de Consulta', 'Laudo Médico', 'Receituário'],
+      dashboard: [
+        'Painel de Controle',
+        'Estatísticas Médicas',
+        'Alertas de Saúde',
+      ],
     };
 
     return medicalCategories[category as keyof typeof medicalCategories] || [];

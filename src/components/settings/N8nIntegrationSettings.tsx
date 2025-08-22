@@ -12,7 +12,9 @@ interface N8nIntegrationSettingsProps {
   onSaved?: () => void;
 }
 
-export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps) {
+export function N8nIntegrationSettings({
+  onSaved,
+}: N8nIntegrationSettingsProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -21,7 +23,7 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
   const [config, setConfig] = useState({
     webhookUrl: '',
     workflowId: '',
-    apiKey: ''
+    apiKey: '',
   });
 
   // Carregar configurações existentes
@@ -37,11 +39,11 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
           const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || '';
           const workflowId = import.meta.env.VITE_N8N_WORKFLOW_ID || '';
           const apiKey = import.meta.env.VITE_N8N_API_KEY || '';
-          
+
           setConfig({
             webhookUrl,
             workflowId,
-            apiKey
+            apiKey,
           });
         }
       } catch (error) {
@@ -49,7 +51,7 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
         toast({
           title: 'Erro',
           description: 'Não foi possível carregar as configurações do n8n.',
-          variant: 'destructive'
+          variant: 'destructive',
         });
       } finally {
         setLoading(false);
@@ -65,7 +67,7 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
       toast({
         title: 'Campos obrigatórios',
         description: 'URL do webhook e ID do workflow são obrigatórios.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -75,14 +77,14 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
       const success = await n8nService.saveConfig({
         webhookUrl: config.webhookUrl,
         workflowId: config.workflowId,
-        apiKey: config.apiKey
+        apiKey: config.apiKey,
       });
 
       if (success) {
         toast({
           title: 'Configurações salvas',
           description: 'Integração com n8n configurada com sucesso.',
-          variant: 'default'
+          variant: 'default',
         });
         if (onSaved) onSaved();
       } else {
@@ -93,7 +95,7 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
       toast({
         title: 'Erro',
         description: 'Não foi possível salvar as configurações do n8n.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -105,8 +107,9 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
     if (!config.webhookUrl || !config.workflowId) {
       toast({
         title: 'Campos obrigatórios',
-        description: 'URL do webhook e ID do workflow são obrigatórios para testar a conexão.',
-        variant: 'destructive'
+        description:
+          'URL do webhook e ID do workflow são obrigatórios para testar a conexão.',
+        variant: 'destructive',
       });
       return;
     }
@@ -117,7 +120,7 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
       const tempConfig = {
         webhookUrl: config.webhookUrl,
         workflowId: config.workflowId,
-        apiKey: config.apiKey
+        apiKey: config.apiKey,
       };
 
       // Salvar temporariamente a configuração
@@ -129,15 +132,15 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
         consultationId: 'test-consultation-id',
         metadata: {
           isTest: true,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       });
 
       if (result.success) {
         toast({
           title: 'Conexão bem-sucedida',
           description: `Workflow ${result.workflowId} acionado com sucesso.`,
-          variant: 'default'
+          variant: 'default',
         });
       } else {
         throw new Error(result.error || 'Falha no teste de conexão');
@@ -146,8 +149,11 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
       console.error('Erro ao testar conexão com n8n:', error);
       toast({
         title: 'Erro na conexão',
-        description: error instanceof Error ? error.message : 'Não foi possível conectar ao n8n.',
-        variant: 'destructive'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível conectar ao n8n.',
+        variant: 'destructive',
       });
     } finally {
       setTesting(false);
@@ -186,10 +192,13 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
               id="webhookUrl"
               placeholder="https://seu-servidor-n8n.com/webhook/seu-webhook-id"
               value={config.webhookUrl}
-              onChange={(e) => setConfig({ ...config, webhookUrl: e.target.value })}
+              onChange={e =>
+                setConfig({ ...config, webhookUrl: e.target.value })
+              }
             />
             <p className="text-sm text-muted-foreground">
-              URL do webhook do n8n para acionar fluxos de trabalho de transcrição
+              URL do webhook do n8n para acionar fluxos de trabalho de
+              transcrição
             </p>
           </div>
 
@@ -199,7 +208,9 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
               id="workflowId"
               placeholder="123456"
               value={config.workflowId}
-              onChange={(e) => setConfig({ ...config, workflowId: e.target.value })}
+              onChange={e =>
+                setConfig({ ...config, workflowId: e.target.value })
+              }
             />
             <p className="text-sm text-muted-foreground">
               Identificador do workflow no n8n
@@ -214,10 +225,10 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
             <div className="flex">
               <Input
                 id="apiKey"
-                type={showApiKey ? "text" : "password"}
+                type={showApiKey ? 'text' : 'password'}
                 placeholder="Chave de API do n8n"
                 value={config.apiKey}
-                onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
+                onChange={e => setConfig({ ...config, apiKey: e.target.value })}
                 className="flex-1"
               />
               <Button
@@ -226,7 +237,7 @@ export function N8nIntegrationSettings({ onSaved }: N8nIntegrationSettingsProps)
                 className="ml-2"
                 onClick={() => setShowApiKey(!showApiKey)}
               >
-                {showApiKey ? "Ocultar" : "Mostrar"}
+                {showApiKey ? 'Ocultar' : 'Mostrar'}
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">

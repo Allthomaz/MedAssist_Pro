@@ -39,7 +39,11 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
             <NotificationButton />
             <ThemeToggle />
             <ProfileConfigModal>
-              <Button variant="ghost" size="icon" aria-label="Abrir configurações do perfil">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Abrir configurações do perfil"
+              >
                 <UserCircle className="w-6 h-6" />
               </Button>
             </ProfileConfigModal>
@@ -47,9 +51,7 @@ export function MedicalLayout({ children }: MedicalLayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );

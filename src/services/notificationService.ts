@@ -29,7 +29,7 @@ export class NotificationService {
         p_consultation_id: params.consultationId || null,
         p_document_id: params.documentId || null,
         p_patient_id: params.patientId || null,
-        p_scheduled_for: params.scheduledFor?.toISOString() || null
+        p_scheduled_for: params.scheduledFor?.toISOString() || null,
       });
 
       if (error) {
@@ -69,7 +69,7 @@ export class NotificationService {
       priority: 'normal',
       appointmentId,
       patientId,
-      scheduledFor: reminderDate
+      scheduledFor: reminderDate,
     });
 
     // Lembrete para o paciente (se tiver profile_id)
@@ -89,7 +89,7 @@ export class NotificationService {
           priority: 'high',
           appointmentId,
           patientId,
-          scheduledFor: reminderDate
+          scheduledFor: reminderDate,
         });
       }
     } catch (error) {
@@ -117,7 +117,7 @@ export class NotificationService {
       message: `Consulta com ${patientName} confirmada para ${formattedDate} às ${appointmentTime}`,
       priority: 'normal',
       appointmentId,
-      patientId
+      patientId,
     });
   }
 
@@ -134,7 +134,7 @@ export class NotificationService {
     reason?: string
   ) {
     const formattedDate = appointmentDate.toLocaleDateString('pt-BR');
-    const message = reason 
+    const message = reason
       ? `Consulta com ${patientName} cancelada para ${formattedDate} às ${appointmentTime}. Motivo: ${reason}`
       : `Consulta com ${patientName} cancelada para ${formattedDate} às ${appointmentTime}`;
 
@@ -145,7 +145,7 @@ export class NotificationService {
       message,
       priority: 'high',
       appointmentId,
-      patientId
+      patientId,
     });
   }
 
@@ -158,7 +158,7 @@ export class NotificationService {
     documentType: string,
     patientName?: string
   ) {
-    const message = patientName 
+    const message = patientName
       ? `${documentType} de ${patientName} está pronto para download`
       : `${documentType} está pronto para download`;
 
@@ -168,7 +168,7 @@ export class NotificationService {
       title: 'Documento Pronto',
       message,
       priority: 'normal',
-      documentId
+      documentId,
     });
   }
 
@@ -188,7 +188,7 @@ export class NotificationService {
       message: `Consulta com ${patientName} foi finalizada com sucesso`,
       priority: 'normal',
       consultationId,
-      patientId
+      patientId,
     });
   }
 
@@ -199,7 +199,8 @@ export class NotificationService {
     try {
       const { data, error } = await supabase
         .from('notifications')
-        .select(`
+        .select(
+          `
           id,
           user_id,
           type,
@@ -215,7 +216,8 @@ export class NotificationService {
           consultation_id,
           document_id,
           patient_id
-        `)
+        `
+        )
         .eq('user_id', userId)
         .neq('status', 'deleted')
         .order('created_at', { ascending: false })
@@ -239,7 +241,7 @@ export class NotificationService {
   static async markAsRead(notificationId: string) {
     try {
       const { error } = await supabase.rpc('mark_notification_as_read', {
-        notification_uuid: notificationId
+        notification_uuid: notificationId,
       });
 
       if (error) {

@@ -20,7 +20,7 @@ describe('Consultations and Reports Integration Tests', () => {
   const mockDoctorId = 'ef14284c-594f-40d4-92ac-8f83f8f83ce3';
   const mockPatientId = 'patient-123';
   const mockConsultationId = 'consultation-123';
-  
+
   const mockConsultation = {
     id: mockConsultationId,
     doctor_id: mockDoctorId,
@@ -80,7 +80,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -107,7 +107,8 @@ describe('Consultations and Reports Integration Tests', () => {
 
       const mockError = {
         code: '23502',
-        message: 'null value in column "patient_id" violates not-null constraint',
+        message:
+          'null value in column "patient_id" violates not-null constraint',
       };
 
       const mockChain = {
@@ -118,7 +119,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: mockError,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -137,7 +138,10 @@ describe('Consultations and Reports Integration Tests', () => {
   describe('READ - Buscar Consultas', () => {
     it('deve buscar todas as consultas de um médico', async () => {
       // Arrange
-      const consultations = [mockConsultation, { ...mockConsultation, id: 'consultation-456' }];
+      const consultations = [
+        mockConsultation,
+        { ...mockConsultation, id: 'consultation-456' },
+      ];
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
@@ -147,7 +151,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -173,7 +177,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -201,8 +205,10 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
-      mockChain.eq.mockReturnValueOnce(mockChain).mockReturnValueOnce(mockChain);
+
+      mockChain.eq
+        .mockReturnValueOnce(mockChain)
+        .mockReturnValueOnce(mockChain);
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -233,7 +239,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -248,8 +254,14 @@ describe('Consultations and Reports Integration Tests', () => {
       // Assert
       expect(error).toBeNull();
       expect(data).toHaveLength(1);
-      expect(mockChain.gte).toHaveBeenCalledWith('consultation_date', '2024-01-01');
-      expect(mockChain.lte).toHaveBeenCalledWith('consultation_date', '2024-01-31');
+      expect(mockChain.gte).toHaveBeenCalledWith(
+        'consultation_date',
+        '2024-01-01'
+      );
+      expect(mockChain.lte).toHaveBeenCalledWith(
+        'consultation_date',
+        '2024-01-31'
+      );
     });
   });
 
@@ -273,7 +285,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -304,7 +316,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -339,7 +351,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -352,7 +364,9 @@ describe('Consultations and Reports Integration Tests', () => {
 
       // Assert
       expect(error).toBeNull();
-      expect(data.transcription_text).toBe(transcriptionData.transcription_text);
+      expect(data.transcription_text).toBe(
+        transcriptionData.transcription_text
+      );
       expect(data.transcription_confidence).toBe(0.95);
     });
   });
@@ -367,7 +381,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -396,7 +410,7 @@ describe('Consultations and Reports Integration Tests', () => {
           error: mockError,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -432,17 +446,23 @@ describe('Consultations and Reports Integration Tests', () => {
       });
 
       // Act
-      const { data, error } = await supabase.functions.invoke('generate-report', {
-        body: reportRequest,
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'generate-report',
+        {
+          body: reportRequest,
+        }
+      );
 
       // Assert
       expect(error).toBeNull();
       expect(data.title).toBe('Relatório Clínico - João Silva');
       expect(data.type).toBe('clinical_report');
-      expect(mockSupabase.functions.invoke).toHaveBeenCalledWith('generate-report', {
-        body: reportRequest,
-      });
+      expect(mockSupabase.functions.invoke).toHaveBeenCalledWith(
+        'generate-report',
+        {
+          body: reportRequest,
+        }
+      );
     });
 
     it('deve gerar receituário médico', async () => {
@@ -466,9 +486,12 @@ describe('Consultations and Reports Integration Tests', () => {
       });
 
       // Act
-      const { data, error } = await supabase.functions.invoke('generate-report', {
-        body: prescriptionRequest,
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'generate-report',
+        {
+          body: prescriptionRequest,
+        }
+      );
 
       // Assert
       expect(error).toBeNull();
@@ -494,9 +517,12 @@ describe('Consultations and Reports Integration Tests', () => {
       });
 
       // Act
-      const { data, error } = await supabase.functions.invoke('generate-report', {
-        body: invalidRequest,
-      });
+      const { data, error } = await supabase.functions.invoke(
+        'generate-report',
+        {
+          body: invalidRequest,
+        }
+      );
 
       // Assert
       expect(data.error).toBe('Transcrição é obrigatória para gerar relatório');
@@ -508,40 +534,40 @@ describe('Consultations and Reports Integration Tests', () => {
       // Arrange
       const mockResults = [
         { data: Array(150).fill(mockConsultation), error: null, count: 150 }, // total
-        { data: Array(25).fill(mockConsultation), error: null, count: 25 },   // mês
+        { data: Array(25).fill(mockConsultation), error: null, count: 25 }, // mês
         { data: Array(140).fill(mockConsultation), error: null, count: 140 }, // finalizadas
-        { data: Array(10).fill(mockConsultation), error: null, count: 10 }    // agendadas
+        { data: Array(10).fill(mockConsultation), error: null, count: 10 }, // agendadas
       ];
 
       // Mock direto para cada query específica
       mockSupabase.from
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue(mockResults[0])
-          })
+            eq: vi.fn().mockResolvedValue(mockResults[0]),
+          }),
         })
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
               gte: vi.fn().mockReturnValue({
-                lte: vi.fn().mockResolvedValue(mockResults[1])
-              })
-            })
-          })
+                lte: vi.fn().mockResolvedValue(mockResults[1]),
+              }),
+            }),
+          }),
         })
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValue(mockResults[2])
-            })
-          })
+              eq: vi.fn().mockResolvedValue(mockResults[2]),
+            }),
+          }),
         })
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValue(mockResults[3])
-            })
-          })
+              eq: vi.fn().mockResolvedValue(mockResults[3]),
+            }),
+          }),
         });
 
       // Act - Simular múltiplas queries para estatísticas
@@ -579,10 +605,10 @@ describe('Consultations and Reports Integration Tests', () => {
     it('deve buscar consultas por tipo para relatório', async () => {
       // Arrange
       const typeResults = [
-        { data: Array(50).fill(mockConsultation), error: null, count: 50 },  // primeira_consulta
-        { data: Array(80).fill(mockConsultation), error: null, count: 80 },  // retorno
-        { data: Array(15).fill(mockConsultation), error: null, count: 15 },  // urgencia
-        { data: Array(5).fill(mockConsultation), error: null, count: 5 }     // rotina
+        { data: Array(50).fill(mockConsultation), error: null, count: 50 }, // primeira_consulta
+        { data: Array(80).fill(mockConsultation), error: null, count: 80 }, // retorno
+        { data: Array(15).fill(mockConsultation), error: null, count: 15 }, // urgencia
+        { data: Array(5).fill(mockConsultation), error: null, count: 5 }, // rotina
       ];
 
       // Mock direto para cada tipo de consulta
@@ -590,30 +616,30 @@ describe('Consultations and Reports Integration Tests', () => {
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValue(typeResults[0])
-            })
-          })
+              eq: vi.fn().mockResolvedValue(typeResults[0]),
+            }),
+          }),
         })
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValue(typeResults[1])
-            })
-          })
+              eq: vi.fn().mockResolvedValue(typeResults[1]),
+            }),
+          }),
         })
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValue(typeResults[2])
-            })
-          })
+              eq: vi.fn().mockResolvedValue(typeResults[2]),
+            }),
+          }),
         })
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValue(typeResults[3])
-            })
-          })
+              eq: vi.fn().mockResolvedValue(typeResults[3]),
+            }),
+          }),
         });
 
       // Act
@@ -650,11 +676,13 @@ describe('Consultations and Reports Integration Tests', () => {
 
     it('deve buscar consultas com documentos gerados', async () => {
       // Arrange
-      const consultationsWithDocs = [{
-        ...mockConsultation,
-        document_generated: true,
-        document_url: 'https://storage.supabase.co/document.pdf',
-      }];
+      const consultationsWithDocs = [
+        {
+          ...mockConsultation,
+          document_generated: true,
+          document_url: 'https://storage.supabase.co/document.pdf',
+        },
+      ];
 
       const mockChain = {
         select: vi.fn().mockReturnThis(),
@@ -664,8 +692,10 @@ describe('Consultations and Reports Integration Tests', () => {
           error: null,
         }),
       };
-      
-      mockChain.eq.mockReturnValueOnce(mockChain).mockReturnValueOnce(mockChain);
+
+      mockChain.eq
+        .mockReturnValueOnce(mockChain)
+        .mockReturnValueOnce(mockChain);
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act

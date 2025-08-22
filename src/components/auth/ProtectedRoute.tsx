@@ -1,7 +1,7 @@
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useThemePreferences } from "@/hooks/useThemePreferences";
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useThemePreferences } from '@/hooks/useThemePreferences';
 
 const Loader = () => (
   <div className="flex items-center justify-center py-20">
@@ -9,10 +9,12 @@ const Loader = () => (
   </div>
 );
 
-export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user, initializing } = useAuth();
   const location = useLocation();
-  
+
   // Aplicar preferências de tema quando o usuário estiver autenticado
   useThemePreferences();
 

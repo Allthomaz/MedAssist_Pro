@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  lazy,
+} from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,19 +14,23 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NewConsultationModal } from '@/components/consultations/NewConsultationModal';
 
 // Lazy load heavy components
-const ConsultationDetail = lazy(() => import('@/components/consultations/ConsultationDetail').then(module => ({ default: module.ConsultationDetail })));
+const ConsultationDetail = lazy(() =>
+  import('@/components/consultations/ConsultationDetail').then(module => ({
+    default: module.ConsultationDetail,
+  }))
+);
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Video, 
-  Clock, 
-  User, 
+import {
+  Video,
+  Clock,
+  User,
   Calendar,
   Mic,
   FileText,
   Plus,
   Eye,
   Stethoscope,
-  Brain
+  Brain,
 } from 'lucide-react';
 
 interface Patient {
@@ -44,7 +55,9 @@ interface Consultation {
 const Consultations = () => {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedConsultation, setSelectedConsultation] = useState<string | null>(null);
+  const [selectedConsultation, setSelectedConsultation] = useState<
+    string | null
+  >(null);
   const [showNewConsultation, setShowNewConsultation] = useState(false);
 
   useEffect(() => {
@@ -56,14 +69,16 @@ const Consultations = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('consultations')
-        .select(`
+        .select(
+          `
           *,
           patients (
             id,
             full_name,
             patient_number
           )
-        `)
+        `
+        )
         .order('consultation_date', { ascending: false })
         .order('consultation_time', { ascending: false })
         .limit(20);
@@ -77,29 +92,41 @@ const Consultations = () => {
     }
   }, []);
 
-  const statusMap = useMemo(() => ({
-    'agendada': 'Agendada',
-    'em_andamento': 'Em Andamento',
-    'finalizada': 'Finalizada',
-    'cancelada': 'Cancelada',
-    'nao_compareceu': 'Não Compareceu'
-  }), []);
+  const statusMap = useMemo(
+    () => ({
+      agendada: 'Agendada',
+      em_andamento: 'Em Andamento',
+      finalizada: 'Finalizada',
+      cancelada: 'Cancelada',
+      nao_compareceu: 'Não Compareceu',
+    }),
+    []
+  );
 
-  const colorMap = useMemo(() => ({
-    'agendada': 'bg-blue-100 text-blue-700 border-blue-200',
-    'em_andamento': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    'finalizada': 'bg-green-100 text-green-700 border-green-200',
-    'cancelada': 'bg-red-100 text-red-700 border-red-200',
-      'nao_compareceu': 'bg-gray-100 text-gray-700 border-gray-200'
-    }), []);
+  const colorMap = useMemo(
+    () => ({
+      agendada: 'bg-blue-100 text-blue-700 border-blue-200',
+      em_andamento: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      finalizada: 'bg-green-100 text-green-700 border-green-200',
+      cancelada: 'bg-red-100 text-red-700 border-red-200',
+      nao_compareceu: 'bg-gray-100 text-gray-700 border-gray-200',
+    }),
+    []
+  );
 
-  const getStatusLabel = useCallback((status: string) => {
-    return statusMap[status] || status;
-  }, [statusMap]);
+  const getStatusLabel = useCallback(
+    (status: string) => {
+      return statusMap[status] || status;
+    },
+    [statusMap]
+  );
 
-  const getStatusColor = useCallback((status: string) => {
-    return colorMap[status] || 'bg-gray-100 text-gray-700 border-gray-200';
-  }, [colorMap]);
+  const getStatusColor = useCallback(
+    (status: string) => {
+      return colorMap[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+    },
+    [colorMap]
+  );
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -114,19 +141,23 @@ const Consultations = () => {
     return (
       <MedicalLayout>
         <div className="space-y-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setSelectedConsultation(null)}
             className="gap-2"
           >
             ← Voltar para Lista
           </Button>
-          <Suspense fallback={
-            <div className="flex items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
-              <span className="text-muted-foreground">Carregando detalhes da consulta...</span>
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
+                <span className="text-muted-foreground">
+                  Carregando detalhes da consulta...
+                </span>
+              </div>
+            }
+          >
             <ConsultationDetail consultationId={selectedConsultation} />
           </Suspense>
         </div>
@@ -148,7 +179,11 @@ const Consultations = () => {
                 Sistema inteligente de transcrição e análise médica
               </p>
             </div>
-            <Button variant="medical" className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-medical-blue to-medical-green hover:from-medical-blue/90 hover:to-medical-green/90 px-8 py-3 text-lg" onClick={() => setShowNewConsultation(true)}>
+            <Button
+              variant="medical"
+              className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-medical-blue to-medical-green hover:from-medical-blue/90 hover:to-medical-green/90 px-8 py-3 text-lg"
+              onClick={() => setShowNewConsultation(true)}
+            >
               <Stethoscope className="w-5 h-5" />
               Nova Consulta
             </Button>
@@ -156,7 +191,7 @@ const Consultations = () => {
         </div>
 
         {/* New Consultation Modal */}
-        <NewConsultationModal 
+        <NewConsultationModal
           isOpen={showNewConsultation}
           onClose={() => setShowNewConsultation(false)}
           onConsultationCreated={() => {
@@ -172,15 +207,15 @@ const Consultations = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-medical-blue/3 via-transparent to-medical-green/3 opacity-50"></div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-medical-blue/8 to-transparent rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-medical-green/8 to-transparent rounded-full blur-2xl"></div>
-            
+
             <CardHeader className="relative bg-gradient-to-r from-medical-blue/8 via-medical-blue/5 to-medical-green/8 border-b border-medical-blue/15 backdrop-blur-sm">
               <CardTitle className="flex items-center justify-center gap-4 py-4">
                 <div className="p-3 rounded-xl bg-gradient-to-r from-medical-blue to-medical-green shadow-lg ring-2 ring-white/20">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl text-medical-blue dark:text-medical-green font-bold">
-                   Transcrição Inteligente
-                 </span>
+                  Transcrição Inteligente
+                </span>
               </CardTitle>
             </CardHeader>
           </div>
@@ -188,7 +223,9 @@ const Consultations = () => {
             {loading ? (
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
-                <span className="ml-2 text-muted-foreground">Carregando consultas...</span>
+                <span className="ml-2 text-muted-foreground">
+                  Carregando consultas...
+                </span>
               </div>
             ) : consultations.length === 0 ? (
               <div className="text-center p-12">
@@ -196,32 +233,48 @@ const Consultations = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-medical-blue/20 to-medical-green/20 rounded-full blur-xl"></div>
                   <Stethoscope className="relative w-20 h-20 text-medical-blue mx-auto" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent">Bem-vindo ao Sistema de Transcrição</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">Clique em "Nova Consulta" para começar sua primeira transcrição inteligente</p>
+                <h3 className="text-xl font-bold text-foreground mb-3 bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent">
+                  Bem-vindo ao Sistema de Transcrição
+                </h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
+                  Clique em "Nova Consulta" para começar sua primeira
+                  transcrição inteligente
+                </p>
               </div>
             ) : (
-              consultations.map((consultation) => (
-                <div key={consultation.id} className="flex items-center justify-between p-5 rounded-xl border border-medical-blue/20 hover:border-medical-blue/40 bg-gradient-to-r from-white to-medical-blue/5 hover:from-medical-blue/5 hover:to-medical-green/5 transition-all duration-300 shadow-sm hover:shadow-md">
+              consultations.map(consultation => (
+                <div
+                  key={consultation.id}
+                  className="flex items-center justify-between p-5 rounded-xl border border-medical-blue/20 hover:border-medical-blue/40 bg-gradient-to-r from-white to-medical-blue/5 hover:from-medical-blue/5 hover:to-medical-green/5 transition-all duration-300 shadow-sm hover:shadow-md"
+                >
                   <div className="flex items-center gap-4">
                     <Avatar className="w-12 h-12 ring-2 ring-medical-blue/20">
                       <AvatarFallback className="bg-gradient-to-r from-medical-blue to-medical-green text-white font-semibold">
-                        {consultation.patients?.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'P'}
+                        {consultation.patients?.full_name
+                          ?.split(' ')
+                          .map(n => n[0])
+                          .join('')
+                          .substring(0, 2) || 'P'}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
                         <h4 className="font-medium text-foreground">
-                          {consultation.patients?.full_name || 'Paciente não encontrado'}
+                          {consultation.patients?.full_name ||
+                            'Paciente não encontrado'}
                         </h4>
                         <Badge variant="outline">
-                          {consultation.consultation_type.replace('_', ' ').toUpperCase()}
+                          {consultation.consultation_type
+                            .replace('_', ' ')
+                            .toUpperCase()}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {formatDate(consultation.consultation_date)} às {consultation.consultation_time}
+                          {formatDate(consultation.consultation_date)} às{' '}
+                          {consultation.consultation_time}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -236,29 +289,38 @@ const Consultations = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className={getStatusColor(consultation.status)}>
+                    <Badge
+                      variant="outline"
+                      className={getStatusColor(consultation.status)}
+                    >
                       {getStatusLabel(consultation.status)}
                     </Badge>
-                    
+
                     {consultation.has_recording && (
-                      <Badge variant="secondary" className="gap-1 bg-gradient-to-r from-medical-blue/10 to-medical-green/10 text-medical-blue border-medical-blue/20">
+                      <Badge
+                        variant="secondary"
+                        className="gap-1 bg-gradient-to-r from-medical-blue/10 to-medical-green/10 text-medical-blue border-medical-blue/20"
+                      >
                         <Mic className="w-3 h-3" />
                         Áudio
                       </Badge>
                     )}
-                    
+
                     {consultation.document_generated && (
-                      <Badge variant="secondary" className="gap-1 bg-gradient-to-r from-medical-green/10 to-medical-blue/10 text-medical-green border-medical-green/20">
+                      <Badge
+                        variant="secondary"
+                        className="gap-1 bg-gradient-to-r from-medical-green/10 to-medical-blue/10 text-medical-green border-medical-green/20"
+                      >
                         <FileText className="w-3 h-3" />
                         Relatório
                       </Badge>
                     )}
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="gap-2 border-medical-blue/30 text-medical-blue hover:bg-medical-blue hover:text-white transition-all duration-300"
                       onClick={() => setSelectedConsultation(consultation.id)}
                     >
@@ -280,9 +342,13 @@ const Consultations = () => {
                 <Video className="w-5 h-5 text-medical-blue" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">Funcionalidades Avançadas</h3>
+                <h3 className="font-semibold text-foreground">
+                  Funcionalidades Avançadas
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Para ativar gravação de vídeo, transcrição automática e geração de documentos com IA, conecte ao Supabase e configure as integrações necessárias.
+                  Para ativar gravação de vídeo, transcrição automática e
+                  geração de documentos com IA, conecte ao Supabase e configure
+                  as integrações necessárias.
                 </p>
               </div>
             </div>

@@ -27,7 +27,7 @@ const mockSupabase = supabase as any;
 describe('Patients CRUD Operations', () => {
   const mockDoctorId = '123e4567-e89b-12d3-a456-426614174000';
   const mockPatientId = '987fcdeb-51a2-43d1-b789-123456789abc';
-  
+
   const mockPatientData: PatientInsert = {
     full_name: 'João Silva',
     birth_date: '1980-05-15',
@@ -90,7 +90,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -112,7 +112,8 @@ describe('Patients CRUD Operations', () => {
       const invalidData = { ...mockPatientData, full_name: '' };
       const mockError = {
         code: '23502',
-        message: 'null value in column "full_name" violates not-null constraint',
+        message:
+          'null value in column "full_name" violates not-null constraint',
       };
 
       const mockChain = {
@@ -123,7 +124,7 @@ describe('Patients CRUD Operations', () => {
           error: mockError,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -162,7 +163,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -183,8 +184,11 @@ describe('Patients CRUD Operations', () => {
   describe('READ - Ler Pacientes', () => {
     it('deve buscar todos os pacientes de um médico', async () => {
       // Arrange
-      const mockPatients = [mockPatient, { ...mockPatient, id: 'patient-2', full_name: 'Maria Santos' }];
-      
+      const mockPatients = [
+        mockPatient,
+        { ...mockPatient, id: 'patient-2', full_name: 'Maria Santos' },
+      ];
+
       const mockChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -193,7 +197,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -219,7 +223,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -238,7 +242,7 @@ describe('Patients CRUD Operations', () => {
     it('deve buscar pacientes ativos apenas', async () => {
       // Arrange
       const activePatients = [mockPatient];
-      
+
       const mockChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -247,7 +251,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -278,7 +282,7 @@ describe('Patients CRUD Operations', () => {
           error: mockError,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -302,7 +306,11 @@ describe('Patients CRUD Operations', () => {
         email: 'joao.silva.novo@email.com',
       };
 
-      const updatedPatient = { ...mockPatient, ...updateData, updated_at: '2024-01-16T10:00:00Z' };
+      const updatedPatient = {
+        ...mockPatient,
+        ...updateData,
+        updated_at: '2024-01-16T10:00:00Z',
+      };
 
       const mockChain = {
         update: vi.fn().mockReturnThis(),
@@ -313,7 +321,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -352,7 +360,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -367,7 +375,10 @@ describe('Patients CRUD Operations', () => {
       expect(error).toBeNull();
       expect(data?.weight).toBe(80.0);
       expect(data?.allergies).toEqual(['Penicilina', 'Dipirona', 'Aspirina']);
-      expect(data?.current_medications).toEqual(['Losartana 50mg', 'Metformina 850mg']);
+      expect(data?.current_medications).toEqual([
+        'Losartana 50mg',
+        'Metformina 850mg',
+      ]);
     });
 
     it('deve atualizar status do paciente', async () => {
@@ -387,7 +398,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -423,7 +434,7 @@ describe('Patients CRUD Operations', () => {
           error: mockError,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -454,7 +465,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act - Implementando soft delete via status
@@ -479,7 +490,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -508,7 +519,7 @@ describe('Patients CRUD Operations', () => {
           error: mockError,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -535,7 +546,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -561,7 +572,7 @@ describe('Patients CRUD Operations', () => {
         phone: '(11) 99999-9999',
         status: 'active',
       };
-      
+
       const mockChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -570,7 +581,7 @@ describe('Patients CRUD Operations', () => {
           error: null,
         }),
       };
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act
@@ -589,20 +600,23 @@ describe('Patients CRUD Operations', () => {
       // Arrange
       const mockChain = {
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis().mockResolvedValue({
-          data: [mockPatient, mockPatient], // 2 pacientes
-          error: null,
-          count: 2,
-        }),
+        eq: vi
+          .fn()
+          .mockReturnThis()
+          .mockResolvedValue({
+            data: [mockPatient, mockPatient], // 2 pacientes
+            error: null,
+            count: 2,
+          }),
       };
-      
+
       // Configurar o mock para retornar this nas primeiras chamadas e o resultado na última
       mockChain.eq.mockReturnValueOnce(mockChain).mockResolvedValueOnce({
         data: [mockPatient, mockPatient],
         error: null,
         count: 2,
       });
-      
+
       mockSupabase.from.mockReturnValue(mockChain);
 
       // Act

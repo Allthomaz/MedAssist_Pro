@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,38 +16,45 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { 
-  Mic, 
-  Square, 
-  Play, 
-  Pause, 
-  Send, 
-  Activity, 
-  FileText, 
-  Upload, 
-  CheckCircle, 
-  Clock, 
+import {
+  Mic,
+  Square,
+  Play,
+  Pause,
+  Send,
+  Activity,
+  FileText,
+  Upload,
+  CheckCircle,
+  Clock,
   AlertCircle,
-  Loader2 
+  Loader2,
 } from 'lucide-react';
 
-type IntentionType = 'gerar-relatorio' | 'evoluir-prontuario' | 'solicitar-exames';
+type IntentionType =
+  | 'gerar-relatorio'
+  | 'evoluir-prontuario'
+  | 'solicitar-exames';
 
 interface AudioProcessorProps {
   onProcessingComplete?: (audioUrl: string, intention: IntentionType) => void;
   className?: string;
 }
 
-const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, className }) => {
-  const [selectedIntention, setSelectedIntention] = useState<IntentionType>('gerar-relatorio');
+const AudioProcessor: React.FC<AudioProcessorProps> = ({
+  onProcessingComplete,
+  className,
+}) => {
+  const [selectedIntention, setSelectedIntention] =
+    useState<IntentionType>('gerar-relatorio');
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [notes, setNotes] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  
+
   // Usar o hook customizado para gravação de áudio
   const {
     isRecording,
@@ -53,22 +66,22 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
     startRecording,
     stopRecording,
     clearRecording,
-    cleanup
+    cleanup,
   } = useAudioRecorder({
     onRecordingComplete: (blob, url) => {
       // Callback quando gravação é concluída com sucesso
       console.log('Gravação concluída:', { blob, url });
     },
-    onError: (error) => {
+    onError: error => {
       // Callback para tratamento de erros
       console.error('Erro na gravação:', error);
-    }
+    },
   });
 
   const intentionOptions = [
     { value: 'gerar-relatorio', label: 'Gerar Relatorio' },
     { value: 'evoluir-prontuario', label: 'Evoluir Prontuario' },
-    { value: 'solicitar-exames', label: 'Solicitar Exames' }
+    { value: 'solicitar-exames', label: 'Solicitar Exames' },
   ];
 
   // Função de limpeza simplificada - agora delegada ao hook
@@ -114,9 +127,9 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
   const handleSendForProcessing = async () => {
     if (!recordedBlob) {
       toast({
-        title: "Erro",
-        description: "Nenhuma gravacao encontrada para processar.",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Nenhuma gravacao encontrada para processar.',
+        variant: 'destructive',
       });
       return;
     }
@@ -148,8 +161,8 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
           metadata: {
             intention: selectedIntention,
             recordingTime: recordingTime.toString(),
-            notes: notes || 'Sem observacoes'
-          }
+            notes: notes || 'Sem observacoes',
+          },
         });
 
       clearInterval(progressInterval);
@@ -160,13 +173,13 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
       }
 
       // Obter URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from('recordings')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('recordings').getPublicUrl(fileName);
 
       toast({
-        title: "Upload concluido",
-        description: "Gravacao enviada com sucesso para processamento!",
+        title: 'Upload concluido',
+        description: 'Gravacao enviada com sucesso para processamento!',
       });
 
       // Callback para componente pai
@@ -178,13 +191,12 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
       handleCleanup();
       setNotes('');
       setUploadProgress(0);
-
     } catch (error: any) {
       console.error('Erro no upload:', error);
       toast({
-        title: "Erro no upload",
-        description: error.message || "Falha ao enviar gravacao.",
-        variant: "destructive"
+        title: 'Erro no upload',
+        description: error.message || 'Falha ao enviar gravacao.',
+        variant: 'destructive',
       });
     } finally {
       setIsUploading(false);
@@ -194,15 +206,15 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     const audioFiles = files.filter(file => file.type.startsWith('audio/'));
-    
+
     if (audioFiles.length !== files.length) {
       toast({
-        title: "Aviso",
-        description: "Apenas arquivos de audio sao aceitos.",
-        variant: "destructive"
+        title: 'Aviso',
+        description: 'Apenas arquivos de audio sao aceitos.',
+        variant: 'destructive',
       });
     }
-    
+
     setUploadedFiles(prev => [...prev, ...audioFiles]);
   };
 
@@ -211,7 +223,7 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
   };
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Seleção de Intenção */}
       <Card>
         <CardHeader>
@@ -223,12 +235,17 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="intention">Intencao do Processamento</Label>
-            <Select value={selectedIntention} onValueChange={(value: IntentionType) => setSelectedIntention(value)}>
+            <Select
+              value={selectedIntention}
+              onValueChange={(value: IntentionType) =>
+                setSelectedIntention(value)
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a intencao" />
               </SelectTrigger>
               <SelectContent>
-                {intentionOptions.map((option) => (
+                {intentionOptions.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -236,14 +253,14 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="notes">Observacoes (Opcional)</Label>
             <Textarea
               id="notes"
               placeholder="Adicione observacoes sobre a consulta ou contexto adicional..."
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={e => setNotes(e.target.value)}
               rows={3}
             />
           </div>
@@ -262,27 +279,26 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
           <div className="flex items-center justify-center space-x-4">
             {!isRecording ? (
               <Button
-                  onClick={startRecording}
-                  size="lg"
-                  className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isUploading || microphoneStatus !== 'available'}
-                >
-                  {microphoneStatus === 'checking' ? (
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  ) : (
-                    <Mic className="h-5 w-5 mr-2" />
-                  )}
-                  {microphoneStatus === 'available' ? 'Iniciar Gravacao' :
-                   microphoneStatus === 'denied' ? 'Acesso ao Microfone Negado' :
-                   microphoneStatus === 'error' ? 'Microfone Indisponível' :
-                   'Verificando Microfone...'}
-                </Button>
-            ) : (
-              <Button
-                onClick={stopRecording}
+                onClick={startRecording}
                 size="lg"
-                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isUploading || microphoneStatus !== 'available'}
               >
+                {microphoneStatus === 'checking' ? (
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                ) : (
+                  <Mic className="h-5 w-5 mr-2" />
+                )}
+                {microphoneStatus === 'available'
+                  ? 'Iniciar Gravacao'
+                  : microphoneStatus === 'denied'
+                    ? 'Acesso ao Microfone Negado'
+                    : microphoneStatus === 'error'
+                      ? 'Microfone Indisponível'
+                      : 'Verificando Microfone...'}
+              </Button>
+            ) : (
+              <Button onClick={stopRecording} size="lg" variant="destructive">
                 <Square className="h-5 w-5 mr-2" />
                 Parar Gravacao
               </Button>
@@ -293,9 +309,13 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center space-x-2">
                 <Activity className="h-4 w-4 text-red-500 animate-pulse" />
-                <span className="text-lg font-mono">{formatTime(recordingTime)}</span>
+                <span className="text-lg font-mono">
+                  {formatTime(recordingTime)}
+                </span>
               </div>
-              <p className="text-sm text-muted-foreground">Gravando... Fale proximo ao microfone</p>
+              <p className="text-sm text-muted-foreground">
+                Gravando... Fale proximo ao microfone
+              </p>
             </div>
           )}
 
@@ -326,7 +346,7 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
                   Duracao: {formatTime(recordingTime)}
                 </span>
               </div>
-              
+
               <audio
                 ref={audioRef}
                 src={recordedUrl}
@@ -358,8 +378,12 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
             />
             <Label htmlFor="audio-upload" className="cursor-pointer">
               <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm text-gray-600">Clique para selecionar arquivos de audio</p>
-              <p className="text-xs text-gray-400 mt-1">Suporta MP3, WAV, M4A, etc.</p>
+              <p className="text-sm text-gray-600">
+                Clique para selecionar arquivos de audio
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Suporta MP3, WAV, M4A, etc.
+              </p>
             </Label>
           </div>
 
@@ -367,7 +391,10 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
             <div className="space-y-2">
               <h4 className="font-medium">Arquivos Selecionados:</h4>
               {uploadedFiles.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                >
                   <span className="text-sm">{file.name}</span>
                   <Button
                     onClick={() => removeUploadedFile(index)}
@@ -402,11 +429,13 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
                 <Progress value={uploadProgress} className="w-full" />
               </div>
             )}
-            
+
             <Button
               onClick={handleSendForProcessing}
               className="w-full"
-              disabled={isUploading || (!recordedBlob && uploadedFiles.length === 0)}
+              disabled={
+                isUploading || (!recordedBlob && uploadedFiles.length === 0)
+              }
             >
               {isUploading ? (
                 <>
@@ -416,7 +445,12 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Enviar para {intentionOptions.find(opt => opt.value === selectedIntention)?.label}
+                  Enviar para{' '}
+                  {
+                    intentionOptions.find(
+                      opt => opt.value === selectedIntention
+                    )?.label
+                  }
                 </>
               )}
             </Button>
@@ -437,28 +471,42 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span>Microfone:</span>
-                <span className={`font-medium ${
-                  microphoneStatus === 'available' ? 'text-green-600' :
-                  microphoneStatus === 'denied' ? 'text-red-600' :
-                  microphoneStatus === 'error' ? 'text-red-600' :
-                  'text-yellow-600'
-                }`}>
-                  {microphoneStatus === 'available' ? 'Disponível' :
-                   microphoneStatus === 'denied' ? 'Acesso Negado' :
-                   microphoneStatus === 'error' ? 'Erro' :
-                   'Verificando...'}
+                <span
+                  className={`font-medium ${
+                    microphoneStatus === 'available'
+                      ? 'text-green-600'
+                      : microphoneStatus === 'denied'
+                        ? 'text-red-600'
+                        : microphoneStatus === 'error'
+                          ? 'text-red-600'
+                          : 'text-yellow-600'
+                  }`}
+                >
+                  {microphoneStatus === 'available'
+                    ? 'Disponível'
+                    : microphoneStatus === 'denied'
+                      ? 'Acesso Negado'
+                      : microphoneStatus === 'error'
+                        ? 'Erro'
+                        : 'Verificando...'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Qualidade do Audio:</span>
-                <span className={`font-medium ${
-                  recordingQuality === 'high' ? 'text-green-600' :
-                  recordingQuality === 'medium' ? 'text-yellow-600' :
-                  'text-red-600'
-                }`}>
-                  {recordingQuality === 'high' ? 'Alta (WebM)' :
-                   recordingQuality === 'medium' ? 'Média' :
-                   'Baixa'}
+                <span
+                  className={`font-medium ${
+                    recordingQuality === 'high'
+                      ? 'text-green-600'
+                      : recordingQuality === 'medium'
+                        ? 'text-yellow-600'
+                        : 'text-red-600'
+                  }`}
+                >
+                  {recordingQuality === 'high'
+                    ? 'Alta (WebM)'
+                    : recordingQuality === 'medium'
+                      ? 'Média'
+                      : 'Baixa'}
                 </span>
               </div>
             </div>
@@ -476,13 +524,15 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({ onProcessingComplete, c
           {microphoneStatus === 'denied' && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
               <AlertCircle className="h-4 w-4 inline mr-2" />
-              Para usar a gravação, clique no ícone de cadeado na barra de endereços e permita o acesso ao microfone.
+              Para usar a gravação, clique no ícone de cadeado na barra de
+              endereços e permita o acesso ao microfone.
             </div>
           )}
           {microphoneStatus === 'error' && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
               <AlertCircle className="h-4 w-4 inline mr-2" />
-              Seu navegador não suporta gravação de áudio ou não há microfone disponível.
+              Seu navegador não suporta gravação de áudio ou não há microfone
+              disponível.
             </div>
           )}
         </CardContent>

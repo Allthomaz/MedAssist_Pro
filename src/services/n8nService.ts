@@ -61,7 +61,7 @@ class N8nService {
         webhookUrl,
         workflowId,
         apiKey,
-        headers: apiKey ? { 'X-N8N-API-KEY': apiKey } : {}
+        headers: apiKey ? { 'X-N8N-API-KEY': apiKey } : {},
       };
       return;
     }
@@ -80,13 +80,13 @@ class N8nService {
       }
 
       const settings = data.settings;
-      
+
       if (settings?.webhookUrl && settings?.workflowId) {
         this.config = {
           webhookUrl: settings.webhookUrl,
           workflowId: settings.workflowId,
           apiKey: settings.apiKey,
-          headers: settings.apiKey ? { 'X-N8N-API-KEY': settings.apiKey } : {}
+          headers: settings.apiKey ? { 'X-N8N-API-KEY': settings.apiKey } : {},
         };
       }
     } catch (error) {
@@ -106,13 +106,11 @@ class N8nService {
    */
   public async saveConfig(config: N8nWorkflowConfig): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('system_settings')
-        .upsert({
-          key: 'n8n_integration',
-          settings: config,
-          updated_at: new Date().toISOString()
-        });
+      const { error } = await supabase.from('system_settings').upsert({
+        key: 'n8n_integration',
+        settings: config,
+        updated_at: new Date().toISOString(),
+      });
 
       if (error) {
         console.error('Erro ao salvar configuração do n8n:', error);
@@ -135,11 +133,12 @@ class N8nService {
   ): Promise<N8nTranscriptionResponse> {
     if (!this.isConfigured()) {
       await this.loadConfig();
-      
+
       if (!this.isConfigured()) {
         return {
           success: false,
-          error: 'Serviço n8n não configurado. Configure o webhook URL e workflow ID.'
+          error:
+            'Serviço n8n não configurado. Configure o webhook URL e workflow ID.',
         };
       }
     }
@@ -150,7 +149,7 @@ class N8nService {
         ...payload,
         workflowId: this.config!.workflowId,
         timestamp: new Date().toISOString(),
-        source: 'doctor-brief-ai'
+        source: 'doctor-brief-ai',
       };
 
       // Enviar para o webhook do n8n
@@ -158,14 +157,16 @@ class N8nService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...this.config!.headers
+          ...this.config!.headers,
         },
-        body: JSON.stringify(enhancedPayload)
+        body: JSON.stringify(enhancedPayload),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Erro na resposta do n8n: ${response.status} - ${errorText}`);
+        throw new Error(
+          `Erro na resposta do n8n: ${response.status} - ${errorText}`
+        );
       }
 
       const result = await response.json();
@@ -174,13 +175,16 @@ class N8nService {
         success: true,
         workflowId: this.config!.workflowId,
         executionId: result.executionId || result.execution_id,
-        transcription: result.transcription || result.data?.transcription
+        transcription: result.transcription || result.data?.transcription,
       };
     } catch (error) {
       console.error('Erro ao acionar workflow de transcrição no n8n:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erro desconhecido na integração com n8n'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Erro desconhecido na integração com n8n',
       };
     }
   }
@@ -192,7 +196,7 @@ class N8nService {
     if (!this.isConfigured() || !this.config?.apiKey) {
       return {
         success: false,
-        error: 'Configuração de API do n8n incompleta. Configure a API key.'
+        error: 'Configuração de API do n8n incompleta. Configure a API key.',
       };
     }
 
@@ -200,20 +204,22 @@ class N8nService {
       // Extrair o domínio base do webhook URL
       const url = new URL(this.config.webhookUrl);
       const baseUrl = `${url.protocol}//${url.host}`;
-      
+
       // Construir URL para a API de execuções do n8n
       const apiUrl = `${baseUrl}/api/v1/executions/${executionId}`;
 
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'X-N8N-API-KEY': this.config.apiKey
-        }
+          'X-N8N-API-KEY': this.config.apiKey,
+        },
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Erro ao verificar status: ${response.status} - ${errorText}`);
+        throw new Error(
+          `Erro ao verificar status: ${response.status} - ${errorText}`
+        );
       }
 
       return await response.json();
@@ -221,7 +227,10 @@ class N8nService {
       console.error('Erro ao verificar status do workflow:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erro desconhecido ao verificar status'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Erro desconhecido ao verificar status',
       };
     }
   }

@@ -138,12 +138,21 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
 
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      sans-serif;
   }
 
   /* Medical platform animations and effects */
   .medical-gradient {
-    background: linear-gradient(135deg, hsl(var(--medical-blue)), hsl(var(--primary)));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-blue)),
+      hsl(var(--primary))
+    );
   }
 
   .medical-glow {
@@ -177,24 +186,28 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
   }
 
   /* Premium Medical Design System - Sophisticated Visual Enhancements */
-  
+
   /* Premium Cards with Subtle Elevation */
   .premium-card {
-    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--card)/0.98) 100%);
-    border: 1px solid hsl(var(--border)/0.5);
-    box-shadow: 
-      0 1px 3px 0 hsl(var(--foreground)/0.05),
-      0 1px 2px -1px hsl(var(--foreground)/0.05),
-      inset 0 1px 0 0 hsl(var(--background)/0.8);
+    background: linear-gradient(
+      145deg,
+      hsl(var(--card)) 0%,
+      hsl(var(--card) / 0.98) 100%
+    );
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow:
+      0 1px 3px 0 hsl(var(--foreground) / 0.05),
+      0 1px 2px -1px hsl(var(--foreground) / 0.05),
+      inset 0 1px 0 0 hsl(var(--background) / 0.8);
     backdrop-filter: blur(8px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .premium-card:hover {
     transform: translateY(-2px);
-    box-shadow: 
-      0 8px 25px -8px hsl(var(--foreground)/0.12),
-      0 4px 12px -4px hsl(var(--foreground)/0.08);
+    box-shadow:
+      0 8px 25px -8px hsl(var(--foreground) / 0.12),
+      0 4px 12px -4px hsl(var(--foreground) / 0.08);
   }
 
   /* Sophisticated Typography */
@@ -202,7 +215,11 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     font-weight: 700;
     letter-spacing: -0.025em;
     line-height: 1.2;
-    background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--foreground)/0.8) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--foreground)) 0%,
+      hsl(var(--foreground) / 0.8) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -228,7 +245,12 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, hsl(var(--background)/0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--background) / 0.2),
+      transparent
+    );
     transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -256,17 +278,27 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
-  .premium-fade-in:nth-child(2) { animation-delay: 0.1s; }
-  .premium-fade-in:nth-child(3) { animation-delay: 0.2s; }
-  .premium-fade-in:nth-child(4) { animation-delay: 0.3s; }
-  .premium-fade-in:nth-child(5) { animation-delay: 0.4s; }
+  .premium-fade-in:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  .premium-fade-in:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+  .premium-fade-in:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+  .premium-fade-in:nth-child(5) {
+    animation-delay: 0.4s;
+  }
 
   /* Premium Stats Cards */
   .premium-stats-card {
-    background: linear-gradient(135deg, 
-      hsl(var(--card)) 0%, 
-      hsl(var(--card)/0.95) 100%);
-    border: 1px solid hsl(var(--border)/0.3);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--card)) 0%,
+      hsl(var(--card) / 0.95) 100%
+    );
+    border: 1px solid hsl(var(--border) / 0.3);
     position: relative;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -279,34 +311,42 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, 
-      hsl(var(--medical-blue)) 0%, 
-      hsl(var(--medical-success)) 50%, 
-      hsl(var(--medical-blue)) 100%);
+    background: linear-gradient(
+      90deg,
+      hsl(var(--medical-blue)) 0%,
+      hsl(var(--medical-success)) 50%,
+      hsl(var(--medical-blue)) 100%
+    );
   }
 
   .premium-stats-card .icon-container {
-    background: linear-gradient(135deg, 
-      hsl(var(--medical-blue)/0.1) 0%, 
-      hsl(var(--medical-blue)/0.05) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-blue) / 0.1) 0%,
+      hsl(var(--medical-blue) / 0.05) 100%
+    );
     border-radius: 8px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .premium-stats-card:hover .icon-container {
-    background: linear-gradient(135deg, 
-      hsl(var(--medical-blue)/0.15) 0%, 
-      hsl(var(--medical-blue)/0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-blue) / 0.15) 0%,
+      hsl(var(--medical-blue) / 0.1) 100%
+    );
     transform: scale(1.05);
   }
 
   /* Glassmorphism Sidebar */
   .premium-sidebar {
-    background: linear-gradient(180deg, 
-      hsl(var(--sidebar-background)/0.95) 0%, 
-      hsl(var(--sidebar-background)/0.9) 100%);
+    background: linear-gradient(
+      180deg,
+      hsl(var(--sidebar-background) / 0.95) 0%,
+      hsl(var(--sidebar-background) / 0.9) 100%
+    );
     backdrop-filter: blur(12px);
-    border-right: 1px solid hsl(var(--sidebar-border)/0.5);
+    border-right: 1px solid hsl(var(--sidebar-border) / 0.5);
   }
 
   .premium-sidebar-item {
@@ -335,7 +375,7 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
   /* Medical Input Fields */
   .medical-input {
     background: hsl(var(--input));
-    border: 1.5px solid hsl(var(--border)/0.5);
+    border: 1.5px solid hsl(var(--border) / 0.5);
     border-radius: calc(var(--radius) - 1px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -343,27 +383,31 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
 
   .medical-input:focus {
     border-color: hsl(var(--medical-blue));
-    box-shadow: 
-      0 0 0 3px hsl(var(--medical-blue)/0.1),
-      inset 0 1px 2px hsl(var(--foreground)/0.05);
+    box-shadow:
+      0 0 0 3px hsl(var(--medical-blue) / 0.1),
+      inset 0 1px 2px hsl(var(--foreground) / 0.05);
     transform: translateY(-1px);
   }
 
   /* Dark Mode Refinements */
   .dark .premium-card {
-    background: linear-gradient(145deg, 
-      hsl(var(--card)) 0%, 
-      hsl(var(--card)/0.95) 100%);
-    border: 1px solid hsl(var(--border)/0.3);
-    box-shadow: 
+    background: linear-gradient(
+      145deg,
+      hsl(var(--card)) 0%,
+      hsl(var(--card) / 0.95) 100%
+    );
+    border: 1px solid hsl(var(--border) / 0.3);
+    box-shadow:
       0 4px 12px -4px hsl(0 0% 0% / 0.25),
-      inset 0 1px 0 0 hsl(var(--foreground)/0.05);
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.05);
   }
 
   .dark .medical-gradient {
-    background: linear-gradient(135deg, 
-      hsl(var(--medical-blue)) 0%, 
-      hsl(var(--medical-blue)/0.8) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-blue)) 0%,
+      hsl(var(--medical-blue) / 0.8) 100%
+    );
   }
 
   /* Medical Grid System */
@@ -424,13 +468,22 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, hsl(var(--medical-blue)/0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--medical-blue) / 0.1),
+      transparent
+    );
     animation: shimmer 1.5s infinite;
   }
 
   @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
   }
 
   /* Compact Mode Styles */
@@ -448,7 +501,8 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
 
   .compact-mode .medical-header {
     height: calc(4rem * var(--spacing-scale));
-    padding: calc(0.75rem * var(--spacing-scale)) calc(1.5rem * var(--spacing-scale));
+    padding: calc(0.75rem * var(--spacing-scale))
+      calc(1.5rem * var(--spacing-scale));
   }
 
   .compact-mode .medical-stats-card {
@@ -456,7 +510,8 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
   }
 
   .compact-mode .medical-button {
-    padding: calc(0.5rem * var(--spacing-scale)) calc(1rem * var(--spacing-scale));
+    padding: calc(0.5rem * var(--spacing-scale))
+      calc(1rem * var(--spacing-scale));
     font-size: calc(0.875rem * var(--spacing-scale));
   }
 
@@ -535,22 +590,28 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
 
   /* Enhanced Medical Gradients */
   .medical-gradient-enhanced {
-    background: linear-gradient(135deg, 
-      hsl(var(--medical-blue)) 0%, 
-      hsl(var(--medical-teal)) 50%, 
-      hsl(var(--medical-success)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-blue)) 0%,
+      hsl(var(--medical-teal)) 50%,
+      hsl(var(--medical-success)) 100%
+    );
   }
 
   .medical-gradient-purple {
-    background: linear-gradient(135deg, 
-      hsl(var(--medical-purple)) 0%, 
-      hsl(var(--medical-blue)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-purple)) 0%,
+      hsl(var(--medical-blue)) 100%
+    );
   }
 
   .medical-gradient-warm {
-    background: linear-gradient(135deg, 
-      hsl(var(--medical-orange)) 0%, 
-      hsl(var(--medical-alert)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-orange)) 0%,
+      hsl(var(--medical-alert)) 100%
+    );
   }
 
   /* Medical Status Indicators */

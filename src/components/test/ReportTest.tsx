@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
-import { FileText, Download, Loader2, AlertCircle, CheckCircle, User, Calendar, Stethoscope } from 'lucide-react';
+import {
+  FileText,
+  Download,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  User,
+  Calendar,
+  Stethoscope,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ReportService } from '@/services/reportService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -44,7 +65,9 @@ const ReportTest: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [generatedReportUrl, setGeneratedReportUrl] = useState<string | null>(null);
+  const [generatedReportUrl, setGeneratedReportUrl] = useState<string | null>(
+    null
+  );
 
   // Estados para dados de teste
   const [patient, setPatient] = useState<MockPatient>({
@@ -54,7 +77,7 @@ const ReportTest: React.FC = () => {
     phone: '(11) 99999-9999',
     birth_date: '1985-03-15',
     gender: 'Masculino',
-    medical_record_number: 'MR001234'
+    medical_record_number: 'MR001234',
   });
 
   const [consultation, setConsultation] = useState<MockConsultation>({
@@ -63,29 +86,33 @@ const ReportTest: React.FC = () => {
     consultation_type: 'Consulta de Rotina',
     chief_complaint: 'Dor de cabeça frequente há 2 semanas',
     diagnosis: 'Cefaleia tensional. Possível relação com estresse ocupacional.',
-    treatment_plan: 'Prescrição de analgésico, recomendação de exercícios de relaxamento e acompanhamento em 15 dias.',
-    notes: 'Paciente relata melhora com repouso. Orientado sobre técnicas de gerenciamento de estresse.',
+    treatment_plan:
+      'Prescrição de analgésico, recomendação de exercícios de relaxamento e acompanhamento em 15 dias.',
+    notes:
+      'Paciente relata melhora com repouso. Orientado sobre técnicas de gerenciamento de estresse.',
     doctor_name: 'Dr. Maria Fernanda Costa',
-    doctor_crm: 'CRM/SP 123456'
+    doctor_crm: 'CRM/SP 123456',
   });
 
   const [transcriptions, setTranscriptions] = useState<MockTranscription[]>([
     {
       id: 'test-transcription-1',
-      transcript_text: 'Paciente do sexo masculino, 38 anos, comparece à consulta relatando episódios de cefaleia há aproximadamente duas semanas. Refere dor de intensidade moderada, localizada na região frontal e temporal bilateral. A dor piora com o estresse e melhora com repouso. Nega náuseas, vômitos ou alterações visuais. Exame físico sem alterações significativas. Sinais vitais estáveis.',
+      transcript_text:
+        'Paciente do sexo masculino, 38 anos, comparece à consulta relatando episódios de cefaleia há aproximadamente duas semanas. Refere dor de intensidade moderada, localizada na região frontal e temporal bilateral. A dor piora com o estresse e melhora com repouso. Nega náuseas, vômitos ou alterações visuais. Exame físico sem alterações significativas. Sinais vitais estáveis.',
       confidence_score: 0.95,
       language_detected: 'pt-BR',
       word_count: 65,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     },
     {
       id: 'test-transcription-2',
-      transcript_text: 'Paciente trabalha em escritório, permanece muitas horas em frente ao computador. Relata aumento do estresse no trabalho nas últimas semanas. Nega uso de medicamentos contínuos. História familiar negativa para enxaqueca. Orientado sobre postura adequada no trabalho e técnicas de relaxamento.',
+      transcript_text:
+        'Paciente trabalha em escritório, permanece muitas horas em frente ao computador. Relata aumento do estresse no trabalho nas últimas semanas. Nega uso de medicamentos contínuos. História familiar negativa para enxaqueca. Orientado sobre postura adequada no trabalho e técnicas de relaxamento.',
       confidence_score: 0.92,
       language_detected: 'pt-BR',
       word_count: 48,
-      created_at: new Date(Date.now() + 300000).toISOString() // 5 minutos depois
-    }
+      created_at: new Date(Date.now() + 300000).toISOString(), // 5 minutos depois
+    },
   ]);
 
   const generateTestReport = async () => {
@@ -99,25 +126,26 @@ const ReportTest: React.FC = () => {
       const mockReportData = {
         patient,
         consultation,
-        transcriptions
+        transcriptions,
       };
 
       // Usar o método privado createPDFReport através de uma abordagem alternativa
       // Como o método é privado, vamos criar o PDF diretamente aqui
       const reportBlob = await createMockPDFReport(mockReportData);
-      
+
       // Criar URL temporária para download
       const url = URL.createObjectURL(reportBlob);
       setGeneratedReportUrl(url);
-      
+
       setSuccess('Relatório de teste gerado com sucesso!');
-      
+
       // Limpar mensagem de sucesso após 5 segundos
       setTimeout(() => setSuccess(null), 5000);
-      
     } catch (err) {
       console.error('Erro ao gerar relatório de teste:', err);
-      setError('Erro ao gerar relatório de teste. Verifique os dados e tente novamente.');
+      setError(
+        'Erro ao gerar relatório de teste. Verifique os dados e tente novamente.'
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -126,12 +154,12 @@ const ReportTest: React.FC = () => {
   const createMockPDFReport = async (data: any): Promise<Blob> => {
     // Importar jsPDF dinamicamente
     const { default: jsPDF } = await import('jspdf');
-    
+
     const doc = new jsPDF();
     let yPosition = 20;
     const pageWidth = doc.internal.pageSize.width;
     const margin = 20;
-    const contentWidth = pageWidth - (margin * 2);
+    const contentWidth = pageWidth - margin * 2;
 
     // Configurar fonte padrão
     doc.setFont('helvetica');
@@ -139,12 +167,16 @@ const ReportTest: React.FC = () => {
     // Cabeçalho
     doc.setFontSize(20);
     doc.setTextColor(41, 128, 185); // Azul
-    doc.text('RELATÓRIO MÉDICO - TESTE', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text('RELATÓRIO MÉDICO - TESTE', pageWidth / 2, yPosition, {
+      align: 'center',
+    });
     yPosition += 15;
 
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
-    doc.text('MedAssist - Sistema de Gestão Médica', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text('MedAssist - Sistema de Gestão Médica', pageWidth / 2, yPosition, {
+      align: 'center',
+    });
     yPosition += 20;
 
     // Linha separadora
@@ -160,14 +192,14 @@ const ReportTest: React.FC = () => {
 
     doc.setFontSize(10);
     doc.setTextColor(60, 60, 60);
-    
+
     const patientInfo = [
       `Nome: ${data.patient.name}`,
       `Email: ${data.patient.email}`,
       `Telefone: ${data.patient.phone}`,
       `Data de Nascimento: ${new Date(data.patient.birth_date).toLocaleDateString('pt-BR')}`,
       `Gênero: ${data.patient.gender}`,
-      `Prontuário: ${data.patient.medical_record_number}`
+      `Prontuário: ${data.patient.medical_record_number}`,
     ];
 
     patientInfo.forEach(info => {
@@ -185,13 +217,13 @@ const ReportTest: React.FC = () => {
 
     doc.setFontSize(10);
     doc.setTextColor(60, 60, 60);
-    
+
     const consultationInfo = [
       `Data: ${new Date(data.consultation.consultation_date).toLocaleDateString('pt-BR')}`,
       `Tipo: ${data.consultation.consultation_type}`,
       `Médico: ${data.consultation.doctor_name}`,
       `CRM: ${data.consultation.doctor_crm}`,
-      `Queixa Principal: ${data.consultation.chief_complaint}`
+      `Queixa Principal: ${data.consultation.chief_complaint}`,
     ];
 
     consultationInfo.forEach(info => {
@@ -222,14 +254,21 @@ const ReportTest: React.FC = () => {
 
         doc.setFontSize(9);
         doc.setTextColor(100, 100, 100);
-        doc.text(`Confiança: ${(transcription.confidence_score * 100).toFixed(1)}% | Palavras: ${transcription.word_count}`, margin, yPosition);
+        doc.text(
+          `Confiança: ${(transcription.confidence_score * 100).toFixed(1)}% | Palavras: ${transcription.word_count}`,
+          margin,
+          yPosition
+        );
         yPosition += 10;
 
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        
+
         // Quebrar texto em linhas
-        const lines = doc.splitTextToSize(transcription.transcript_text, contentWidth);
+        const lines = doc.splitTextToSize(
+          transcription.transcript_text,
+          contentWidth
+        );
         lines.forEach((line: string) => {
           if (yPosition > 280) {
             doc.addPage();
@@ -261,7 +300,10 @@ const ReportTest: React.FC = () => {
 
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    const diagnosisLines = doc.splitTextToSize(data.consultation.diagnosis, contentWidth);
+    const diagnosisLines = doc.splitTextToSize(
+      data.consultation.diagnosis,
+      contentWidth
+    );
     diagnosisLines.forEach((line: string) => {
       doc.text(line, margin, yPosition);
       yPosition += 5;
@@ -275,7 +317,10 @@ const ReportTest: React.FC = () => {
 
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    const treatmentLines = doc.splitTextToSize(data.consultation.treatment_plan, contentWidth);
+    const treatmentLines = doc.splitTextToSize(
+      data.consultation.treatment_plan,
+      contentWidth
+    );
     treatmentLines.forEach((line: string) => {
       doc.text(line, margin, yPosition);
       yPosition += 5;
@@ -284,7 +329,7 @@ const ReportTest: React.FC = () => {
     // Observações
     if (data.consultation.notes) {
       yPosition += 15;
-      
+
       doc.setFontSize(14);
       doc.setTextColor(0, 0, 0);
       doc.text('OBSERVAÇÕES', margin, yPosition);
@@ -292,7 +337,10 @@ const ReportTest: React.FC = () => {
 
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
-      const notesLines = doc.splitTextToSize(data.consultation.notes, contentWidth);
+      const notesLines = doc.splitTextToSize(
+        data.consultation.notes,
+        contentWidth
+      );
       notesLines.forEach((line: string) => {
         if (yPosition > 280) {
           doc.addPage();
@@ -335,7 +383,10 @@ const ReportTest: React.FC = () => {
     setPatient(prev => ({ ...prev, [field]: value }));
   };
 
-  const updateConsultationField = (field: keyof MockConsultation, value: string) => {
+  const updateConsultationField = (
+    field: keyof MockConsultation,
+    value: string
+  ) => {
     setConsultation(prev => ({ ...prev, [field]: value }));
   };
 
@@ -368,7 +419,7 @@ const ReportTest: React.FC = () => {
               <Input
                 id="patient-name"
                 value={patient.name}
-                onChange={(e) => updatePatientField('name', e.target.value)}
+                onChange={e => updatePatientField('name', e.target.value)}
               />
             </div>
             <div>
@@ -377,7 +428,7 @@ const ReportTest: React.FC = () => {
                 id="patient-email"
                 type="email"
                 value={patient.email}
-                onChange={(e) => updatePatientField('email', e.target.value)}
+                onChange={e => updatePatientField('email', e.target.value)}
               />
             </div>
             <div>
@@ -385,7 +436,7 @@ const ReportTest: React.FC = () => {
               <Input
                 id="patient-phone"
                 value={patient.phone}
-                onChange={(e) => updatePatientField('phone', e.target.value)}
+                onChange={e => updatePatientField('phone', e.target.value)}
               />
             </div>
             <div>
@@ -394,12 +445,15 @@ const ReportTest: React.FC = () => {
                 id="patient-birth"
                 type="date"
                 value={patient.birth_date}
-                onChange={(e) => updatePatientField('birth_date', e.target.value)}
+                onChange={e => updatePatientField('birth_date', e.target.value)}
               />
             </div>
             <div>
               <Label htmlFor="patient-gender">Gênero</Label>
-              <Select value={patient.gender} onValueChange={(value) => updatePatientField('gender', value)}>
+              <Select
+                value={patient.gender}
+                onValueChange={value => updatePatientField('gender', value)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -415,7 +469,9 @@ const ReportTest: React.FC = () => {
               <Input
                 id="patient-record"
                 value={patient.medical_record_number}
-                onChange={(e) => updatePatientField('medical_record_number', e.target.value)}
+                onChange={e =>
+                  updatePatientField('medical_record_number', e.target.value)
+                }
               />
             </div>
           </CardContent>
@@ -428,9 +484,7 @@ const ReportTest: React.FC = () => {
               <Stethoscope className="h-5 w-5" />
               Dados da Consulta
             </CardTitle>
-            <CardDescription>
-              Informações da consulta médica
-            </CardDescription>
+            <CardDescription>Informações da consulta médica</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -438,7 +492,9 @@ const ReportTest: React.FC = () => {
               <Input
                 id="consultation-type"
                 value={consultation.consultation_type}
-                onChange={(e) => updateConsultationField('consultation_type', e.target.value)}
+                onChange={e =>
+                  updateConsultationField('consultation_type', e.target.value)
+                }
               />
             </div>
             <div>
@@ -446,7 +502,9 @@ const ReportTest: React.FC = () => {
               <Input
                 id="doctor-name"
                 value={consultation.doctor_name}
-                onChange={(e) => updateConsultationField('doctor_name', e.target.value)}
+                onChange={e =>
+                  updateConsultationField('doctor_name', e.target.value)
+                }
               />
             </div>
             <div>
@@ -454,7 +512,9 @@ const ReportTest: React.FC = () => {
               <Input
                 id="doctor-crm"
                 value={consultation.doctor_crm}
-                onChange={(e) => updateConsultationField('doctor_crm', e.target.value)}
+                onChange={e =>
+                  updateConsultationField('doctor_crm', e.target.value)
+                }
               />
             </div>
             <div>
@@ -462,7 +522,9 @@ const ReportTest: React.FC = () => {
               <Textarea
                 id="chief-complaint"
                 value={consultation.chief_complaint}
-                onChange={(e) => updateConsultationField('chief_complaint', e.target.value)}
+                onChange={e =>
+                  updateConsultationField('chief_complaint', e.target.value)
+                }
                 rows={3}
               />
             </div>
@@ -471,7 +533,9 @@ const ReportTest: React.FC = () => {
               <Textarea
                 id="diagnosis"
                 value={consultation.diagnosis}
-                onChange={(e) => updateConsultationField('diagnosis', e.target.value)}
+                onChange={e =>
+                  updateConsultationField('diagnosis', e.target.value)
+                }
                 rows={3}
               />
             </div>
@@ -480,7 +544,9 @@ const ReportTest: React.FC = () => {
               <Textarea
                 id="treatment-plan"
                 value={consultation.treatment_plan}
-                onChange={(e) => updateConsultationField('treatment_plan', e.target.value)}
+                onChange={e =>
+                  updateConsultationField('treatment_plan', e.target.value)
+                }
                 rows={3}
               />
             </div>
@@ -489,7 +555,7 @@ const ReportTest: React.FC = () => {
               <Textarea
                 id="notes"
                 value={consultation.notes}
-                onChange={(e) => updateConsultationField('notes', e.target.value)}
+                onChange={e => updateConsultationField('notes', e.target.value)}
                 rows={2}
               />
             </div>
@@ -515,16 +581,18 @@ const ReportTest: React.FC = () => {
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="font-medium">Transcrição {index + 1}</h4>
                   <div className="text-sm text-gray-500">
-                    Confiança: {(transcription.confidence_score * 100).toFixed(1)}% | 
+                    Confiança:{' '}
+                    {(transcription.confidence_score * 100).toFixed(1)}% |
                     Palavras: {transcription.word_count}
                   </div>
                 </div>
                 <Textarea
                   value={transcription.transcript_text}
-                  onChange={(e) => {
+                  onChange={e => {
                     const newTranscriptions = [...transcriptions];
                     newTranscriptions[index].transcript_text = e.target.value;
-                    newTranscriptions[index].word_count = e.target.value.split(' ').length;
+                    newTranscriptions[index].word_count =
+                      e.target.value.split(' ').length;
                     setTranscriptions(newTranscriptions);
                   }}
                   rows={4}
@@ -552,7 +620,7 @@ const ReportTest: React.FC = () => {
                 {error}
               </div>
             )}
-            
+
             {success && (
               <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
                 <CheckCircle className="h-4 w-4" />
@@ -589,7 +657,8 @@ const ReportTest: React.FC = () => {
             {generatedReportUrl && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-700">
-                  ✅ Relatório gerado com sucesso! Use o botão "Baixar Relatório" para fazer o download.
+                  ✅ Relatório gerado com sucesso! Use o botão "Baixar
+                  Relatório" para fazer o download.
                 </p>
               </div>
             )}

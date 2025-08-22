@@ -16,13 +16,13 @@ export const useThemePreferences = () => {
   // Aplicar modo compacto (pode ser usado para adicionar classes CSS)
   useEffect(() => {
     const body = document.body;
-    
+
     if (profile?.compact_mode) {
       body.classList.add('compact-mode');
     } else {
       body.classList.remove('compact-mode');
     }
-    
+
     // Cleanup quando o componente for desmontado
     return () => {
       body.classList.remove('compact-mode');

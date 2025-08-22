@@ -42,23 +42,29 @@ sender_name = "MedAssist"
 ## Scripts de Teste
 
 ### 1. Teste SMTP Direto
+
 ```bash
 node test_smtp_direct.js
 ```
+
 - Testa conexão SMTP diretamente com o Inbucket
 - Verifica se o email é enviado com sucesso
 
 ### 2. Teste Supabase Auth
+
 ```bash
 node test_supabase_auth_email.js
 ```
+
 - Testa envio de email através da API do Supabase Auth
 - Simula recuperação de senha
 
 ### 3. Teste Inbucket Integration
+
 ```bash
 node test_inbucket_emails.js
 ```
+
 - Testa integração completa Supabase + Inbucket
 - Verifica captura de emails
 
@@ -95,12 +101,14 @@ sender_name = "env(SENDER_NAME)"
 ## Provedores de Email Recomendados
 
 ### 1. Gmail (Desenvolvimento/Pequeno Volume)
+
 - **Host**: smtp.gmail.com
 - **Port**: 587 (TLS) ou 465 (SSL)
 - **Requer**: App Password (não senha normal)
 - **Limite**: 500 emails/dia
 
 ### 2. SendGrid (Produção)
+
 - **Host**: smtp.sendgrid.net
 - **Port**: 587
 - **User**: apikey
@@ -108,6 +116,7 @@ sender_name = "env(SENDER_NAME)"
 - **Limite**: 100 emails/dia (free), planos pagos disponíveis
 
 ### 3. AWS SES (Produção/Alto Volume)
+
 - **Host**: email-smtp.us-east-1.amazonaws.com
 - **Port**: 587
 - **Requer**: Credenciais IAM específicas
@@ -116,17 +125,20 @@ sender_name = "env(SENDER_NAME)"
 ## Troubleshooting
 
 ### Problema: Emails não são enviados
+
 1. Verificar se o Supabase está rodando: `supabase status`
 2. Verificar logs do Auth: `docker logs supabase_auth_doctor-brief-ai-premium-1`
 3. Verificar configurações SMTP no `config.toml`
 4. Testar conexão SMTP: `node test_smtp_direct.js`
 
 ### Problema: Porta SMTP não disponível
+
 1. Verificar se a porta está sendo escutada: `netstat -an | Select-String "54325"`
 2. Reiniciar Supabase: `supabase stop && supabase start`
 3. Verificar conflitos de container: `docker ps`
 
 ### Problema: Emails em produção não chegam
+
 1. Verificar configurações do provedor SMTP
 2. Verificar se o domínio está verificado (AWS SES, SendGrid)
 3. Verificar logs de bounce/spam
@@ -135,6 +147,7 @@ sender_name = "env(SENDER_NAME)"
 ## Segurança
 
 ### Boas Práticas
+
 1. **Nunca commitar credenciais SMTP** no código
 2. **Usar variáveis de ambiente** para configurações sensíveis
 3. **Usar App Passwords** ao invés de senhas normais (Gmail)
@@ -142,6 +155,7 @@ sender_name = "env(SENDER_NAME)"
 5. **Monitorar taxa de bounce** e reputação do sender
 
 ### Conformidade LGPD/HIPAA
+
 1. **Criptografar emails** com informações médicas
 2. **Logs de auditoria** para envios de email
 3. **Opt-out automático** para emails promocionais

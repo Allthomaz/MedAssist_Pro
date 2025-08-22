@@ -3,17 +3,49 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Upload, X, User, FileText, Tag, Plus, Phone, Mail, Heart, Pill, AlertCircle, Save, Loader2 } from 'lucide-react';
+import {
+  CalendarIcon,
+  Upload,
+  X,
+  User,
+  FileText,
+  Tag,
+  Plus,
+  Phone,
+  Mail,
+  Heart,
+  Pill,
+  AlertCircle,
+  Save,
+  Loader2,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { EnhancedCalendar } from '@/components/ui/enhanced-calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,7 +76,10 @@ interface PatientFormProps {
   onCancel: () => void;
 }
 
-export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel }) => {
+export const PatientForm: React.FC<PatientFormProps> = ({
+  onSuccess,
+  onCancel,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -68,11 +103,14 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   };
 
@@ -80,10 +118,17 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
     const files = event.target.files;
     if (files) {
       const newFiles = Array.from(files).filter(file => {
-        const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'audio/mpeg', 'audio/wav', 'text/plain'];
+        const validTypes = [
+          'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'audio/mpeg',
+          'audio/wav',
+          'text/plain',
+        ];
         return validTypes.includes(file.type);
       });
-      
+
       setUploadedFiles(prev => [...prev, ...newFiles]);
     }
   };
@@ -113,14 +158,14 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
 
   const onSubmit = async (data: PatientFormData) => {
     setIsLoading(true);
-    
+
     try {
       const { data: user } = await supabase.auth.getUser();
-      
+
       if (!user.user?.id) {
         throw new Error('Usuário não autenticado');
       }
-      
+
       // Criar registro do paciente sem profile_id (paciente sem conta no sistema)
       const patientData = {
         doctor_id: user.user.id,
@@ -131,11 +176,13 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
         phone: data.phone || null,
         email: data.email || null,
         family_history: data.family_history || null,
-        current_medications: data.current_medications ? [data.current_medications] : null,
+        current_medications: data.current_medications
+          ? [data.current_medications]
+          : null,
         notes: data.chief_complaint || null,
         status: 'active' as const,
       };
-      
+
       // Não incluir profile_id para pacientes sem conta no sistema
 
       const { data: patient, error } = await supabase
@@ -157,15 +204,15 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
       onSuccess();
     } catch (error: any) {
       console.error('Erro ao cadastrar paciente:', error);
-      
+
       let errorMessage = 'Falha ao cadastrar paciente. Tente novamente.';
-      
+
       if (error?.message) {
         errorMessage = error.message;
       } else if (error?.details) {
         errorMessage = error.details;
       }
-      
+
       toast({
         title: 'Erro',
         description: errorMessage,
@@ -184,7 +231,9 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Novo Paciente</h2>
-          <p className="text-muted-foreground">Cadastre as informações do paciente</p>
+          <p className="text-muted-foreground">
+            Cadastre as informações do paciente
+          </p>
         </div>
         <Button variant="ghost" onClick={onCancel}>
           <X className="w-4 h-4" />
@@ -229,12 +278,12 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
+                                'w-full pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground'
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "dd/MM/yyyy")
+                                format(field.value, 'dd/MM/yyyy')
                               ) : (
                                 <span>Selecionar data</span>
                               )}
@@ -246,10 +295,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                           <EnhancedCalendar
                             value={field.value}
                             onDateChange={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
+                            disabled={date =>
+                              date > new Date() || date < new Date('1900-01-01')
                             }
-                            className={cn("pointer-events-auto")}
+                            className={cn('pointer-events-auto')}
                           />
                         </PopoverContent>
                       </Popover>
@@ -271,7 +320,10 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Gênero *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecionar" />
@@ -303,7 +355,9 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                         <Input
                           placeholder="(XX) XXXXX-XXXX"
                           {...field}
-                          onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                          onChange={e =>
+                            field.onChange(formatPhone(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -321,7 +375,11 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                         E-mail
                       </FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="email@exemplo.com" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="email@exemplo.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -435,8 +493,13 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                   <Label>Arquivos Anexados</Label>
                   <div className="space-y-2">
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 border rounded-md">
-                        <span className="text-sm text-foreground">{file.name}</span>
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 border rounded-md"
+                      >
+                        <span className="text-sm text-foreground">
+                          {file.name}
+                        </span>
                         <Button
                           type="button"
                           variant="ghost"
@@ -467,26 +530,35 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
                 <Input
                   placeholder="Adicionar rótulo (ex: Ansiedade, Depressão)"
                   value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={e => setNewTag(e.target.value)}
+                  onKeyDown={e => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       addTag();
                     }
                   }}
                 />
-                <Button type="button" variant="outline" onClick={addTag} aria-label="Adicionar rótulo">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addTag}
+                  aria-label="Adicionar rótulo"
+                >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
 
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="cursor-pointer">
+                  {tags.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="cursor-pointer"
+                    >
                       {tag}
-                      <X 
-                        className="w-3 h-3 ml-1 hover:text-destructive" 
+                      <X
+                        className="w-3 h-3 ml-1 hover:text-destructive"
                         onClick={() => removeTag(tag)}
                       />
                     </Badge>
@@ -498,11 +570,21 @@ export const PatientForm: React.FC<PatientFormProps> = ({ onSuccess, onCancel })
 
           {/* Botões de Ação */}
           <div className="flex gap-4 justify-end">
-            <Button type="button" variant="outline" onClick={onCancel} className="premium-button-outline flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="premium-button-outline flex items-center gap-2"
+            >
               <X className="w-4 h-4" />
               Cancelar
             </Button>
-            <Button type="submit" variant="medical" disabled={isLoading} className="premium-button-primary flex items-center gap-2">
+            <Button
+              type="submit"
+              variant="medical"
+              disabled={isLoading}
+              className="premium-button-primary flex items-center gap-2"
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />

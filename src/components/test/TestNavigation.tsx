@@ -1,19 +1,25 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Shield, 
-  Users, 
-  Database, 
-  FileText, 
-  Mic, 
+import {
+  Shield,
+  Users,
+  Database,
+  FileText,
+  Mic,
   HardDrive,
   TestTube,
   ArrowRight,
   CheckCircle,
-  Settings
+  Settings,
 } from 'lucide-react';
 
 interface TestRoute {
@@ -33,38 +39,42 @@ const TestNavigation: React.FC = () => {
     {
       path: '/test-auth',
       title: 'Teste de Autenticação',
-      description: 'Teste completo do sistema de autenticação, criação de usuários e login/logout',
+      description:
+        'Teste completo do sistema de autenticação, criação de usuários e login/logout',
       icon: <Users className="h-5 w-5" />,
       category: 'auth',
       status: 'completed',
-      requiresAuth: false
+      requiresAuth: false,
     },
     {
       path: '/test-rls',
       title: 'Teste de RLS (Row Level Security)',
-      description: 'Verificação das políticas de segurança do banco de dados baseadas no tipo de usuário',
+      description:
+        'Verificação das políticas de segurança do banco de dados baseadas no tipo de usuário',
       icon: <Shield className="h-5 w-5" />,
       category: 'database',
       status: 'in-progress',
-      requiresAuth: true
+      requiresAuth: true,
     },
     {
       path: '/test-database',
       title: 'Teste de Banco de Dados',
-      description: 'Verificação das tabelas, relacionamentos e integridade dos dados',
+      description:
+        'Verificação das tabelas, relacionamentos e integridade dos dados',
       icon: <Database className="h-5 w-5" />,
       category: 'database',
       status: 'completed',
-      requiresAuth: true
+      requiresAuth: true,
     },
     {
       path: '/test-audio',
       title: 'Teste de Áudio',
-      description: 'Teste de gravação, transcrição e processamento de áudio médico',
+      description:
+        'Teste de gravação, transcrição e processamento de áudio médico',
       icon: <Mic className="h-5 w-5" />,
       category: 'features',
       status: 'completed',
-      requiresAuth: true
+      requiresAuth: true,
     },
     {
       path: '/test-reports',
@@ -73,17 +83,18 @@ const TestNavigation: React.FC = () => {
       icon: <FileText className="h-5 w-5" />,
       category: 'features',
       status: 'completed',
-      requiresAuth: true
+      requiresAuth: true,
     },
     {
       path: '/test-storage',
       title: 'Teste de Storage',
-      description: 'Teste de upload, download e gerenciamento de arquivos no Supabase Storage',
+      description:
+        'Teste de upload, download e gerenciamento de arquivos no Supabase Storage',
       icon: <HardDrive className="h-5 w-5" />,
       category: 'storage',
       status: 'completed',
-      requiresAuth: true
-    }
+      requiresAuth: true,
+    },
   ];
 
   const getCategoryIcon = (category: string) => {
@@ -120,14 +131,20 @@ const TestNavigation: React.FC = () => {
     switch (status) {
       case 'completed':
         return (
-          <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+          <Badge
+            variant="default"
+            className="bg-green-100 text-green-800 border-green-300"
+          >
             <CheckCircle className="h-3 w-3 mr-1" />
             Concluído
           </Badge>
         );
       case 'in-progress':
         return (
-          <Badge variant="default" className="bg-blue-100 text-blue-800 border-blue-300">
+          <Badge
+            variant="default"
+            className="bg-blue-100 text-blue-800 border-blue-300"
+          >
             <Settings className="h-3 w-3 mr-1 animate-spin" />
             Em Progresso
           </Badge>
@@ -144,26 +161,32 @@ const TestNavigation: React.FC = () => {
     }
   };
 
-  const groupedRoutes = testRoutes.reduce((acc, route) => {
-    if (!acc[route.category]) {
-      acc[route.category] = [];
-    }
-    acc[route.category].push(route);
-    return acc;
-  }, {} as Record<string, TestRoute[]>);
+  const groupedRoutes = testRoutes.reduce(
+    (acc, route) => {
+      if (!acc[route.category]) {
+        acc[route.category] = [];
+      }
+      acc[route.category].push(route);
+      return acc;
+    },
+    {} as Record<string, TestRoute[]>
+  );
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <TestTube className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Centro de Testes - Sistema Médico</h1>
+        <h1 className="text-2xl font-bold">
+          Centro de Testes - Sistema Médico
+        </h1>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Navegação de Testes</CardTitle>
           <CardDescription>
-            Acesse os diferentes módulos de teste do sistema. Alguns testes requerem autenticação prévia.
+            Acesse os diferentes módulos de teste do sistema. Alguns testes
+            requerem autenticação prévia.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -172,16 +195,18 @@ const TestNavigation: React.FC = () => {
               <div key={category}>
                 <div className="flex items-center gap-2 mb-4">
                   {getCategoryIcon(category)}
-                  <h3 className="text-lg font-semibold">{getCategoryTitle(category)}</h3>
+                  <h3 className="text-lg font-semibold">
+                    {getCategoryTitle(category)}
+                  </h3>
                 </div>
-                
+
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {routes.map((route) => {
+                  {routes.map(route => {
                     const isCurrentPage = location.pathname === route.path;
-                    
+
                     return (
-                      <Card 
-                        key={route.path} 
+                      <Card
+                        key={route.path}
                         className={`transition-all hover:shadow-md ${
                           isCurrentPage ? 'ring-2 ring-blue-500 bg-blue-50' : ''
                         }`}
@@ -190,7 +215,9 @@ const TestNavigation: React.FC = () => {
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2">
                               {route.icon}
-                              <CardTitle className="text-base">{route.title}</CardTitle>
+                              <CardTitle className="text-base">
+                                {route.title}
+                              </CardTitle>
                             </div>
                             {getStatusBadge(route.status)}
                           </div>
@@ -208,14 +235,17 @@ const TestNavigation: React.FC = () => {
                                 </Badge>
                               )}
                             </div>
-                            
+
                             {isCurrentPage ? (
                               <Badge variant="default" className="text-xs">
                                 Página Atual
                               </Badge>
                             ) : (
                               <Button asChild size="sm" variant="outline">
-                                <Link to={route.path} className="flex items-center gap-1">
+                                <Link
+                                  to={route.path}
+                                  className="flex items-center gap-1"
+                                >
                                   Acessar
                                   <ArrowRight className="h-3 w-3" />
                                 </Link>
@@ -252,7 +282,7 @@ const TestNavigation: React.FC = () => {
                 <li>• Teste de recuperação de senha</li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-medium mb-2">Testes de Segurança</h4>
               <ul className="text-sm text-gray-600 space-y-1">
@@ -262,7 +292,7 @@ const TestNavigation: React.FC = () => {
                 <li>• Auditoria de operações sensíveis</li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-medium mb-2">Testes Funcionais</h4>
               <ul className="text-sm text-gray-600 space-y-1">
@@ -272,7 +302,7 @@ const TestNavigation: React.FC = () => {
                 <li>• Integração com APIs externas</li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-medium mb-2">Testes de Banco</h4>
               <ul className="text-sm text-gray-600 space-y-1">

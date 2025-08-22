@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  User, 
-  Shield, 
-  UserCheck, 
-  UserX, 
-  Database, 
-  Key, 
+import {
+  User,
+  Shield,
+  UserCheck,
+  UserX,
+  Database,
+  Key,
   Lock,
   CheckCircle,
   XCircle,
@@ -24,7 +36,7 @@ import {
   Stethoscope,
   Users,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 
 interface TestUser {
@@ -50,22 +62,22 @@ const AuthTest: React.FC = () => {
       password: 'MedicoTeste123',
       fullName: 'Dr. João Silva',
       profession: 'medico',
-      role: 'doctor'
+      role: 'doctor',
     },
     {
       email: 'psicologo.teste@example.com',
       password: 'PsicologoTeste123',
       fullName: 'Dra. Maria Santos',
       profession: 'psicologo',
-      role: 'doctor'
+      role: 'doctor',
     },
     {
       email: 'paciente.teste@example.com',
       password: 'PacienteTeste123',
       fullName: 'Ana Costa',
       profession: 'medico', // Será alterado para paciente após criação
-      role: 'patient'
-    }
+      role: 'patient',
+    },
   ]);
 
   const [selectedUser, setSelectedUser] = useState<TestUser | null>(null);
@@ -76,7 +88,9 @@ const AuthTest: React.FC = () => {
   const [customEmail, setCustomEmail] = useState('');
   const [customPassword, setCustomPassword] = useState('');
   const [customName, setCustomName] = useState('');
-  const [customProfession, setCustomProfession] = useState<'medico' | 'psicologo' | 'terapeuta'>('medico');
+  const [customProfession, setCustomProfession] = useState<
+    'medico' | 'psicologo' | 'terapeuta'
+  >('medico');
 
   // Função para criar usuário de teste
   const createTestUser = async (testUser: TestUser) => {
@@ -93,7 +107,7 @@ const AuthTest: React.FC = () => {
         toast.error(`Erro ao criar usuário: ${error.message}`);
       } else {
         toast.success(`Usuário ${testUser.fullName} criado com sucesso!`);
-        
+
         // Se for paciente, atualizar o role no perfil
         if (testUser.role === 'patient') {
           // Aguardar um pouco para o perfil ser criado
@@ -103,9 +117,12 @@ const AuthTest: React.FC = () => {
                 .from('profiles')
                 .update({ role: 'patient' })
                 .eq('email', testUser.email);
-              
+
               if (updateError) {
-                console.error('Erro ao atualizar role para paciente:', updateError);
+                console.error(
+                  'Erro ao atualizar role para paciente:',
+                  updateError
+                );
               }
             } catch (err) {
               console.error('Erro ao atualizar perfil:', err);
@@ -125,7 +142,7 @@ const AuthTest: React.FC = () => {
     setIsSigningIn(true);
     try {
       const { error } = await signIn(testUser.email, testUser.password);
-      
+
       if (error) {
         toast.error(`Erro no login: ${error.message}`);
       } else {
@@ -148,7 +165,7 @@ const AuthTest: React.FC = () => {
     setIsSigningIn(true);
     try {
       const { error } = await signIn(customEmail, customPassword);
-      
+
       if (error) {
         toast.error(`Erro no login: ${error.message}`);
       } else {
@@ -199,23 +216,23 @@ const AuthTest: React.FC = () => {
       {
         name: 'Acesso à tabela profiles',
         description: 'Verificar se o usuário pode acessar seu próprio perfil',
-        status: 'pending'
+        status: 'pending',
       },
       {
         name: 'Acesso à tabela patients',
         description: 'Verificar permissões na tabela de pacientes',
-        status: 'pending'
+        status: 'pending',
       },
       {
         name: 'Acesso à tabela recordings',
         description: 'Verificar permissões na tabela de gravações',
-        status: 'pending'
+        status: 'pending',
       },
       {
         name: 'Acesso à tabela transcriptions',
         description: 'Verificar permissões na tabela de transcrições',
-        status: 'pending'
-      }
+        status: 'pending',
+      },
     ];
 
     setDatabaseTests(tests);
@@ -227,9 +244,11 @@ const AuthTest: React.FC = () => {
         .select('*')
         .eq('id', user?.id)
         .single();
-      
+
       tests[0].status = error ? 'error' : 'success';
-      tests[0].result = error ? error.message : `Perfil encontrado: ${data?.full_name}`;
+      tests[0].result = error
+        ? error.message
+        : `Perfil encontrado: ${data?.full_name}`;
     } catch (err) {
       tests[0].status = 'error';
       tests[0].result = `Erro: ${err}`;
@@ -241,9 +260,11 @@ const AuthTest: React.FC = () => {
         .from('patients')
         .select('count')
         .limit(1);
-      
+
       tests[1].status = error ? 'error' : 'success';
-      tests[1].result = error ? error.message : `Acesso permitido (${data?.length || 0} registros)`;
+      tests[1].result = error
+        ? error.message
+        : `Acesso permitido (${data?.length || 0} registros)`;
     } catch (err) {
       tests[1].status = 'error';
       tests[1].result = `Erro: ${err}`;
@@ -255,9 +276,11 @@ const AuthTest: React.FC = () => {
         .from('recordings')
         .select('count')
         .limit(1);
-      
+
       tests[2].status = error ? 'error' : 'success';
-      tests[2].result = error ? error.message : `Acesso permitido (${data?.length || 0} registros)`;
+      tests[2].result = error
+        ? error.message
+        : `Acesso permitido (${data?.length || 0} registros)`;
     } catch (err) {
       tests[2].status = 'error';
       tests[2].result = `Erro: ${err}`;
@@ -269,9 +292,11 @@ const AuthTest: React.FC = () => {
         .from('transcriptions')
         .select('count')
         .limit(1);
-      
+
       tests[3].status = error ? 'error' : 'success';
-      tests[3].result = error ? error.message : `Acesso permitido (${data?.length || 0} registros)`;
+      tests[3].result = error
+        ? error.message
+        : `Acesso permitido (${data?.length || 0} registros)`;
     } catch (err) {
       tests[3].status = 'error';
       tests[3].result = `Erro: ${err}`;
@@ -318,7 +343,9 @@ const AuthTest: React.FC = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <Shield className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Teste de Autenticação e Autorização</h1>
+        <h1 className="text-2xl font-bold">
+          Teste de Autenticação e Autorização
+        </h1>
       </div>
 
       {/* Status do usuário atual */}
@@ -334,9 +361,16 @@ const AuthTest: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p><strong>Usuário:</strong> {profile?.full_name || 'Carregando...'}</p>
-                  <p><strong>Email:</strong> {user.email}</p>
-                  <p><strong>ID:</strong> {user.id}</p>
+                  <p>
+                    <strong>Usuário:</strong>{' '}
+                    {profile?.full_name || 'Carregando...'}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {user.email}
+                  </p>
+                  <p>
+                    <strong>ID:</strong> {user.id}
+                  </p>
                   {profile && (
                     <div className="flex items-center gap-2">
                       <strong>Role:</strong>
@@ -346,10 +380,14 @@ const AuthTest: React.FC = () => {
                     </div>
                   )}
                   {profile?.crm && (
-                    <p><strong>CRM:</strong> {profile.crm}</p>
+                    <p>
+                      <strong>CRM:</strong> {profile.crm}
+                    </p>
                   )}
                   {profile?.specialty && (
-                    <p><strong>Especialidade:</strong> {profile.specialty}</p>
+                    <p>
+                      <strong>Especialidade:</strong> {profile.specialty}
+                    </p>
                   )}
                 </div>
                 <Button onClick={signOut} variant="outline">
@@ -362,7 +400,8 @@ const AuthTest: React.FC = () => {
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Nenhum usuário logado. Use os controles abaixo para fazer login ou criar um usuário de teste.
+                Nenhum usuário logado. Use os controles abaixo para fazer login
+                ou criar um usuário de teste.
               </AlertDescription>
             </Alert>
           )}
@@ -389,18 +428,25 @@ const AuthTest: React.FC = () => {
                     <Stethoscope className="h-4 w-4" />
                     {testUser.fullName}
                   </CardTitle>
-                  <Badge className={getRoleColor(testUser.role)} variant="secondary">
+                  <Badge
+                    className={getRoleColor(testUser.role)}
+                    variant="secondary"
+                  >
                     {testUser.role}
                   </Badge>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="text-sm space-y-1">
-                    <p><strong>Email:</strong> {testUser.email}</p>
-                    <p><strong>Profissão:</strong> {testUser.profession}</p>
+                    <p>
+                      <strong>Email:</strong> {testUser.email}
+                    </p>
+                    <p>
+                      <strong>Profissão:</strong> {testUser.profession}
+                    </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => createTestUser(testUser)}
                       disabled={isCreatingUser}
                       className="flex-1"
@@ -408,8 +454,8 @@ const AuthTest: React.FC = () => {
                       <UserPlus className="h-3 w-3 mr-1" />
                       Criar
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => signInTestUser(testUser)}
                       disabled={isSigningIn}
@@ -446,7 +492,7 @@ const AuthTest: React.FC = () => {
                     id="login-email"
                     type="email"
                     value={customEmail}
-                    onChange={(e) => setCustomEmail(e.target.value)}
+                    onChange={e => setCustomEmail(e.target.value)}
                     placeholder="usuario@example.com"
                   />
                 </div>
@@ -457,7 +503,7 @@ const AuthTest: React.FC = () => {
                       id="login-password"
                       type={showPassword ? 'text' : 'password'}
                       value={customPassword}
-                      onChange={(e) => setCustomPassword(e.target.value)}
+                      onChange={e => setCustomPassword(e.target.value)}
                       placeholder="Sua senha"
                     />
                     <Button
@@ -475,7 +521,11 @@ const AuthTest: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                <Button onClick={signInCustom} disabled={isSigningIn} className="w-full">
+                <Button
+                  onClick={signInCustom}
+                  disabled={isSigningIn}
+                  className="w-full"
+                >
                   <Key className="h-4 w-4 mr-2" />
                   Fazer Login
                 </Button>
@@ -491,7 +541,7 @@ const AuthTest: React.FC = () => {
                   <Input
                     id="create-name"
                     value={customName}
-                    onChange={(e) => setCustomName(e.target.value)}
+                    onChange={e => setCustomName(e.target.value)}
                     placeholder="Nome completo"
                   />
                 </div>
@@ -501,7 +551,7 @@ const AuthTest: React.FC = () => {
                     id="create-email"
                     type="email"
                     value={customEmail}
-                    onChange={(e) => setCustomEmail(e.target.value)}
+                    onChange={e => setCustomEmail(e.target.value)}
                     placeholder="usuario@example.com"
                   />
                 </div>
@@ -511,13 +561,18 @@ const AuthTest: React.FC = () => {
                     id="create-password"
                     type="password"
                     value={customPassword}
-                    onChange={(e) => setCustomPassword(e.target.value)}
+                    onChange={e => setCustomPassword(e.target.value)}
                     placeholder="Mínimo 8 caracteres"
                   />
                 </div>
                 <div>
                   <Label htmlFor="create-profession">Profissão</Label>
-                  <Select value={customProfession} onValueChange={(value: 'medico' | 'psicologo' | 'terapeuta') => setCustomProfession(value)}>
+                  <Select
+                    value={customProfession}
+                    onValueChange={(
+                      value: 'medico' | 'psicologo' | 'terapeuta'
+                    ) => setCustomProfession(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -528,7 +583,11 @@ const AuthTest: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={createCustomUser} disabled={isCreatingUser} className="w-full">
+                <Button
+                  onClick={createCustomUser}
+                  disabled={isCreatingUser}
+                  className="w-full"
+                >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Criar Usuário
                 </Button>
@@ -552,23 +611,36 @@ const AuthTest: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <Button onClick={testDatabasePermissions} variant="outline" size="sm">
+              <Button
+                onClick={testDatabasePermissions}
+                variant="outline"
+                size="sm"
+              >
                 <Lock className="h-4 w-4 mr-2" />
                 Executar Testes Novamente
               </Button>
-              
+
               {databaseTests.length > 0 && (
                 <div className="space-y-3">
                   {databaseTests.map((test, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-3 border rounded-lg"
+                    >
                       {getStatusIcon(test.status)}
                       <div className="flex-1">
                         <h4 className="font-medium">{test.name}</h4>
-                        <p className="text-sm text-gray-600">{test.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {test.description}
+                        </p>
                         {test.result && (
-                          <p className={`text-sm mt-1 ${
-                            test.status === 'success' ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <p
+                            className={`text-sm mt-1 ${
+                              test.status === 'success'
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                            }`}
+                          >
                             {test.result}
                           </p>
                         )}

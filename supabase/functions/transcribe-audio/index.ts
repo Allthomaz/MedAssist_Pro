@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "@supabase/supabase-js";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from '@supabase/supabase-js';
 
 interface TranscribeRequest {
   recordingId: string;
@@ -21,17 +21,14 @@ interface TranscribeResponse {
   error?: string;
 }
 
-serve(async (req) => {
+serve(async req => {
   try {
     // Verificar se é uma requisição POST
     if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { 
-          status: 405, 
-          headers: { 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Parse do body da requisição
@@ -40,9 +37,9 @@ serve(async (req) => {
     if (!recordingId) {
       return new Response(
         JSON.stringify({ error: 'Recording ID is required' }),
-        { 
-          status: 400, 
-          headers: { 'Content-Type': 'application/json' } 
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -50,17 +47,19 @@ serve(async (req) => {
     // Inicializar cliente Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
-        JSON.stringify({ error: 'Supabase environment variables not configured' }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        JSON.stringify({
+          error: 'Supabase environment variables not configured',
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
-    
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Buscar informações da gravação
@@ -71,21 +70,18 @@ serve(async (req) => {
       .single();
 
     if (recordingError || !recording) {
-      return new Response(
-        JSON.stringify({ error: 'Recording not found' }),
-        { 
-          status: 404, 
-          headers: { 'Content-Type': 'application/json' } 
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Recording not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Atualizar status da gravação para 'processing'
     await supabase
       .from('recordings')
-      .update({ 
+      .update({
         recording_status: 'processing',
-        processing_started_at: new Date().toISOString()
+        processing_started_at: new Date().toISOString(),
       })
       .eq('id', recordingId);
 
@@ -97,30 +93,30 @@ serve(async (req) => {
     if (downloadError || !audioFile) {
       await supabase
         .from('recordings')
-        .update({ 
+        .update({
           recording_status: 'failed',
-          processing_error: 'Failed to download audio file'
+          processing_error: 'Failed to download audio file',
         })
         .eq('id', recordingId);
 
       return new Response(
         JSON.stringify({ error: 'Failed to download audio file' }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Preparar dados para OpenAI Whisper API
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    
+
     if (!openaiApiKey) {
       return new Response(
         JSON.stringify({ error: 'OpenAI API key not configured' }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
@@ -129,112 +125,138 @@ serve(async (req) => {
     const formData = new FormData();
     formData.append('file', audioFile, recording.audio_file_name);
     formData.append('model', 'whisper-1');
-    formData.append('language', options.language || recording.language_code || 'pt');
+    formData.append(
+      'language',
+      options.language || recording.language_code || 'pt'
+    );
     if (options.prompt) formData.append('prompt', options.prompt);
-    if (options.temperature !== undefined) formData.append('temperature', options.temperature.toString());
-    formData.append('response_format', options.response_format || 'verbose_json');
-    if (options.timestamp_granularities) formData.append('timestamp_granularities[]', options.timestamp_granularities.join(','));
+    if (options.temperature !== undefined)
+      formData.append('temperature', options.temperature.toString());
+    formData.append(
+      'response_format',
+      options.response_format || 'verbose_json'
+    );
+    if (options.timestamp_granularities)
+      formData.append(
+        'timestamp_granularities[]',
+        options.timestamp_granularities.join(',')
+      );
 
     // Chamar OpenAI Whisper API
-    const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-      },
-      body: formData,
-    });
+    const whisperResponse = await fetch(
+      'https://api.openai.com/v1/audio/transcriptions',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openaiApiKey}`,
+        },
+        body: formData,
+      }
+    );
 
     if (!whisperResponse.ok) {
       const errorText = await whisperResponse.text();
       console.error('OpenAI API Error:', errorText);
-      
+
       await supabase
         .from('recordings')
-        .update({ 
+        .update({
           recording_status: 'failed',
-          processing_error: `OpenAI API error: ${errorText}`
+          processing_error: `OpenAI API error: ${errorText}`,
         })
         .eq('id', recordingId);
 
       return new Response(
-        JSON.stringify({ error: 'Transcription service failed', details: errorText }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        JSON.stringify({
+          error: 'Transcription service failed',
+          details: errorText,
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     const whisperResult = await whisperResponse.json();
-    
+
     // Extrair informações da resposta
     const transcriptionText = whisperResult.text || '';
-    const confidence = whisperResult.segments?.reduce((acc: number, seg: any) => acc + (seg.avg_logprob || 0), 0) / (whisperResult.segments?.length || 1);
+    const confidence =
+      whisperResult.segments?.reduce(
+        (acc: number, seg: any) => acc + (seg.avg_logprob || 0),
+        0
+      ) / (whisperResult.segments?.length || 1);
     const detectedLanguage = whisperResult.language || recording.language_code;
     const wordCount = transcriptionText.split(/\s+/).length;
 
     // Salvar transcrição no banco de dados
-    const { data: transcriptionData, error: transcriptionError } = await supabase
-      .from('transcriptions')
-      .insert({
-        recording_id: recordingId,
-        consultation_id: recording.consultation_id,
-        transcript_text: transcriptionText,
-        language_detected: detectedLanguage,
-        confidence_score: Math.max(0, Math.min(1, confidence + 1)), // Normalizar para 0-1
-        word_count: wordCount,
-        transcription_status: 'completed',
-        transcription_service: 'openai',
-        transcription_started_at: new Date().toISOString(),
-        transcription_completed_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const { data: transcriptionData, error: transcriptionError } =
+      await supabase
+        .from('transcriptions')
+        .insert({
+          recording_id: recordingId,
+          consultation_id: recording.consultation_id,
+          transcript_text: transcriptionText,
+          language_detected: detectedLanguage,
+          confidence_score: Math.max(0, Math.min(1, confidence + 1)), // Normalizar para 0-1
+          word_count: wordCount,
+          transcription_status: 'completed',
+          transcription_service: 'openai',
+          transcription_started_at: new Date().toISOString(),
+          transcription_completed_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
 
     if (transcriptionError) {
       console.error('Database error:', transcriptionError);
-      
+
       await supabase
         .from('recordings')
-        .update({ 
+        .update({
           recording_status: 'failed',
-          processing_error: 'Failed to save transcription: ' + transcriptionError.message
+          processing_error:
+            'Failed to save transcription: ' + transcriptionError.message,
         })
         .eq('id', recordingId);
 
       return new Response(
-        JSON.stringify({ error: 'Failed to save transcription', details: transcriptionError.message }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        JSON.stringify({
+          error: 'Failed to save transcription',
+          details: transcriptionError.message,
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
     // Salvar segmentos detalhados se disponíveis
     if (whisperResult.segments && whisperResult.segments.length > 0) {
-      const segments = whisperResult.segments.map((segment: any, index: number) => ({
-        transcription_id: transcriptionData.id,
-        start_time: segment.start,
-        end_time: segment.end,
-        text: segment.text,
-        confidence: Math.max(0, Math.min(1, segment.avg_logprob + 1)),
-        segment_order: index + 1,
-        words: segment.words || null,
-      }));
+      const segments = whisperResult.segments.map(
+        (segment: any, index: number) => ({
+          transcription_id: transcriptionData.id,
+          start_time: segment.start,
+          end_time: segment.end,
+          text: segment.text,
+          confidence: Math.max(0, Math.min(1, segment.avg_logprob + 1)),
+          segment_order: index + 1,
+          words: segment.words || null,
+        })
+      );
 
-      await supabase
-        .from('transcription_segments')
-        .insert(segments);
+      await supabase.from('transcription_segments').insert(segments);
     }
 
     // Atualizar status da gravação para 'completed'
     await supabase
       .from('recordings')
-      .update({ 
+      .update({
         recording_status: 'completed',
         processing_completed_at: new Date().toISOString(),
-        auto_transcribe: true
+        auto_transcribe: true,
       })
       .eq('id', recordingId);
 
@@ -244,7 +266,7 @@ serve(async (req) => {
       .update({
         has_transcription: true,
         transcription_text: transcriptionText,
-        transcription_confidence: Math.max(0, Math.min(1, confidence + 1))
+        transcription_confidence: Math.max(0, Math.min(1, confidence + 1)),
       })
       .eq('id', recording.consultation_id);
 
@@ -253,29 +275,26 @@ serve(async (req) => {
       transcription: transcriptionText,
       confidence: Math.max(0, Math.min(1, confidence + 1)),
       language: detectedLanguage,
-      duration: whisperResult.duration
+      duration: whisperResult.duration,
     };
 
-    return new Response(
-      JSON.stringify(response),
-      { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json' } 
-      }
-    );
-
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Transcription error:', error.stack || error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Internal server error',
-        details: errorMessage 
+        details: errorMessage,
       }),
-      { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

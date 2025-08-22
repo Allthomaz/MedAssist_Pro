@@ -28,7 +28,8 @@ admin_email = "admin@localhost"
 sender_name = "MedAssist"
 ```
 
-**Comportamento**: 
+**Comportamento**:
+
 - Usuários são criados sem confirmação de email
 - Ideal para desenvolvimento e testes
 - Não requer configuração de SMTP externa
@@ -106,6 +107,7 @@ SMTP_SENDER_NAME=MedAssist
 O Supabase permite personalizar os templates de email:
 
 ### Confirmação de Cadastro
+
 ```html
 <h2>Bem-vindo ao MedAssist!</h2>
 <p>Olá {{ .Name }},</p>
@@ -114,6 +116,7 @@ O Supabase permite personalizar os templates de email:
 ```
 
 ### Recuperação de Senha
+
 ```html
 <h2>Recuperação de Senha - MedAssist</h2>
 <p>Olá {{ .Name }},</p>
@@ -126,12 +129,14 @@ O Supabase permite personalizar os templates de email:
 ### Problema: "Error sending confirmation email"
 
 **Possíveis causas**:
+
 1. Configurações SMTP incorretas
 2. Credenciais inválidas
 3. Problemas de rede/firewall
 4. Limite de envio atingido
 
 **Soluções**:
+
 1. Verificar logs do container auth: `docker logs supabase_auth_doctor-brief-ai-premium-1`
 2. Testar conexão SMTP manualmente
 3. Verificar se o provedor SMTP está funcionando
@@ -140,6 +145,7 @@ O Supabase permite personalizar os templates de email:
 ### Problema: Emails não chegam
 
 **Verificações**:
+
 1. Pasta de spam/lixo eletrônico
 2. Configuração SPF/DKIM do domínio
 3. Reputação do IP do provedor SMTP
@@ -162,7 +168,8 @@ O Supabase permite personalizar os templates de email:
 
 ## Segurança
 
-⚠️ **Importante**: 
+⚠️ **Importante**:
+
 - Nunca commitar credenciais SMTP no código
 - Usar variáveis de ambiente em produção
 - Rotacionar chaves de API regularmente

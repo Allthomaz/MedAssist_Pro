@@ -1,54 +1,75 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Mail, 
-  Lock, 
-  User, 
-  Stethoscope, 
-  LogIn, 
-  ArrowLeft, 
-  UserPlus, 
-  KeyRound, 
-  Eye, 
+import React, { useEffect, useMemo, useState } from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Mail,
+  Lock,
+  User,
+  Stethoscope,
+  LogIn,
+  ArrowLeft,
+  UserPlus,
+  KeyRound,
+  Eye,
   EyeOff,
   Loader2,
-  Shield
-} from "lucide-react";
+  Shield,
+} from 'lucide-react';
 
-const emailSchema = z.string().email("Informe um e-mail válido");
+const emailSchema = z.string().email('Informe um e-mail válido');
 const passwordSchema = z
   .string()
-  .min(8, "Mínimo de 8 caracteres")
-  .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "Use letras e números");
+  .min(8, 'Mínimo de 8 caracteres')
+  .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, 'Use letras e números');
 
 const signInSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Informe sua senha"),
+  password: z.string().min(1, 'Informe sua senha'),
 });
 
 const signUpSchema = z
   .object({
-    fullName: z.string().min(2, "Informe seu nome completo"),
-    profession: z.enum(["medico", "psicologo", "terapeuta"], { required_error: "Selecione sua profissão" }),
+    fullName: z.string().min(2, 'Informe seu nome completo'),
+    profession: z.enum(['medico', 'psicologo', 'terapeuta'], {
+      required_error: 'Selecione sua profissão',
+    }),
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Senhas não conferem",
+  .refine(data => data.password === data.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Senhas não conferem',
   });
 
 const forgotSchema = z.object({ email: emailSchema });
@@ -66,38 +87,43 @@ const useDebouncedLock = (delayMs = 1200) => {
 
 const useSeo = () => {
   useEffect(() => {
-    document.title = "Entrar ou criar conta | MedAssist Pro";
-    const desc = "Autenticação segura para médicos e pacientes";
+    document.title = 'Entrar ou criar conta | MedAssist Pro';
+    const desc = 'Autenticação segura para médicos e pacientes';
     const canonicalHref = `${window.location.origin}/auth`;
 
-    const metaDesc = document.querySelector('meta[name="description"]') || document.createElement("meta");
-    metaDesc.setAttribute("name", "description");
-    metaDesc.setAttribute("content", desc);
+    const metaDesc =
+      document.querySelector('meta[name="description"]') ||
+      document.createElement('meta');
+    metaDesc.setAttribute('name', 'description');
+    metaDesc.setAttribute('content', desc);
     document.head.appendChild(metaDesc);
 
-    const canonical = document.querySelector('link[rel="canonical"]') || document.createElement("link");
-    canonical.setAttribute("rel", "canonical");
-    canonical.setAttribute("href", canonicalHref);
+    const canonical =
+      document.querySelector('link[rel="canonical"]') ||
+      document.createElement('link');
+    canonical.setAttribute('rel', 'canonical');
+    canonical.setAttribute('href', canonicalHref);
     document.head.appendChild(canonical);
   }, []);
 };
 
 export const AuthPage: React.FC = () => {
-  const { signIn, signUp, resendConfirmation, requestPasswordReset, user } = useAuth();
+  const { signIn, signUp, resendConfirmation, requestPasswordReset, user } =
+    useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [tab, setTab] = useState<"signin" | "signup" | "forgot">("signin");
+  const [tab, setTab] = useState<'signin' | 'signup' | 'forgot'>('signin');
   useSeo();
 
   // If already logged in, redirect to home
   useEffect(() => {
-    if (user) navigate("/", { replace: true });
+    if (user) navigate('/', { replace: true });
   }, [user, navigate]);
 
   // If coming from email confirmation
   useEffect(() => {
-    if (params.get("mode") === "confirm") {
-      toast.success("E-mail confirmado com sucesso. Faça login.");
+    if (params.get('mode') === 'confirm') {
+      toast.success('E-mail confirmado com sucesso. Faça login.');
     }
   }, [params]);
 
@@ -106,105 +132,124 @@ export const AuthPage: React.FC = () => {
   // Sign In form
   const signInForm = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: '', password: '' },
   });
 
   const onSignIn = async (values: z.infer<typeof signInSchema>) => {
     if (!acquire()) return;
-    
+
     console.log('Tentando fazer login com:', values.email);
     const { error } = await signIn(values.email, values.password);
-    
+
     if (error) {
       console.error('Erro de autenticação:', error);
-      
+
       // Mensagens de erro mais específicas
       if (error.message?.includes('Invalid login credentials')) {
-        toast.error("E-mail ou senha incorretos. Verifique suas credenciais.");
+        toast.error('E-mail ou senha incorretos. Verifique suas credenciais.');
       } else if (error.message?.includes('Email not confirmed')) {
-        toast.error("Conta não confirmada. Verifique seu e-mail e clique no link de confirmação.");
+        toast.error(
+          'Conta não confirmada. Verifique seu e-mail e clique no link de confirmação.'
+        );
       } else if (error.message?.includes('Too many requests')) {
-        toast.error("Muitas tentativas de login. Aguarde alguns minutos e tente novamente.");
+        toast.error(
+          'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.'
+        );
       } else {
-        toast.error(`Erro no login: ${error.message || 'Credenciais inválidas'}`);
+        toast.error(
+          `Erro no login: ${error.message || 'Credenciais inválidas'}`
+        );
       }
       return;
     }
-    
+
     console.log('Login realizado com sucesso');
-    toast.success("Bem-vindo de volta!");
-    navigate("/", { replace: true });
+    toast.success('Bem-vindo de volta!');
+    navigate('/', { replace: true });
   };
 
   // Sign Up form
   const signUpForm = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: "", profession: "medico", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      fullName: '',
+      profession: 'medico',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
 
   const onSignUp = async (values: z.infer<typeof signUpSchema>) => {
     if (!acquire()) return;
-    const { error } = await signUp(values.email, values.password, values.fullName, values.profession);
+    const { error } = await signUp(
+      values.email,
+      values.password,
+      values.fullName,
+      values.profession
+    );
     if (error) {
-      toast.error("Não foi possível criar a conta. Tente novamente.");
+      toast.error('Não foi possível criar a conta. Tente novamente.');
       return;
     }
-    toast.info("Verifique seu e-mail para confirmar a conta.");
-    setTab("signin");
+    toast.info('Verifique seu e-mail para confirmar a conta.');
+    setTab('signin');
   };
 
   // Forgot Password form
   const forgotForm = useForm<z.infer<typeof forgotSchema>>({
     resolver: zodResolver(forgotSchema),
-    defaultValues: { email: "" },
+    defaultValues: { email: '' },
   });
 
   const onForgot = async (values: z.infer<typeof forgotSchema>) => {
     if (!acquire()) return;
     const { error } = await requestPasswordReset(values.email);
     if (error) {
-      toast.error("Erro ao enviar e-mail de recuperação. Tente novamente.", {
-        description: "Verifique se o e-mail está correto e tente novamente."
+      toast.error('Erro ao enviar e-mail de recuperação. Tente novamente.', {
+        description: 'Verifique se o e-mail está correto e tente novamente.',
       });
     } else {
-      toast.success("E-mail de recuperação enviado!", {
-        description: "Verifique sua caixa de entrada e spam. O link expira em 1 hora."
+      toast.success('E-mail de recuperação enviado!', {
+        description:
+          'Verifique sua caixa de entrada e spam. O link expira em 1 hora.',
       });
       // Em desenvolvimento, mostrar link do Inbucket
       if (process.env.NODE_ENV === 'development') {
-        toast.info("Desenvolvimento: Verifique o Inbucket", {
-          description: "Acesse http://127.0.0.1:54324 para ver o e-mail."
+        toast.info('Desenvolvimento: Verifique o Inbucket', {
+          description: 'Acesse http://127.0.0.1:54324 para ver o e-mail.',
         });
       }
     }
-    setTab("signin");
+    setTab('signin');
   };
 
   const resend = async () => {
-    const email = signInForm.getValues("email") || signUpForm.getValues("email");
+    const email =
+      signInForm.getValues('email') || signUpForm.getValues('email');
     if (!email) {
-      toast.warning("E-mail necessário", {
-        description: "Digite seu e-mail primeiro para reenviar a confirmação."
+      toast.warning('E-mail necessário', {
+        description: 'Digite seu e-mail primeiro para reenviar a confirmação.',
       });
       return;
     }
-    
+
     const { error } = await resendConfirmation(email);
     if (error) {
-      toast.error("Erro ao reenviar confirmação", {
-        description: "Tente novamente em alguns minutos."
+      toast.error('Erro ao reenviar confirmação', {
+        description: 'Tente novamente em alguns minutos.',
       });
       return;
     }
-    
-    toast.success("E-mail de confirmação reenviado!", {
-      description: "Verifique sua caixa de entrada e spam."
+
+    toast.success('E-mail de confirmação reenviado!', {
+      description: 'Verifique sua caixa de entrada e spam.',
     });
-    
+
     // Em desenvolvimento, mostrar link do Inbucket
     if (process.env.NODE_ENV === 'development') {
-      toast.info("Desenvolvimento: Verifique o Inbucket", {
-        description: "Acesse http://127.0.0.1:54324 para ver o e-mail."
+      toast.info('Desenvolvimento: Verifique o Inbucket', {
+        description: 'Acesse http://127.0.0.1:54324 para ver o e-mail.',
       });
     }
   };
@@ -227,7 +272,11 @@ export const AuthPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
+          <Tabs
+            value={tab}
+            onValueChange={v => setTab(v as any)}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="signin" className="flex items-center gap-2">
                 <LogIn className="w-4 h-4" />
@@ -245,7 +294,11 @@ export const AuthPage: React.FC = () => {
 
             <TabsContent value="signin">
               <Form {...signInForm}>
-                <form onSubmit={signInForm.handleSubmit(onSignIn)} className="space-y-4" noValidate>
+                <form
+                  onSubmit={signInForm.handleSubmit(onSignIn)}
+                  className="space-y-4"
+                  noValidate
+                >
                   <FormField
                     control={signInForm.control}
                     name="email"
@@ -256,7 +309,12 @@ export const AuthPage: React.FC = () => {
                           E-mail
                         </FormLabel>
                         <FormControl>
-                          <Input type="email" autoComplete="email" placeholder="voce@clinica.com" {...field} />
+                          <Input
+                            type="email"
+                            autoComplete="email"
+                            placeholder="voce@clinica.com"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -273,7 +331,11 @@ export const AuthPage: React.FC = () => {
                           Senha
                         </FormLabel>
                         <FormControl>
-                          <Input type="password" autoComplete="current-password" {...field} />
+                          <Input
+                            type="password"
+                            autoComplete="current-password"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -281,18 +343,37 @@ export const AuthPage: React.FC = () => {
                   />
 
                   <div className="flex items-center justify-between">
-                    <Button type="button" variant="ghost" onClick={() => setTab("forgot")} className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setTab('forgot')}
+                      className="flex items-center gap-2"
+                    >
                       <KeyRound className="w-4 h-4" />
                       Esqueci a senha
                     </Button>
-                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2" disabled={locked}>
-                      {locked ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                      disabled={locked}
+                    >
+                      {locked ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <LogIn className="w-4 h-4" />
+                      )}
                       Entrar
                     </Button>
                   </div>
 
                   <div className="text-xs text-muted-foreground text-right">
-                    <button type="button" onClick={resend} className="underline">Reenviar confirmação</button>
+                    <button
+                      type="button"
+                      onClick={resend}
+                      className="underline"
+                    >
+                      Reenviar confirmação
+                    </button>
                   </div>
                 </form>
               </Form>
@@ -300,7 +381,11 @@ export const AuthPage: React.FC = () => {
 
             <TabsContent value="signup">
               <Form {...signUpForm}>
-                <form onSubmit={signUpForm.handleSubmit(onSignUp)} className="space-y-4" noValidate>
+                <form
+                  onSubmit={signUpForm.handleSubmit(onSignUp)}
+                  className="space-y-4"
+                  noValidate
+                >
                   <FormField
                     control={signUpForm.control}
                     name="fullName"
@@ -311,7 +396,11 @@ export const AuthPage: React.FC = () => {
                           Nome completo
                         </FormLabel>
                         <FormControl>
-                          <Input type="text" placeholder="Dr(a). Nome Sobrenome" {...field} />
+                          <Input
+                            type="text"
+                            placeholder="Dr(a). Nome Sobrenome"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -327,7 +416,10 @@ export const AuthPage: React.FC = () => {
                           <Stethoscope className="w-4 h-4" />
                           Profissão
                         </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione sua profissão" />
@@ -354,7 +446,12 @@ export const AuthPage: React.FC = () => {
                           E-mail
                         </FormLabel>
                         <FormControl>
-                          <Input type="email" autoComplete="email" placeholder="voce@clinica.com" {...field} />
+                          <Input
+                            type="email"
+                            autoComplete="email"
+                            placeholder="voce@clinica.com"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -371,7 +468,11 @@ export const AuthPage: React.FC = () => {
                           Senha
                         </FormLabel>
                         <FormControl>
-                          <Input type="password" autoComplete="new-password" {...field} />
+                          <Input
+                            type="password"
+                            autoComplete="new-password"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -388,20 +489,33 @@ export const AuthPage: React.FC = () => {
                           Confirmar senha
                         </FormLabel>
                         <FormControl>
-                          <Input type="password" autoComplete="new-password" {...field} />
+                          <Input
+                            type="password"
+                            autoComplete="new-password"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2" disabled={locked}>
-                    {locked ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
+                    disabled={locked}
+                  >
+                    {locked ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="w-4 h-4" />
+                    )}
                     Criar conta
                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
-                    Ao continuar, você concorda com nossos termos de uso e política de privacidade.
+                    Ao continuar, você concorda com nossos termos de uso e
+                    política de privacidade.
                   </p>
                 </form>
               </Form>
@@ -413,14 +527,21 @@ export const AuthPage: React.FC = () => {
                   <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mx-auto">
                     <KeyRound className="w-6 h-6 text-orange-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Recuperar Senha</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Recuperar Senha
+                  </h3>
                   <p className="text-sm text-gray-600">
-                    Digite seu e-mail e enviaremos um link seguro para redefinir sua senha.
+                    Digite seu e-mail e enviaremos um link seguro para redefinir
+                    sua senha.
                   </p>
                 </div>
-                
+
                 <Form {...forgotForm}>
-                  <form onSubmit={forgotForm.handleSubmit(onForgot)} className="space-y-4" noValidate>
+                  <form
+                    onSubmit={forgotForm.handleSubmit(onForgot)}
+                    className="space-y-4"
+                    noValidate
+                  >
                     <FormField
                       control={forgotForm.control}
                       name="email"
@@ -431,24 +552,26 @@ export const AuthPage: React.FC = () => {
                             E-mail cadastrado
                           </FormLabel>
                           <FormControl>
-                            <Input 
-                              type="email" 
-                              autoComplete="email" 
-                              placeholder="seu.email@clinica.com" 
+                            <Input
+                              type="email"
+                              autoComplete="email"
+                              placeholder="seu.email@clinica.com"
                               className="h-11"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <div className="flex items-start gap-2">
                         <Shield className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                         <div className="text-xs text-blue-700">
-                          <p className="font-medium mb-1">Instruções importantes:</p>
+                          <p className="font-medium mb-1">
+                            Instruções importantes:
+                          </p>
                           <ul className="space-y-1 list-disc list-inside">
                             <li>Verifique sua caixa de entrada e spam</li>
                             <li>O link expira em 1 hora por segurança</li>
@@ -457,10 +580,10 @@ export const AuthPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center gap-2 h-11" 
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center gap-2 h-11"
                       disabled={locked}
                     >
                       {locked ? (
@@ -475,11 +598,11 @@ export const AuthPage: React.FC = () => {
                         </>
                       )}
                     </Button>
-                    
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      onClick={() => setTab("signin")} 
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setTab('signin')}
                       className="w-full flex items-center justify-center gap-2"
                     >
                       <ArrowLeft className="w-4 h-4" />

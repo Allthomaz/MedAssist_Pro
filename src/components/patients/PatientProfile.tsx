@@ -18,7 +18,7 @@ import {
   Clock,
   Edit,
   Plus,
-  Activity
+  Activity,
 } from 'lucide-react';
 
 interface Patient {
@@ -64,7 +64,7 @@ interface PatientProfileProps {
 export const PatientProfile: React.FC<PatientProfileProps> = ({
   patientId,
   onEdit,
-  onNewConsultation
+  onNewConsultation,
 }) => {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
@@ -78,7 +78,7 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
   const fetchPatientData = async () => {
     try {
       setLoading(true);
-      
+
       // Buscar dados do paciente
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
@@ -90,15 +90,15 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
       setPatient(patientData);
 
       // Buscar consultas do paciente
-      const { data: consultationsData, error: consultationsError } = await supabase
-        .from('consultations')
-        .select('*')
-        .eq('patient_id', patientId)
-        .order('consultation_date', { ascending: false });
+      const { data: consultationsData, error: consultationsError } =
+        await supabase
+          .from('consultations')
+          .select('*')
+          .eq('patient_id', patientId)
+          .order('consultation_date', { ascending: false });
 
       if (consultationsError) throw consultationsError;
       setConsultations(consultationsData || []);
-
     } catch (err) {
       console.error('Erro ao carregar dados do paciente:', err);
       setError('Erro ao carregar dados do paciente');
@@ -112,11 +112,14 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   };
 
@@ -157,7 +160,9 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando dados do paciente...</p>
+          <p className="text-muted-foreground">
+            Carregando dados do paciente...
+          </p>
         </div>
       </div>
     );
@@ -167,7 +172,9 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Paciente não encontrado'}</p>
+          <p className="text-red-600 mb-4">
+            {error || 'Paciente não encontrado'}
+          </p>
           <Button onClick={fetchPatientData} variant="outline">
             Tentar novamente
           </Button>
@@ -185,16 +192,24 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
             <div className="flex items-start gap-4">
               <Avatar className="w-16 h-16">
                 <AvatarFallback className="bg-medical-blue/10 text-medical-blue text-lg">
-                  {patient.full_name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                  {patient.full_name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .substring(0, 2)}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="space-y-2">
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">{patient.full_name}</h1>
-                  <p className="text-muted-foreground">Paciente #{patient.patient_number}</p>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {patient.full_name}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Paciente #{patient.patient_number}
+                  </p>
                 </div>
-                
+
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
@@ -202,7 +217,11 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                   </div>
                   <div className="flex items-center gap-1">
                     <User className="w-4 h-4" />
-                    {patient.gender === 'male' ? 'Masculino' : patient.gender === 'female' ? 'Feminino' : 'Outro'}
+                    {patient.gender === 'male'
+                      ? 'Masculino'
+                      : patient.gender === 'female'
+                        ? 'Feminino'
+                        : 'Outro'}
                   </div>
                   {patient.phone && (
                     <div className="flex items-center gap-1">
@@ -217,16 +236,23 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                     </div>
                   )}
                 </div>
-                
+
                 <Badge className={getStatusColor(patient.status)}>
-                  {patient.status === 'active' ? 'Ativo' : 
-                   patient.status === 'inactive' ? 'Inativo' : 'Arquivado'}
+                  {patient.status === 'active'
+                    ? 'Ativo'
+                    : patient.status === 'inactive'
+                      ? 'Inativo'
+                      : 'Arquivado'}
                 </Badge>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <Button variant="medical" className="gap-2" onClick={onNewConsultation}>
+              <Button
+                variant="medical"
+                className="gap-2"
+                onClick={onNewConsultation}
+              >
                 <Plus className="w-4 h-4" />
                 Nova Consulta
               </Button>
@@ -261,21 +287,32 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-medical-blue">{consultations.length}</div>
+                    <div className="text-2xl font-bold text-medical-blue">
+                      {consultations.length}
+                    </div>
                     <div className="text-sm text-muted-foreground">Total</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {consultations.filter(c => c.status === 'finalizada').length}
+                      {
+                        consultations.filter(c => c.status === 'finalizada')
+                          .length
+                      }
                     </div>
-                    <div className="text-sm text-muted-foreground">Finalizadas</div>
+                    <div className="text-sm text-muted-foreground">
+                      Finalizadas
+                    </div>
                   </div>
                 </div>
-                
+
                 {consultations.length > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2">Última consulta:</p>
-                    <p className="font-medium">{formatDate(consultations[0].consultation_date)}</p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Última consulta:
+                    </p>
+                    <p className="font-medium">
+                      {formatDate(consultations[0].consultation_date)}
+                    </p>
                     {consultations[0].chief_complaint && (
                       <p className="text-sm text-muted-foreground mt-1">
                         {consultations[0].chief_complaint}
@@ -297,47 +334,69 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
               <CardContent className="space-y-3">
                 {patient.allergies && patient.allergies.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Alergias:</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Alergias:
+                    </p>
                     <div className="flex flex-wrap gap-1">
                       {patient.allergies.map((allergy, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {allergy}
                         </Badge>
                       ))}
                     </div>
                   </div>
                 )}
-                
-                {patient.current_medications && patient.current_medications.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Medicamentos:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {patient.current_medications.slice(0, 3).map((medication, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {medication}
-                        </Badge>
-                      ))}
-                      {patient.current_medications.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{patient.current_medications.length - 3} mais
-                        </Badge>
-                      )}
+
+                {patient.current_medications &&
+                  patient.current_medications.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Medicamentos:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {patient.current_medications
+                          .slice(0, 3)
+                          .map((medication, index) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {medication}
+                            </Badge>
+                          ))}
+                        {patient.current_medications.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{patient.current_medications.length - 3} mais
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                {patient.chronic_conditions && patient.chronic_conditions.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Condições Crônicas:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {patient.chronic_conditions.map((condition, index) => (
-                        <Badge key={index} variant="outline" className="text-xs bg-yellow-50 text-yellow-700">
-                          {condition}
-                        </Badge>
-                      ))}
+                  )}
+
+                {patient.chronic_conditions &&
+                  patient.chronic_conditions.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Condições Crônicas:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {patient.chronic_conditions.map((condition, index) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-xs bg-yellow-50 text-yellow-700"
+                          >
+                            {condition}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </CardContent>
             </Card>
           </div>
@@ -355,10 +414,12 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
               {consultations.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Nenhuma consulta registrada</p>
-                  <Button 
-                    variant="medical" 
-                    className="mt-4 gap-2" 
+                  <p className="text-muted-foreground">
+                    Nenhuma consulta registrada
+                  </p>
+                  <Button
+                    variant="medical"
+                    className="mt-4 gap-2"
                     onClick={onNewConsultation}
                   >
                     <Plus className="w-4 h-4" />
@@ -367,16 +428,27 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {consultations.map((consultation) => (
-                    <div key={consultation.id} className="border rounded-lg p-4 space-y-3">
+                  {consultations.map(consultation => (
+                    <div
+                      key={consultation.id}
+                      className="border rounded-lg p-4 space-y-3"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <h4 className="font-medium">
-                              {consultation.consultation_type.replace('_', ' ').toUpperCase()}
+                              {consultation.consultation_type
+                                .replace('_', ' ')
+                                .toUpperCase()}
                             </h4>
-                            <Badge className={getConsultationStatusColor(consultation.status)}>
-                              {consultation.status.replace('_', ' ').toUpperCase()}
+                            <Badge
+                              className={getConsultationStatusColor(
+                                consultation.status
+                              )}
+                            >
+                              {consultation.status
+                                .replace('_', ' ')
+                                .toUpperCase()}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -391,25 +463,35 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                           </div>
                         </div>
                       </div>
-                      
+
                       {consultation.chief_complaint && (
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Queixa Principal:</p>
-                          <p className="text-sm">{consultation.chief_complaint}</p>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Queixa Principal:
+                          </p>
+                          <p className="text-sm">
+                            {consultation.chief_complaint}
+                          </p>
                         </div>
                       )}
-                      
+
                       {consultation.diagnosis && (
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Diagnóstico:</p>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Diagnóstico:
+                          </p>
                           <p className="text-sm">{consultation.diagnosis}</p>
                         </div>
                       )}
-                      
+
                       {consultation.treatment_plan && (
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Plano de Tratamento:</p>
-                          <p className="text-sm">{consultation.treatment_plan}</p>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Plano de Tratamento:
+                          </p>
+                          <p className="text-sm">
+                            {consultation.treatment_plan}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -435,14 +517,19 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                   <div className="space-y-2">
                     {patient.allergies.map((allergy, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-red-50 text-red-700 border-red-200"
+                        >
                           {allergy}
                         </Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Nenhuma alergia registrada</p>
+                  <p className="text-muted-foreground">
+                    Nenhuma alergia registrada
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -456,18 +543,24 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {patient.current_medications && patient.current_medications.length > 0 ? (
+                {patient.current_medications &&
+                patient.current_medications.length > 0 ? (
                   <div className="space-y-2">
                     {patient.current_medications.map((medication, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-50 text-blue-700 border-blue-200"
+                        >
                           {medication}
                         </Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Nenhum medicamento registrado</p>
+                  <p className="text-muted-foreground">
+                    Nenhum medicamento registrado
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -481,18 +574,24 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {patient.chronic_conditions && patient.chronic_conditions.length > 0 ? (
+                {patient.chronic_conditions &&
+                patient.chronic_conditions.length > 0 ? (
                   <div className="space-y-2">
                     {patient.chronic_conditions.map((condition, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-yellow-50 text-yellow-700 border-yellow-200"
+                        >
                           {condition}
                         </Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Nenhuma condição crônica registrada</p>
+                  <p className="text-muted-foreground">
+                    Nenhuma condição crônica registrada
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -506,7 +605,9 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                 {patient.family_history ? (
                   <p className="text-sm">{patient.family_history}</p>
                 ) : (
-                  <p className="text-muted-foreground">Nenhum histórico familiar registrado</p>
+                  <p className="text-muted-foreground">
+                    Nenhum histórico familiar registrado
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -527,14 +628,14 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                     <span>{patient.email}</span>
                   </div>
                 )}
-                
+
                 {patient.phone && (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-muted-foreground" />
                     <span>{patient.phone}</span>
                   </div>
                 )}
-                
+
                 {(patient.address || patient.city || patient.state) && (
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
@@ -542,7 +643,9 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                       {patient.address && <div>{patient.address}</div>}
                       {(patient.city || patient.state) && (
                         <div className="text-muted-foreground">
-                          {patient.city}{patient.city && patient.state && ', '}{patient.state}
+                          {patient.city}
+                          {patient.city && patient.state && ', '}
+                          {patient.state}
                         </div>
                       )}
                     </div>
@@ -561,16 +664,20 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
                   <div>
                     <p className="font-medium">{patient.insurance_company}</p>
                     {patient.insurance_number && (
-                      <p className="text-sm text-muted-foreground">Número: {patient.insurance_number}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Número: {patient.insurance_number}
+                      </p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Nenhum plano de saúde registrado</p>
+                  <p className="text-muted-foreground">
+                    Nenhum plano de saúde registrado
+                  </p>
                 )}
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Observações */}
           {patient.notes && (
             <Card>

@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mic, Play, Square, Upload, CheckCircle } from 'lucide-react';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
@@ -12,7 +18,12 @@ export const SimpleTranscriptionTest: React.FC = () => {
     microphoneAccess: boolean;
     recording: boolean;
     playback: boolean;
-  }>({ audioRecorder: false, microphoneAccess: false, recording: false, playback: false });
+  }>({
+    audioRecorder: false,
+    microphoneAccess: false,
+    recording: false,
+    playback: false,
+  });
 
   const {
     isRecording,
@@ -24,17 +35,17 @@ export const SimpleTranscriptionTest: React.FC = () => {
     startRecording,
     stopRecording,
     clearRecording,
-    cleanup
+    cleanup,
   } = useAudioRecorder({
-    onRecordingComplete: (blob) => {
+    onRecordingComplete: blob => {
       console.log('Gravação concluída:', blob);
       toast.success('Gravação concluída com sucesso!');
       setTestResults(prev => ({ ...prev, recording: true }));
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Erro na gravação:', error);
       toast.error(`Erro na gravação: ${error}`);
-    }
+    },
   });
 
   const formatTime = (seconds: number): string => {
@@ -46,7 +57,11 @@ export const SimpleTranscriptionTest: React.FC = () => {
   const handleStartRecording = async () => {
     try {
       await startRecording();
-      setTestResults(prev => ({ ...prev, microphoneAccess: true, audioRecorder: true }));
+      setTestResults(prev => ({
+        ...prev,
+        microphoneAccess: true,
+        audioRecorder: true,
+      }));
     } catch (error) {
       console.error('Erro ao iniciar gravação:', error);
       toast.error('Erro ao acessar o microfone');
@@ -60,19 +75,27 @@ export const SimpleTranscriptionTest: React.FC = () => {
   const handlePlayRecording = () => {
     if (recordedUrl) {
       const audio = new Audio(recordedUrl);
-      audio.play().then(() => {
-        setTestResults(prev => ({ ...prev, playback: true }));
-        toast.success('Reprodução iniciada!');
-      }).catch(error => {
-        console.error('Erro na reprodução:', error);
-        toast.error('Erro ao reproduzir áudio');
-      });
+      audio
+        .play()
+        .then(() => {
+          setTestResults(prev => ({ ...prev, playback: true }));
+          toast.success('Reprodução iniciada!');
+        })
+        .catch(error => {
+          console.error('Erro na reprodução:', error);
+          toast.error('Erro ao reproduzir áudio');
+        });
     }
   };
 
   const handleClearRecording = () => {
     clearRecording();
-    setTestResults({ audioRecorder: false, microphoneAccess: false, recording: false, playback: false });
+    setTestResults({
+      audioRecorder: false,
+      microphoneAccess: false,
+      recording: false,
+      playback: false,
+    });
     toast.info('Gravação limpa');
   };
 
@@ -83,10 +106,12 @@ export const SimpleTranscriptionTest: React.FC = () => {
     }
 
     toast.info('Simulando transcrição...');
-    
+
     // Simula uma transcrição de teste
     setTimeout(() => {
-      toast.success('Transcrição simulada: "Esta é uma transcrição de teste do áudio gravado."');
+      toast.success(
+        'Transcrição simulada: "Esta é uma transcrição de teste do áudio gravado."'
+      );
     }, 2000);
   };
 
@@ -163,7 +188,7 @@ export const SimpleTranscriptionTest: React.FC = () => {
             <Button
               onClick={handleStartRecording}
               disabled={isRecording}
-              variant={isRecording ? "secondary" : "default"}
+              variant={isRecording ? 'secondary' : 'default'}
               className="flex items-center gap-2"
             >
               {isRecording ? (
@@ -229,7 +254,12 @@ export const SimpleTranscriptionTest: React.FC = () => {
               <div>Gravação ativa: {isRecording ? 'Sim' : 'Não'}</div>
               <div>Blob disponível: {recordedBlob ? 'Sim' : 'Não'}</div>
               <div>URL disponível: {recordedUrl ? 'Sim' : 'Não'}</div>
-              <div>Tamanho do blob: {recordedBlob ? `${Math.round(recordedBlob.size / 1024)} KB` : 'N/A'}</div>
+              <div>
+                Tamanho do blob:{' '}
+                {recordedBlob
+                  ? `${Math.round(recordedBlob.size / 1024)} KB`
+                  : 'N/A'}
+              </div>
             </div>
           </div>
         </CardContent>

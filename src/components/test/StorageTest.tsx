@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Download, Trash2, Folder, AlertCircle, CheckCircle, Loader2, FileAudio } from 'lucide-react';
+import {
+  Upload,
+  Download,
+  Trash2,
+  Folder,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  FileAudio,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,13 +81,11 @@ const StorageTest: React.FC = () => {
   const loadFiles = async (bucketName: string) => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .list('', {
-          limit: 100,
-          offset: 0
-        });
-      
+      const { data, error } = await supabase.storage.from(bucketName).list('', {
+        limit: 100,
+        offset: 0,
+      });
+
       if (error) throw error;
       setFiles(data || []);
     } catch (err) {
@@ -83,22 +96,25 @@ const StorageTest: React.FC = () => {
     }
   };
 
-  const createBucket = async (bucketName: string, isPublic: boolean = false) => {
+  const createBucket = async (
+    bucketName: string,
+    isPublic: boolean = false
+  ) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const { data, error } = await supabase.storage.createBucket(bucketName, {
         public: isPublic,
         allowedMimeTypes: ['audio/*', 'application/pdf', 'text/*'],
-        fileSizeLimit: 50 * 1024 * 1024 // 50MB
+        fileSizeLimit: 50 * 1024 * 1024, // 50MB
       });
-      
+
       if (error) throw error;
-      
+
       setSuccess(`Bucket '${bucketName}' criado com sucesso!`);
       await loadBuckets();
-      
+
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       console.error('Erro ao criar bucket:', err);
@@ -112,20 +128,20 @@ const StorageTest: React.FC = () => {
     const requiredBuckets = [
       { name: 'audio-files', public: false },
       { name: 'reports', public: false },
-      { name: 'transcriptions', public: false }
+      { name: 'transcriptions', public: false },
     ];
 
     try {
       setIsLoading(true);
       setError(null);
-      
+
       for (const bucket of requiredBuckets) {
         const bucketExists = buckets.some(b => b.name === bucket.name);
         if (!bucketExists) {
           await createBucket(bucket.name, bucket.public);
         }
       }
-      
+
       setSuccess('Todos os buckets necessários foram criados!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -153,27 +169,29 @@ const StorageTest: React.FC = () => {
       setIsLoading(true);
       setError(null);
       setUploadProgress(0);
-      
+
       const fileName = `${Date.now()}_${selectedFile.name}`;
-      
+
       const { data, error } = await supabase.storage
         .from(selectedBucket)
         .upload(fileName, selectedFile, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
         });
-      
+
       if (error) throw error;
-      
+
       setSuccess(`Arquivo '${selectedFile.name}' enviado com sucesso!`);
       setSelectedFile(null);
-      
+
       // Resetar input de arquivo
-      const fileInput = document.getElementById('file-input') as HTMLInputElement;
+      const fileInput = document.getElementById(
+        'file-input'
+      ) as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-      
+
       await loadFiles(selectedBucket);
-      
+
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       console.error('Erro ao fazer upload:', err);
@@ -187,13 +205,13 @@ const StorageTest: React.FC = () => {
   const downloadFile = async (fileName: string) => {
     try {
       setIsLoading(true);
-      
+
       const { data, error } = await supabase.storage
         .from(selectedBucket)
         .download(fileName);
-      
+
       if (error) throw error;
-      
+
       // Criar URL temporária e fazer download
       const url = URL.createObjectURL(data);
       const link = document.createElement('a');
@@ -203,7 +221,7 @@ const StorageTest: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
+
       setSuccess(`Arquivo '${fileName}' baixado com sucesso!`);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
@@ -221,16 +239,16 @@ const StorageTest: React.FC = () => {
 
     try {
       setIsLoading(true);
-      
+
       const { error } = await supabase.storage
         .from(selectedBucket)
         .remove([fileName]);
-      
+
       if (error) throw error;
-      
+
       setSuccess(`Arquivo '${fileName}' excluído com sucesso!`);
       await loadFiles(selectedBucket);
-      
+
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       console.error('Erro ao excluir arquivo:', err);
@@ -274,7 +292,7 @@ const StorageTest: React.FC = () => {
           {error}
         </div>
       )}
-      
+
       {success && (
         <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700">
           <CheckCircle className="h-4 w-4" />
@@ -299,9 +317,11 @@ const StorageTest: React.FC = () => {
               <Label>Buckets Existentes ({buckets.length})</Label>
               <div className="space-y-2">
                 {buckets.length === 0 ? (
-                  <p className="text-sm text-gray-500">Nenhum bucket encontrado</p>
+                  <p className="text-sm text-gray-500">
+                    Nenhum bucket encontrado
+                  </p>
                 ) : (
-                  buckets.map((bucket) => (
+                  buckets.map(bucket => (
                     <div
                       key={bucket.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -313,9 +333,13 @@ const StorageTest: React.FC = () => {
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-medium">{bucket.name}</span>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          bucket.public ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                        }`}>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            bucket.public
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
                           {bucket.public ? 'Público' : 'Privado'}
                         </span>
                       </div>
@@ -357,12 +381,12 @@ const StorageTest: React.FC = () => {
               <select
                 id="bucket-select"
                 value={selectedBucket}
-                onChange={(e) => setSelectedBucket(e.target.value)}
+                onChange={e => setSelectedBucket(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
                 disabled={buckets.length === 0}
               >
                 <option value="">Selecione um bucket</option>
-                {buckets.map((bucket) => (
+                {buckets.map(bucket => (
                   <option key={bucket.id} value={bucket.name}>
                     {bucket.name}
                   </option>
@@ -381,7 +405,8 @@ const StorageTest: React.FC = () => {
               />
               {selectedFile && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Arquivo selecionado: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                  Arquivo selecionado: {selectedFile.name} (
+                  {formatFileSize(selectedFile.size)})
                 </p>
               )}
             </div>
@@ -438,7 +463,7 @@ const StorageTest: React.FC = () => {
             </p>
           ) : (
             <div className="space-y-2">
-              {files.map((file) => (
+              {files.map(file => (
                 <div
                   key={file.id}
                   className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
@@ -448,7 +473,7 @@ const StorageTest: React.FC = () => {
                     <div>
                       <p className="font-medium text-sm">{file.name}</p>
                       <p className="text-xs text-gray-500">
-                        {formatFileSize(file.metadata?.size || 0)} • 
+                        {formatFileSize(file.metadata?.size || 0)} •
                         {new Date(file.created_at).toLocaleDateString('pt-BR')}
                       </p>
                     </div>

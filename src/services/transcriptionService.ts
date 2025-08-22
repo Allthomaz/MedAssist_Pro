@@ -1,8 +1,17 @@
 import { supabase } from '../integrations/supabase/client';
+import { Database } from '../integrations/supabase/types';
+import {
+  WhisperSegment,
+  WhisperResponse,
+  KnownError,
+  getErrorMessage,
+} from '../types/common';
 
 // Usar as variáveis de ambiente corretas para o Vite
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-const OPENAI_API_URL = import.meta.env.VITE_OPENAI_API_URL || 'https://api.openai.com/v1/audio/transcriptions';
+const OPENAI_API_URL =
+  import.meta.env.VITE_OPENAI_API_URL ||
+  'https://api.openai.com/v1/audio/transcriptions';
 
 interface TranscriptionResult {
   text: string;
@@ -40,18 +49,23 @@ class TranscriptionService {
   /**
    * Valida se as API keys necessárias estão configuradas
    */
-  private async validateApiKeys(): Promise<{ openai: boolean; supabase: boolean }> {
+  private async validateApiKeys(): Promise<{
+    openai: boolean;
+    supabase: boolean;
+  }> {
     const openaiValid = Boolean(OPENAI_API_KEY && OPENAI_API_KEY.trim() !== '');
     let supabaseValid = false;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       supabaseValid = !!session;
     } catch {
       supabaseValid = false;
     }
     return {
       openai: openaiValid,
-      supabase: supabaseValid
+      supabase: supabaseValid,
     };
   }
 
@@ -60,12 +74,12 @@ class TranscriptionService {
    */
   private async ensureApiAvailability(): Promise<void> {
     const { openai, supabase: supabaseValid } = await this.validateApiKeys();
-    
+
     if (!openai && !supabaseValid) {
       throw new Error(
         'Nenhuma API de transcrição está configurada. Configure pelo menos uma das seguintes:\n' +
-        '- VITE_OPENAI_API_KEY para OpenAI Whisper\n' +
-        '- Configurações do Supabase para transcrição via Edge Function'
+          '- VITE_OPENAI_API_KEY para OpenAI Whisper\n' +
+          '- Configurações do Supabase para transcrição via Edge Function'
       );
     }
   }
@@ -79,43 +93,52 @@ class TranscriptionService {
   ): Promise<TranscriptionResult> {
     const { openai } = this.validateApiKeys();
     if (!openai) {
-      throw new Error('OpenAI API key não configurada. Configure VITE_OPENAI_API_KEY.');
+      throw new Error(
+        'OpenAI API key não configurada. Configure VITE_OPENAI_API_KEY.'
+      );
     }
 
     try {
       const formData = new FormData();
-      
+
       // Converter Blob para File se necessário
-      const file = audioFile instanceof File 
-        ? audioFile 
-        : new File([audioFile], 'audio.webm', { type: 'audio/webm' });
-      
+      const file =
+        audioFile instanceof File
+          ? audioFile
+          : new File([audioFile], 'audio.webm', { type: 'audio/webm' });
+
       formData.append('file', file);
       formData.append('model', 'whisper-1');
-      
+
       // Configurações opcionais
       if (options.language) {
         formData.append('language', options.language);
       }
-      
+
       if (options.prompt) {
         formData.append('prompt', options.prompt);
       }
-      
+
       if (options.temperature !== undefined) {
         formData.append('temperature', options.temperature.toString());
       }
-      
-      formData.append('response_format', options.response_format || 'verbose_json');
-      
+
+      formData.append(
+        'response_format',
+        options.response_format || 'verbose_json'
+      );
+
       if (options.timestamp_granularities) {
-        formData.append('timestamp_granularities[]', options.timestamp_granularities.join(','));
+        formData.append(
+          'timestamp_granularities[]',
+          options.timestamp_granularities.join(',')
+        );
       }
 
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
         },
         body: formData,
       });
@@ -128,7 +151,7 @@ class TranscriptionService {
       }
 
       const result = await response.json();
-      
+
       // Processar resposta baseada no formato
       if (options.response_format === 'verbose_json') {
         return {
@@ -136,12 +159,15 @@ class TranscriptionService {
           confidence: this.calculateAverageConfidence(result.segments || []),
           language: result.language,
           duration: result.duration,
-          segments: result.segments?.map((segment: any) => ({
-            start: segment.start,
-            end: segment.end,
-            text: segment.text,
-            confidence: segment.avg_logprob ? Math.exp(segment.avg_logprob) : 0.95
-          })) || []
+          segments:
+            result.segments?.map((segment: WhisperSegment) => ({
+              start: segment.start,
+              end: segment.end,
+              text: segment.text,
+              confidence: segment.avg_logprob
+                ? Math.exp(segment.avg_logprob)
+                : 0.95,
+            })) || [],
         };
       } else {
         return {
@@ -163,17 +189,22 @@ class TranscriptionService {
     options: TranscriptionOptions = {}
   ): Promise<TranscriptionResult> {
     try {
-      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-        body: {
-          recordingId,
-          options: {
-            language: options.language || 'pt',
-            prompt: options.prompt || 'Transcrição de consulta médica. Inclua termos médicos, medicamentos e procedimentos.',
-            temperature: options.temperature || 0.1,
-            response_format: 'verbose_json'
-          }
+      const { data, error } = await supabase.functions.invoke(
+        'transcribe-audio',
+        {
+          body: {
+            recordingId,
+            options: {
+              language: options.language || 'pt',
+              prompt:
+                options.prompt ||
+                'Transcrição de consulta médica. Inclua termos médicos, medicamentos e procedimentos.',
+              temperature: options.temperature || 0.1,
+              response_format: 'verbose_json',
+            },
+          },
         }
-      });
+      );
 
       if (error) {
         throw new Error(`Erro na função Supabase: ${error.message}`);
@@ -184,7 +215,7 @@ class TranscriptionService {
         confidence: data.confidence || 0.95,
         language: data.language,
         duration: data.duration,
-        segments: data.segments || []
+        segments: data.segments || [],
       };
     } catch (error) {
       console.error('Erro na transcrição Supabase:', error);
@@ -214,7 +245,7 @@ class TranscriptionService {
           segments: transcriptionResult.segments,
           processing_time: processingTime,
           status: 'completed',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -241,7 +272,7 @@ class TranscriptionService {
   ): Promise<{ transcriptionId: string; text: string; confidence: number }> {
     // Verificar se pelo menos uma API está disponível
     this.ensureApiAvailability();
-    
+
     const startTime = Date.now();
 
     try {
@@ -251,21 +282,31 @@ class TranscriptionService {
         temperature: 0.1,
         response_format: 'verbose_json',
         timestamp_granularities: ['segment'],
-        prompt: 'Esta é uma transcrição de consulta médica. Inclua termos médicos precisos, nomes de medicamentos, procedimentos, sintomas e diagnósticos. Mantenha a terminologia médica correta.'
+        prompt:
+          'Esta é uma transcrição de consulta médica. Inclua termos médicos precisos, nomes de medicamentos, procedimentos, sintomas e diagnósticos. Mantenha a terminologia médica correta.',
       };
 
       const transcriptionOptions = { ...defaultOptions, ...options };
 
       // Tentar transcrição com OpenAI primeiro
       let transcriptionResult: TranscriptionResult;
-      
+
       try {
-        transcriptionResult = await this.transcribeWithOpenAI(audioFile, transcriptionOptions);
+        transcriptionResult = await this.transcribeWithOpenAI(
+          audioFile,
+          transcriptionOptions
+        );
       } catch (openaiError) {
-        console.warn('Falha na transcrição OpenAI, tentando Supabase:', openaiError);
-        
+        console.warn(
+          'Falha na transcrição OpenAI, tentando Supabase:',
+          openaiError
+        );
+
         // Fallback para função Supabase
-        transcriptionResult = await this.transcribeWithSupabase(recordingId, transcriptionOptions);
+        transcriptionResult = await this.transcribeWithSupabase(
+          recordingId,
+          transcriptionOptions
+        );
       }
 
       const processingTime = Date.now() - startTime;
@@ -281,7 +322,7 @@ class TranscriptionService {
       return {
         transcriptionId: savedTranscription.id,
         text: transcriptionResult.text,
-        confidence: transcriptionResult.confidence
+        confidence: transcriptionResult.confidence,
       };
     } catch (error) {
       console.error('Erro no processamento de transcrição:', error);
@@ -296,7 +337,8 @@ class TranscriptionService {
     try {
       const { data, error } = await supabase
         .from('transcriptions')
-        .select(`
+        .select(
+          `
           *,
           recordings (
             id,
@@ -304,7 +346,8 @@ class TranscriptionService {
             duration,
             created_at
           )
-        `)
+        `
+        )
         .eq('consultation_id', consultationId)
         .order('created_at', { ascending: false });
 
@@ -331,30 +374,37 @@ class TranscriptionService {
     }
 
     try {
-      const prompt = this.buildSummaryPrompt(transcriptionText, consultationType);
-      
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: 'Você é um assistente médico especializado em criar resumos estruturados de consultas médicas.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.3,
-          max_tokens: 1000
-        })
-      });
+      const prompt = this.buildSummaryPrompt(
+        transcriptionText,
+        consultationType
+      );
+
+      const response = await fetch(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'Você é um assistente médico especializado em criar resumos estruturados de consultas médicas.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.3,
+            max_tokens: 1000,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Erro na API OpenAI: ${response.status}`);
@@ -369,23 +419,28 @@ class TranscriptionService {
   }
 
   /**
-   * Calcula confiança média dos segmentos
+   * Calcula a confiança média dos segmentos
    */
-  private calculateAverageConfidence(segments: any[]): number {
+  private calculateAverageConfidence(segments: WhisperSegment[]): number {
     if (!segments || segments.length === 0) return 0.95;
-    
+
     const totalConfidence = segments.reduce((sum, segment) => {
-      const confidence = segment.avg_logprob ? Math.exp(segment.avg_logprob) : 0.95;
+      const confidence = segment.avg_logprob
+        ? Math.exp(segment.avg_logprob)
+        : 0.95;
       return sum + confidence;
     }, 0);
-    
+
     return totalConfidence / segments.length;
   }
 
   /**
    * Constrói prompt para resumo médico
    */
-  private buildSummaryPrompt(transcriptionText: string, consultationType: string): string {
+  private buildSummaryPrompt(
+    transcriptionText: string,
+    consultationType: string
+  ): string {
     return `
 Analise a seguinte transcrição de consulta médica e crie um resumo estruturado:
 
@@ -438,9 +493,9 @@ ${transcriptionText}
       'audio/mpeg',
       'audio/wav',
       'audio/m4a',
-      'audio/ogg'
+      'audio/ogg',
     ];
-    
+
     return supportedFormats.includes(file.type);
   }
 
@@ -457,16 +512,16 @@ ${transcriptionText}
   ): Promise<TranscriptionResult> {
     // Verificar se pelo menos uma API está disponível
     this.ensureApiAvailability();
-    
+
     const { openai, supabase: supabaseValid } = this.validateApiKeys();
-    
+
     // Tentar OpenAI primeiro se disponível
     if (openai) {
       try {
         return await this.transcribeWithOpenAI(audioFile, options);
       } catch (error) {
         console.warn('Falha na transcrição OpenAI:', error);
-        
+
         // Fallback para Supabase se disponível
         if (supabaseValid) {
           console.log('Tentando fallback para Supabase...');
@@ -474,17 +529,17 @@ ${transcriptionText}
           const recordingId = `temp_${Date.now()}`;
           return await this.transcribeWithSupabase(recordingId, options);
         }
-        
+
         throw error;
       }
     }
-    
+
     // Se OpenAI não está disponível, usar Supabase
     if (supabaseValid) {
       const recordingId = `temp_${Date.now()}`;
       return await this.transcribeWithSupabase(recordingId, options);
     }
-    
+
     // Isso nunca deveria acontecer devido ao ensureApiAvailability
     throw new Error('Nenhuma API de transcrição disponível');
   }
@@ -499,31 +554,38 @@ export const transcribeAudio = async (
   options?: TranscriptionOptions
 ): Promise<{ transcription?: string; error?: string; confidence?: number }> => {
   try {
-    const result = await transcriptionService.transcribeWithSupabase(recordingId, options);
+    const result = await transcriptionService.transcribeWithSupabase(
+      recordingId,
+      options
+    );
     return {
       transcription: result.text,
-      confidence: result.confidence
+      confidence: result.confidence,
     };
   } catch (error) {
     console.error('Erro na transcrição:', error);
     return {
-      error: error instanceof Error ? error.message : 'Erro desconhecido na transcrição'
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Erro desconhecido na transcrição',
     };
   }
 };
 
 export const saveTranscription = (
-  recordingId: string, 
-  consultationId: string, 
-  transcriptionResult: TranscriptionResult, 
+  recordingId: string,
+  consultationId: string,
+  transcriptionResult: TranscriptionResult,
   processingTime?: number
 ) => {
-  return transcriptionService.saveTranscription(recordingId, consultationId, transcriptionResult, processingTime);
+  return transcriptionService.saveTranscription(
+    recordingId,
+    consultationId,
+    transcriptionResult,
+    processingTime
+  );
 };
 
 // Exportar tipos para uso em outros componentes
-export type {
-  TranscriptionResult,
-  TranscriptionSegment,
-  TranscriptionOptions
-};
+export type { TranscriptionResult, TranscriptionSegment, TranscriptionOptions };

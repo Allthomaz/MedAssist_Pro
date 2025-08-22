@@ -10,7 +10,7 @@ export function NotificationButton() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
-  
+
   // Não renderizar o botão se não há usuário autenticado
   if (!user) {
     return null;
@@ -35,15 +35,15 @@ export function NotificationButton() {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </Badge>
         )}
       </Button>
-      
+
       <Suspense fallback={<div>Carregando notificações...</div>}>
         <LazyNotificationCenter isOpen={isOpen} onClose={handleClose} />
       </Suspense>

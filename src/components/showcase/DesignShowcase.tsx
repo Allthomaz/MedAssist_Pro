@@ -14,7 +14,7 @@ import {
   FileText,
   Settings,
   Bell,
-  Search
+  Search,
 } from 'lucide-react';
 
 export function DesignShowcase() {
@@ -42,28 +42,28 @@ export function DesignShowcase() {
               value="1,247"
               description="este mês"
               icon={Users}
-              trend={{ value: "+12%", isPositive: true }}
+              trend={{ value: '+12%', isPositive: true }}
             />
             <StatsCard
               title="Consultas Realizadas"
               value="89"
               description="esta semana"
               icon={Activity}
-              trend={{ value: "+8%", isPositive: true }}
+              trend={{ value: '+8%', isPositive: true }}
             />
             <StatsCard
               title="Agendamentos"
               value="156"
               description="próximos 7 dias"
               icon={Calendar}
-              trend={{ value: "-3%", isPositive: false }}
+              trend={{ value: '-3%', isPositive: false }}
             />
             <StatsCard
               title="Taxa de Satisfação"
               value="98.5%"
               description="média mensal"
               icon={Heart}
-              trend={{ value: "+2.1%", isPositive: true }}
+              trend={{ value: '+2.1%', isPositive: true }}
             />
           </div>
         </section>
@@ -81,14 +81,19 @@ export function DesignShowcase() {
                     <Stethoscope className="w-6 h-6 text-medical-blue" />
                   </div>
                   <div>
-                    <CardTitle className="medical-heading">Diagnósticos</CardTitle>
-                    <p className="text-sm medical-subheading">Sistema inteligente</p>
+                    <CardTitle className="medical-heading">
+                      Diagnósticos
+                    </CardTitle>
+                    <p className="text-sm medical-subheading">
+                      Sistema inteligente
+                    </p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="medical-subheading">
-                  IA avançada para auxiliar no diagnóstico médico com precisão e rapidez.
+                  IA avançada para auxiliar no diagnóstico médico com precisão e
+                  rapidez.
                 </p>
               </CardContent>
             </Card>
@@ -100,14 +105,19 @@ export function DesignShowcase() {
                     <FileText className="w-6 h-6 text-medical-success" />
                   </div>
                   <div>
-                    <CardTitle className="medical-heading">Relatórios</CardTitle>
-                    <p className="text-sm medical-subheading">Geração automática</p>
+                    <CardTitle className="medical-heading">
+                      Relatórios
+                    </CardTitle>
+                    <p className="text-sm medical-subheading">
+                      Geração automática
+                    </p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="medical-subheading">
-                  Criação automática de relatórios médicos detalhados e personalizados.
+                  Criação automática de relatórios médicos detalhados e
+                  personalizados.
                 </p>
               </CardContent>
             </Card>
@@ -120,7 +130,9 @@ export function DesignShowcase() {
                   </div>
                   <div>
                     <CardTitle className="medical-heading">Alertas</CardTitle>
-                    <p className="text-sm medical-subheading">Notificações inteligentes</p>
+                    <p className="text-sm medical-subheading">
+                      Notificações inteligentes
+                    </p>
                   </div>
                 </div>
               </CardHeader>
@@ -143,7 +155,10 @@ export function DesignShowcase() {
               <Activity className="w-4 h-4 mr-2" />
               Nova Consulta
             </Button>
-            <Button variant="outline" className="premium-button border-medical-blue text-medical-blue hover:bg-medical-blue/10">
+            <Button
+              variant="outline"
+              className="premium-button border-medical-blue text-medical-blue hover:bg-medical-blue/10"
+            >
               <Users className="w-4 h-4 mr-2" />
               Gerenciar Pacientes
             </Button>
@@ -151,7 +166,10 @@ export function DesignShowcase() {
               <FileText className="w-4 h-4 mr-2" />
               Relatórios
             </Button>
-            <Button variant="ghost" className="premium-button text-medical-success hover:bg-medical-success/10">
+            <Button
+              variant="ghost"
+              className="premium-button text-medical-success hover:bg-medical-success/10"
+            >
               <TrendingUp className="w-4 h-4 mr-2" />
               Analytics
             </Button>
@@ -165,40 +183,53 @@ export function DesignShowcase() {
           </h2>
           <Card className="premium-card premium-fade-in max-w-2xl">
             <CardHeader>
-              <CardTitle className="medical-heading">Formulário de Paciente</CardTitle>
-              <p className="medical-subheading">Campos com design sofisticado</p>
+              <CardTitle className="medical-heading">
+                Formulário de Paciente
+              </CardTitle>
+              <p className="medical-subheading">
+                Campos com design sofisticado
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="medical-subheading font-medium">
+                  <Label
+                    htmlFor="name"
+                    className="medical-subheading font-medium"
+                  >
                     Nome Completo
                   </Label>
-                  <Input 
-                    id="name" 
-                    placeholder="Digite o nome do paciente" 
+                  <Input
+                    id="name"
+                    placeholder="Digite o nome do paciente"
                     className="medical-input"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="age" className="medical-subheading font-medium">
+                  <Label
+                    htmlFor="age"
+                    className="medical-subheading font-medium"
+                  >
                     Idade
                   </Label>
-                  <Input 
-                    id="age" 
-                    type="number" 
-                    placeholder="Idade" 
+                  <Input
+                    id="age"
+                    type="number"
+                    placeholder="Idade"
                     className="medical-input"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="diagnosis" className="medical-subheading font-medium">
+                <Label
+                  htmlFor="diagnosis"
+                  className="medical-subheading font-medium"
+                >
                   Diagnóstico Preliminar
                 </Label>
-                <Input 
-                  id="diagnosis" 
-                  placeholder="Descreva o diagnóstico" 
+                <Input
+                  id="diagnosis"
+                  placeholder="Descreva o diagnóstico"
                   className="medical-input"
                 />
               </div>
@@ -222,8 +253,8 @@ export function DesignShowcase() {
           <div className="max-w-2xl premium-fade-in">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input 
-                placeholder="Pesquisar pacientes, consultas, documentos..." 
+              <Input
+                placeholder="Pesquisar pacientes, consultas, documentos..."
                 className="medical-input pl-10 h-12 text-base"
               />
             </div>
@@ -238,22 +269,30 @@ export function DesignShowcase() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 premium-fade-in">
             <div className="space-y-2">
               <div className="w-full h-20 rounded-xl bg-medical-blue shadow-lg"></div>
-              <p className="text-sm font-medium medical-subheading">Medical Blue</p>
+              <p className="text-sm font-medium medical-subheading">
+                Medical Blue
+              </p>
               <p className="text-xs text-muted-foreground">#3498DB</p>
             </div>
             <div className="space-y-2">
               <div className="w-full h-20 rounded-xl bg-medical-success shadow-lg"></div>
-              <p className="text-sm font-medium medical-subheading">Medical Success</p>
+              <p className="text-sm font-medium medical-subheading">
+                Medical Success
+              </p>
               <p className="text-xs text-muted-foreground">#2ECC71</p>
             </div>
             <div className="space-y-2">
               <div className="w-full h-20 rounded-xl bg-medical-alert shadow-lg"></div>
-              <p className="text-sm font-medium medical-subheading">Medical Alert</p>
+              <p className="text-sm font-medium medical-subheading">
+                Medical Alert
+              </p>
               <p className="text-xs text-muted-foreground">#E74C3C</p>
             </div>
             <div className="space-y-2">
               <div className="w-full h-20 rounded-xl bg-primary shadow-lg"></div>
-              <p className="text-sm font-medium medical-subheading">Primary Navy</p>
+              <p className="text-sm font-medium medical-subheading">
+                Primary Navy
+              </p>
               <p className="text-xs text-muted-foreground">#2C3E50</p>
             </div>
           </div>
@@ -262,7 +301,8 @@ export function DesignShowcase() {
         {/* Footer */}
         <div className="text-center py-8 premium-fade-in">
           <p className="medical-subheading">
-            Design System Premium implementado com foco em elegância e funcionalidade médica
+            Design System Premium implementado com foco em elegância e
+            funcionalidade médica
           </p>
         </div>
       </div>

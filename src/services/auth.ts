@@ -1,7 +1,7 @@
-import { supabase } from "@/integrations/supabase/client";
-import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from '@/integrations/supabase/client';
+import type { Session, User } from '@supabase/supabase-js';
 
-export type UserProfession = "medico" | "psicologo" | "terapeuta";
+export type UserProfession = 'medico' | 'psicologo' | 'terapeuta';
 
 export interface SignUpPayload {
   email: string;
@@ -22,45 +22,43 @@ export const authService = {
         data: { full_name: fullName, profession },
       },
     });
-    
+
     // If signup successful, create profile
     if (data.user && !error) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          full_name: fullName,
-          role: profession,
-          email: email
-        });
-      
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        full_name: fullName,
+        role: profession,
+        email: email,
+      });
+
       if (profileError) {
         console.error('Error creating profile:', profileError);
       }
     }
-    
+
     return { user: data.user, session: data.session, error };
   },
 
   async signIn(email: string, password: string) {
     console.log('AuthService: Iniciando login para:', email);
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       if (error) {
         console.error('AuthService: Erro no login:', {
           message: error.message,
           status: error.status,
-          name: error.name
+          name: error.name,
         });
       } else {
         console.log('AuthService: Login bem-sucedido para:', email);
       }
-      
+
       return { user: data.user, session: data.session, error };
     } catch (err) {
       console.error('AuthService: Erro inesperado no login:', err);
@@ -76,7 +74,7 @@ export const authService = {
   async resendConfirmation(email: string) {
     // Resend the confirmation (signup) email
     const { data, error } = await supabase.auth.resend({
-      type: "signup",
+      type: 'signup',
       email,
     });
     return { data, error };

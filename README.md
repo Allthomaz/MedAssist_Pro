@@ -21,18 +21,21 @@ Sistema médico premium com IA para geração de relatórios e gestão de consul
 ## Design System Premium
 
 ### Paleta de Cores Médica
+
 - **Primary**: Azul médico profissional (#2563eb)
 - **Secondary**: Verde saúde (#16a34a)
 - **Accent**: Laranja energia (#ea580c)
 - **Medical**: Tons específicos para ambiente médico
 
 ### Componentes Premium
+
 - **StatsCard**: Cards com glassmorphism e micro-interações
 - **MedicalSidebar**: Navegação com efeitos visuais sofisticados
 - **Premium Buttons**: Botões com animações fluidas
 - **Medical Forms**: Campos otimizados para dados médicos
 
 ### Showcase Interativo
+
 Visite `/showcase` para ver todas as melhorias visuais implementadas.
 
 ## How can I edit this code?

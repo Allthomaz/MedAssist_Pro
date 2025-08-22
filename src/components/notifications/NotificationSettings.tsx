@@ -4,9 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { NotificationPreferenceValue } from '@/types/common';
 import { toast } from 'sonner';
 
 interface NotificationPreference {
@@ -30,7 +37,10 @@ interface NotificationSettingsProps {
   onClose: () => void;
 }
 
-export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOpen, onClose }) => {
+export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,10 +49,22 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
   // Tipos de notificação disponíveis
   const notificationTypes = [
     { key: 'appointment_reminder', label: 'Lembretes de Consulta', icon: Bell },
-    { key: 'appointment_confirmation', label: 'Confirmações de Agendamento', icon: Bell },
-    { key: 'appointment_cancellation', label: 'Cancelamentos de Consulta', icon: Bell },
+    {
+      key: 'appointment_confirmation',
+      label: 'Confirmações de Agendamento',
+      icon: Bell,
+    },
+    {
+      key: 'appointment_cancellation',
+      label: 'Cancelamentos de Consulta',
+      icon: Bell,
+    },
     { key: 'document_ready', label: 'Documentos Prontos', icon: Mail },
-    { key: 'consultation_completed', label: 'Consultas Finalizadas', icon: Bell },
+    {
+      key: 'consultation_completed',
+      label: 'Consultas Finalizadas',
+      icon: Bell,
+    },
     { key: 'system_updates', label: 'Atualizações do Sistema', icon: Settings },
   ];
 
@@ -87,10 +109,12 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
       if (preferences.length > 0) {
         const { error } = await supabase
           .from('notification_preferences')
-          .insert(preferences.map(pref => ({
-            ...pref,
-            user_id: user.id
-          })));
+          .insert(
+            preferences.map(pref => ({
+              ...pref,
+              user_id: user.id,
+            }))
+          );
 
         if (error) {
           console.error('Erro ao salvar preferências:', error);
@@ -110,37 +134,46 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
   };
 
   // Atualizar preferência específica
-  const updatePreference = (notificationType: string, field: keyof NotificationPreference, value: any) => {
+  const updatePreference = (
+    notificationType: string,
+    field: keyof NotificationPreference,
+    value: NotificationPreferenceValue
+  ) => {
     setPreferences(prev => {
-      const existingIndex = prev.findIndex(p => p.notification_type === notificationType);
-      
+      const existingIndex = prev.findIndex(
+        p => p.notification_type === notificationType
+      );
+
       if (existingIndex >= 0) {
         // Atualizar existente
         const updated = [...prev];
         updated[existingIndex] = {
           ...updated[existingIndex],
           [field]: value,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
         return updated;
       } else {
         // Criar novo
-        return [...prev, {
-          id: `${notificationType}_${user?.id}`,
-          user_id: user?.id || '',
-          notification_type: notificationType,
-          in_app_enabled: field === 'in_app_enabled' ? value : true,
-          email_enabled: field === 'email_enabled' ? value : true,
-          sms_enabled: field === 'sms_enabled' ? value : false,
-          push_enabled: field === 'push_enabled' ? value : true,
-          whatsapp_enabled: field === 'whatsapp_enabled' ? value : false,
-          quiet_hours_start: '22:00',
-          quiet_hours_end: '08:00',
-          allowed_days: [1, 2, 3, 4, 5, 6, 0],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          [field]: value
-        }];
+        return [
+          ...prev,
+          {
+            id: `${notificationType}_${user?.id}`,
+            user_id: user?.id || '',
+            notification_type: notificationType,
+            in_app_enabled: field === 'in_app_enabled' ? value : true,
+            email_enabled: field === 'email_enabled' ? value : true,
+            sms_enabled: field === 'sms_enabled' ? value : false,
+            push_enabled: field === 'push_enabled' ? value : true,
+            whatsapp_enabled: field === 'whatsapp_enabled' ? value : false,
+            quiet_hours_start: '22:00',
+            quiet_hours_end: '08:00',
+            allowed_days: [1, 2, 3, 4, 5, 6, 0],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            [field]: value,
+          },
+        ];
       }
     });
   };
@@ -171,14 +204,16 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-muted-foreground">Carregando preferências...</p>
+              <p className="mt-2 text-muted-foreground">
+                Carregando preferências...
+              </p>
             </div>
           ) : (
             <div className="space-y-6">
               {notificationTypes.map(type => {
                 const Icon = type.icon;
                 const preference = getPreference(type.key);
-                
+
                 return (
                   <Card key={type.key}>
                     <CardHeader className="pb-3">
@@ -193,18 +228,26 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
                           <span className="text-sm">No App</span>
                           <Switch
                             checked={preference?.in_app_enabled || false}
-                            onCheckedChange={(checked) => 
-                              updatePreference(type.key, 'in_app_enabled', checked)
+                            onCheckedChange={checked =>
+                              updatePreference(
+                                type.key,
+                                'in_app_enabled',
+                                checked
+                              )
                             }
                           />
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <span className="text-sm">E-mail</span>
                           <Switch
                             checked={preference?.email_enabled || false}
-                            onCheckedChange={(checked) => 
-                              updatePreference(type.key, 'email_enabled', checked)
+                            onCheckedChange={checked =>
+                              updatePreference(
+                                type.key,
+                                'email_enabled',
+                                checked
+                              )
                             }
                           />
                         </div>
@@ -213,7 +256,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
                           <span className="text-sm">SMS</span>
                           <Switch
                             checked={preference?.sms_enabled || false}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={checked =>
                               updatePreference(type.key, 'sms_enabled', checked)
                             }
                           />
@@ -223,8 +266,12 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
                           <span className="text-sm">Push</span>
                           <Switch
                             checked={preference?.push_enabled || false}
-                            onCheckedChange={(checked) => 
-                              updatePreference(type.key, 'push_enabled', checked)
+                            onCheckedChange={checked =>
+                              updatePreference(
+                                type.key,
+                                'push_enabled',
+                                checked
+                              )
                             }
                           />
                         </div>
@@ -235,7 +282,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ isOp
               })}
             </div>
           )}
-          
+
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               Cancelar

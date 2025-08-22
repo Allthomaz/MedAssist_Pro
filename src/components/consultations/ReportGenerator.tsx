@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import { FileText, Download, Loader2 } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
 import jsPDF from 'jspdf';
@@ -25,11 +31,12 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   consultationId,
   transcriptionText = '',
   patientName = 'Paciente',
-  doctorName = 'Dr. [Nome]'
+  doctorName = 'Dr. [Nome]',
 }) => {
   const [reportType, setReportType] = useState<string>('');
   const [customIntention, setCustomIntention] = useState<string>('');
-  const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null);
+  const [generatedReport, setGeneratedReport] =
+    useState<GeneratedReport | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -39,7 +46,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     { value: 'prescrição médica', label: 'Prescrição Médica' },
     { value: 'atestado médico', label: 'Atestado Médico' },
     { value: 'evolução clínica', label: 'Evolução Clínica' },
-    { value: 'custom', label: 'Personalizado' }
+    { value: 'custom', label: 'Personalizado' },
   ];
 
   const generateReport = async () => {
@@ -63,14 +70,17 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
     try {
       const intention = reportType === 'custom' ? customIntention : reportType;
-      
-      const { data, error } = await supabase.functions.invoke('generate-report', {
-        body: {
-          transcription: transcriptionText,
-          intention: intention,
-          timestamp: new Date().toISOString()
+
+      const { data, error } = await supabase.functions.invoke(
+        'generate-report',
+        {
+          body: {
+            transcription: transcriptionText,
+            intention: intention,
+            timestamp: new Date().toISOString(),
+          },
         }
-      });
+      );
 
       if (error) {
         throw new Error(error.message || 'Erro ao gerar relatório');
@@ -83,21 +93,18 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       setGeneratedReport(data);
 
       // Salvar relatório no banco de dados
-      const { error: saveError } = await supabase
-        .from('documents')
-        .insert({
-          doctor_id: (await supabase.auth.getUser()).data.user?.id,
-          consultation_id: consultationId,
-          document_type: intention,
-          title: data.title,
-          content_html: data.content,
-          status: 'finalizado'
-        });
+      const { error: saveError } = await supabase.from('documents').insert({
+        doctor_id: (await supabase.auth.getUser()).data.user?.id,
+        consultation_id: consultationId,
+        document_type: intention,
+        title: data.title,
+        content_html: data.content,
+        status: 'finalizado',
+      });
 
       if (saveError) {
         console.error('Erro ao salvar relatório:', saveError);
       }
-
     } catch (error) {
       console.error('Erro na geração do relatório:', error);
       alert(`Erro ao gerar relatório: ${error.message}`);
@@ -116,28 +123,28 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 20;
-      const maxWidth = pageWidth - (margin * 2);
-      
+      const maxWidth = pageWidth - margin * 2;
+
       // Configurar fonte
       pdf.setFont('helvetica');
-      
+
       // Título
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       const titleLines = pdf.splitTextToSize(generatedReport.title, maxWidth);
       let currentY = margin + 10;
-      
+
       titleLines.forEach((line: string) => {
         pdf.text(line, margin, currentY);
         currentY += 8;
       });
-      
+
       currentY += 10;
-      
+
       // Conteúdo
       pdf.setFontSize(11);
       pdf.setFont('helvetica', 'normal');
-      
+
       // Substituir placeholders
       let content = generatedReport.content
         .replace(/\[Nome do Paciente\]/g, patientName)
@@ -145,20 +152,20 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         .replace(/Médico Responsável/g, doctorName)
         .replace(/Médico Prescritor/g, doctorName)
         .replace(/Assinatura do Médico/g, doctorName);
-      
+
       const contentLines = pdf.splitTextToSize(content, maxWidth);
-      
+
       contentLines.forEach((line: string) => {
         // Verificar se precisa de nova página
         if (currentY > pageHeight - margin) {
           pdf.addPage();
           currentY = margin;
         }
-        
+
         pdf.text(line, margin, currentY);
         currentY += 6;
       });
-      
+
       // Rodapé com data de geração
       const footerY = pageHeight - 15;
       pdf.setFontSize(8);
@@ -168,11 +175,10 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         margin,
         footerY
       );
-      
+
       // Download do PDF
       const fileName = `${generatedReport.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
-      
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF. Tente novamente.');
@@ -198,7 +204,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               <SelectValue placeholder="Selecione o tipo de documento" />
             </SelectTrigger>
             <SelectContent>
-              {reportTypes.map((type) => (
+              {reportTypes.map(type => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
                 </SelectItem>
@@ -210,10 +216,12 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         {/* Campo personalizado */}
         {reportType === 'custom' && (
           <div className="space-y-2">
-            <label className="text-sm font-medium">Descreva o documento desejado</label>
+            <label className="text-sm font-medium">
+              Descreva o documento desejado
+            </label>
             <Textarea
               value={customIntention}
-              onChange={(e) => setCustomIntention(e.target.value)}
+              onChange={e => setCustomIntention(e.target.value)}
               placeholder="Ex: Relatório de alta hospitalar, Laudo de exame específico..."
               rows={3}
             />
@@ -221,7 +229,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         )}
 
         {/* Botão de gerar */}
-        <Button 
+        <Button
           onClick={generateReport}
           disabled={isGenerating || !transcriptionText.trim() || !reportType}
           className="w-full"
@@ -263,7 +271,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                 )}
               </Button>
             </div>
-            
+
             <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
               <pre className="whitespace-pre-wrap text-sm font-mono">
                 {generatedReport.content
@@ -271,8 +279,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                   .replace(/\[Número do CRM\]/g, 'XXXXXX')
                   .replace(/Médico Responsável/g, doctorName)
                   .replace(/Médico Prescritor/g, doctorName)
-                  .replace(/Assinatura do Médico/g, doctorName)
-                }
+                  .replace(/Assinatura do Médico/g, doctorName)}
               </pre>
             </div>
           </div>
@@ -281,7 +288,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         {/* Aviso sobre transcrição */}
         {!transcriptionText.trim() && (
           <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
-            ⚠️ Nenhuma transcrição disponível. Grave e transcreva áudio primeiro para gerar relatórios.
+            ⚠️ Nenhuma transcrição disponível. Grave e transcreva áudio primeiro
+            para gerar relatórios.
           </div>
         )}
       </CardContent>

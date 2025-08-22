@@ -1,41 +1,52 @@
-import React, { useEffect } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import React, { useEffect } from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const schema = z
   .object({
     password: z
       .string()
-      .min(8, "Mínimo de 8 caracteres")
-      .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "Use letras e números"),
+      .min(8, 'Mínimo de 8 caracteres')
+      .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, 'Use letras e números'),
     confirmPassword: z.string(),
   })
-  .refine((v) => v.password === v.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Senhas não conferem",
+  .refine(v => v.password === v.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Senhas não conferem',
   });
 
 const useSeo = () => {
   useEffect(() => {
-    document.title = "Redefinir senha | MedAssist Pro";
-    const desc = "Atualize sua senha com segurança";
+    document.title = 'Redefinir senha | MedAssist Pro';
+    const desc = 'Atualize sua senha com segurança';
     const canonicalHref = `${window.location.origin}/auth/reset`;
 
-    const metaDesc = document.querySelector('meta[name="description"]') || document.createElement("meta");
-    metaDesc.setAttribute("name", "description");
-    metaDesc.setAttribute("content", desc);
+    const metaDesc =
+      document.querySelector('meta[name="description"]') ||
+      document.createElement('meta');
+    metaDesc.setAttribute('name', 'description');
+    metaDesc.setAttribute('content', desc);
     document.head.appendChild(metaDesc);
 
-    const canonical = document.querySelector('link[rel="canonical"]') || document.createElement("link");
-    canonical.setAttribute("rel", "canonical");
-    canonical.setAttribute("href", canonicalHref);
+    const canonical =
+      document.querySelector('link[rel="canonical"]') ||
+      document.createElement('link');
+    canonical.setAttribute('rel', 'canonical');
+    canonical.setAttribute('href', canonicalHref);
     document.head.appendChild(canonical);
   }, []);
 };
@@ -47,7 +58,7 @@ const ResetPassword: React.FC = () => {
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { password: "", confirmPassword: "" },
+    defaultValues: { password: '', confirmPassword: '' },
   });
 
   useEffect(() => {
@@ -58,11 +69,11 @@ const ResetPassword: React.FC = () => {
   const onSubmit = async (values: z.infer<typeof schema>) => {
     const { error } = await updatePassword(values.password);
     if (error) {
-      toast.error("Não foi possível atualizar a senha. Abra o link novamente.");
+      toast.error('Não foi possível atualizar a senha. Abra o link novamente.');
       return;
     }
-    toast.success("Senha atualizada. Faça login.");
-    navigate("/auth", { replace: true });
+    toast.success('Senha atualizada. Faça login.');
+    navigate('/auth', { replace: true });
   };
 
   return (
@@ -73,7 +84,11 @@ const ResetPassword: React.FC = () => {
           Defina uma nova senha para sua conta.
         </p>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+            noValidate
+          >
             <FormField
               control={form.control}
               name="password"
@@ -81,7 +96,11 @@ const ResetPassword: React.FC = () => {
                 <FormItem>
                   <FormLabel>Nova senha</FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="new-password" {...field} />
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -94,13 +113,19 @@ const ResetPassword: React.FC = () => {
                 <FormItem>
                   <FormLabel>Confirmar nova senha</FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="new-password" {...field} />
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">Atualizar senha</Button>
+            <Button type="submit" className="w-full">
+              Atualizar senha
+            </Button>
           </form>
         </Form>
       </div>

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,9 +14,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  Shield, 
-  Database, 
+import {
+  Shield,
+  Database,
   CheckCircle,
   XCircle,
   AlertTriangle,
@@ -20,7 +26,7 @@ import {
   Mic,
   Activity,
   Lock,
-  Unlock
+  Unlock,
 } from 'lucide-react';
 
 interface RLSTest {
@@ -52,7 +58,7 @@ const RLSTest: React.FC = () => {
     email: 'paciente.rls@test.com',
     phone: '(11) 99999-9999',
     date_of_birth: '1990-01-01',
-    gender: 'M'
+    gender: 'M',
   });
   const [createdPatientId, setCreatedPatientId] = useState<string | null>(null);
 
@@ -66,16 +72,17 @@ const RLSTest: React.FC = () => {
         table: 'profiles',
         operation: 'SELECT',
         expectedResult: 'success',
-        status: 'pending'
+        status: 'pending',
       },
       {
         id: 'profiles_select_others',
         name: 'Visualizar perfis de outros',
-        description: 'Usuário NÃO deve conseguir visualizar perfis de outros usuários',
+        description:
+          'Usuário NÃO deve conseguir visualizar perfis de outros usuários',
         table: 'profiles',
         operation: 'SELECT',
         expectedResult: 'error',
-        status: 'pending'
+        status: 'pending',
       },
       {
         id: 'recordings_select',
@@ -84,7 +91,7 @@ const RLSTest: React.FC = () => {
         table: 'recordings',
         operation: 'SELECT',
         expectedResult: profile?.role === 'doctor' ? 'success' : 'error',
-        status: 'pending'
+        status: 'pending',
       },
       {
         id: 'transcriptions_select',
@@ -93,8 +100,8 @@ const RLSTest: React.FC = () => {
         table: 'transcriptions',
         operation: 'SELECT',
         expectedResult: profile?.role === 'doctor' ? 'success' : 'error',
-        status: 'pending'
-      }
+        status: 'pending',
+      },
     ];
 
     // Testes específicos para médicos
@@ -107,7 +114,7 @@ const RLSTest: React.FC = () => {
           table: 'patients',
           operation: 'SELECT',
           expectedResult: 'success',
-          status: 'pending'
+          status: 'pending',
         },
         {
           id: 'patients_insert',
@@ -116,25 +123,27 @@ const RLSTest: React.FC = () => {
           table: 'patients',
           operation: 'INSERT',
           expectedResult: 'success',
-          status: 'pending'
+          status: 'pending',
         },
         {
           id: 'patients_update_own',
           name: 'Atualizar pacientes próprios',
-          description: 'Médico deve conseguir atualizar dados de seus pacientes',
+          description:
+            'Médico deve conseguir atualizar dados de seus pacientes',
           table: 'patients',
           operation: 'UPDATE',
           expectedResult: 'success',
-          status: 'pending'
+          status: 'pending',
         },
         {
           id: 'patients_select_others',
           name: 'Visualizar pacientes de outros médicos',
-          description: 'Médico NÃO deve conseguir ver pacientes de outros médicos',
+          description:
+            'Médico NÃO deve conseguir ver pacientes de outros médicos',
           table: 'patients',
           operation: 'SELECT',
           expectedResult: 'error',
-          status: 'pending'
+          status: 'pending',
         }
       );
     }
@@ -149,25 +158,27 @@ const RLSTest: React.FC = () => {
           table: 'patients',
           operation: 'SELECT',
           expectedResult: 'success',
-          status: 'pending'
+          status: 'pending',
         },
         {
           id: 'patients_update_own_data',
           name: 'Atualizar próprios dados básicos',
-          description: 'Paciente deve conseguir atualizar dados básicos (telefone, endereço)',
+          description:
+            'Paciente deve conseguir atualizar dados básicos (telefone, endereço)',
           table: 'patients',
           operation: 'UPDATE',
           expectedResult: 'success',
-          status: 'pending'
+          status: 'pending',
         },
         {
           id: 'patients_insert_forbidden',
           name: 'Tentar inserir paciente (proibido)',
-          description: 'Paciente NÃO deve conseguir inserir novos registros de pacientes',
+          description:
+            'Paciente NÃO deve conseguir inserir novos registros de pacientes',
           table: 'patients',
           operation: 'INSERT',
           expectedResult: 'error',
-          status: 'pending'
+          status: 'pending',
         }
       );
     }
@@ -176,7 +187,9 @@ const RLSTest: React.FC = () => {
   };
 
   // Executar um teste específico
-  const executeTest = async (test: RLSTest): Promise<{ success: boolean; result: string }> => {
+  const executeTest = async (
+    test: RLSTest
+  ): Promise<{ success: boolean; result: string }> => {
     try {
       switch (test.id) {
         case 'profiles_select_own':
@@ -185,26 +198,30 @@ const RLSTest: React.FC = () => {
             .select('*')
             .eq('id', user?.id)
             .single();
-          
+
           if (ownProfileError) {
             return { success: false, result: ownProfileError.message };
           }
-          return { success: true, result: `Perfil encontrado: ${ownProfile?.full_name}` };
+          return {
+            success: true,
+            result: `Perfil encontrado: ${ownProfile?.full_name}`,
+          };
 
         case 'profiles_select_others':
-          const { data: otherProfiles, error: otherProfilesError } = await supabase
-            .from('profiles')
-            .select('*')
-            .neq('id', user?.id)
-            .limit(1);
-          
+          const { data: otherProfiles, error: otherProfilesError } =
+            await supabase
+              .from('profiles')
+              .select('*')
+              .neq('id', user?.id)
+              .limit(1);
+
           if (otherProfilesError) {
             return { success: false, result: otherProfilesError.message };
           }
           // Se conseguiu buscar outros perfis, é um problema de segurança
-          return { 
-            success: false, 
-            result: `FALHA DE SEGURANÇA: Conseguiu acessar ${otherProfiles?.length || 0} perfis de outros usuários` 
+          return {
+            success: false,
+            result: `FALHA DE SEGURANÇA: Conseguiu acessar ${otherProfiles?.length || 0} perfis de outros usuários`,
           };
 
         case 'recordings_select':
@@ -212,44 +229,55 @@ const RLSTest: React.FC = () => {
             .from('recordings')
             .select('count')
             .limit(1);
-          
+
           if (recordingsError) {
             return { success: false, result: recordingsError.message };
           }
-          return { success: true, result: `Acesso permitido (${recordings?.length || 0} registros)` };
+          return {
+            success: true,
+            result: `Acesso permitido (${recordings?.length || 0} registros)`,
+          };
 
         case 'transcriptions_select':
-          const { data: transcriptions, error: transcriptionsError } = await supabase
-            .from('transcriptions')
-            .select('count')
-            .limit(1);
-          
+          const { data: transcriptions, error: transcriptionsError } =
+            await supabase.from('transcriptions').select('count').limit(1);
+
           if (transcriptionsError) {
             return { success: false, result: transcriptionsError.message };
           }
-          return { success: true, result: `Acesso permitido (${transcriptions?.length || 0} registros)` };
+          return {
+            success: true,
+            result: `Acesso permitido (${transcriptions?.length || 0} registros)`,
+          };
 
         case 'patients_select_own':
           const { data: ownPatients, error: ownPatientsError } = await supabase
             .from('patients')
             .select('*')
             .eq('doctor_id', user?.id);
-          
+
           if (ownPatientsError) {
             return { success: false, result: ownPatientsError.message };
           }
-          return { success: true, result: `Encontrados ${ownPatients?.length || 0} pacientes próprios` };
+          return {
+            success: true,
+            result: `Encontrados ${ownPatients?.length || 0} pacientes próprios`,
+          };
 
         case 'patients_insert':
           // Primeiro, criar um perfil de usuário para o paciente
-          const { data: newUser, error: userError } = await supabase.auth.admin.createUser({
-            email: testPatient.email,
-            password: 'TempPassword123!',
-            email_confirm: true
-          });
+          const { data: newUser, error: userError } =
+            await supabase.auth.admin.createUser({
+              email: testPatient.email,
+              password: 'TempPassword123!',
+              email_confirm: true,
+            });
 
           if (userError) {
-            return { success: false, result: `Erro ao criar usuário: ${userError.message}` };
+            return {
+              success: false,
+              result: `Erro ao criar usuário: ${userError.message}`,
+            };
           }
 
           // Criar perfil do paciente
@@ -259,11 +287,14 @@ const RLSTest: React.FC = () => {
               id: newUser.user.id,
               full_name: testPatient.full_name,
               role: 'patient',
-              email: testPatient.email
+              email: testPatient.email,
             });
 
           if (profileError) {
-            return { success: false, result: `Erro ao criar perfil: ${profileError.message}` };
+            return {
+              success: false,
+              result: `Erro ao criar perfil: ${profileError.message}`,
+            };
           }
 
           // Inserir paciente
@@ -277,21 +308,27 @@ const RLSTest: React.FC = () => {
               phone: testPatient.phone,
               date_of_birth: testPatient.date_of_birth,
               gender: testPatient.gender,
-              status: 'active'
+              status: 'active',
             })
             .select()
             .single();
-          
+
           if (patientError) {
             return { success: false, result: patientError.message };
           }
-          
+
           setCreatedPatientId(newPatient.id);
-          return { success: true, result: `Paciente criado com ID: ${newPatient.id}` };
+          return {
+            success: true,
+            result: `Paciente criado com ID: ${newPatient.id}`,
+          };
 
         case 'patients_update_own':
           if (!createdPatientId) {
-            return { success: false, result: 'Nenhum paciente criado para testar atualização' };
+            return {
+              success: false,
+              result: 'Nenhum paciente criado para testar atualização',
+            };
           }
 
           const { error: updateError } = await supabase
@@ -299,26 +336,27 @@ const RLSTest: React.FC = () => {
             .update({ phone: '(11) 88888-8888' })
             .eq('id', createdPatientId)
             .eq('doctor_id', user?.id);
-          
+
           if (updateError) {
             return { success: false, result: updateError.message };
           }
           return { success: true, result: 'Paciente atualizado com sucesso' };
 
         case 'patients_select_others':
-          const { data: otherPatients, error: otherPatientsError } = await supabase
-            .from('patients')
-            .select('*')
-            .neq('doctor_id', user?.id)
-            .limit(1);
-          
+          const { data: otherPatients, error: otherPatientsError } =
+            await supabase
+              .from('patients')
+              .select('*')
+              .neq('doctor_id', user?.id)
+              .limit(1);
+
           if (otherPatientsError) {
             return { success: false, result: otherPatientsError.message };
           }
           // Se conseguiu buscar pacientes de outros médicos, é um problema
-          return { 
-            success: false, 
-            result: `FALHA DE SEGURANÇA: Conseguiu acessar ${otherPatients?.length || 0} pacientes de outros médicos` 
+          return {
+            success: false,
+            result: `FALHA DE SEGURANÇA: Conseguiu acessar ${otherPatients?.length || 0} pacientes de outros médicos`,
           };
 
         case 'patients_select_own_data':
@@ -326,22 +364,28 @@ const RLSTest: React.FC = () => {
             .from('patients')
             .select('*')
             .eq('profile_id', user?.id);
-          
+
           if (ownDataError) {
             return { success: false, result: ownDataError.message };
           }
-          return { success: true, result: `Dados próprios encontrados: ${ownData?.length || 0} registros` };
+          return {
+            success: true,
+            result: `Dados próprios encontrados: ${ownData?.length || 0} registros`,
+          };
 
         case 'patients_update_own_data':
           const { error: updateOwnError } = await supabase
             .from('patients')
             .update({ phone: '(11) 77777-7777' })
             .eq('profile_id', user?.id);
-          
+
           if (updateOwnError) {
             return { success: false, result: updateOwnError.message };
           }
-          return { success: true, result: 'Dados próprios atualizados com sucesso' };
+          return {
+            success: true,
+            result: 'Dados próprios atualizados com sucesso',
+          };
 
         case 'patients_insert_forbidden':
           const { error: insertForbiddenError } = await supabase
@@ -351,16 +395,17 @@ const RLSTest: React.FC = () => {
               doctor_id: user?.id, // Tentativa inválida
               full_name: 'Teste Proibido',
               email: 'proibido@test.com',
-              status: 'active'
+              status: 'active',
             });
-          
+
           if (insertForbiddenError) {
             return { success: false, result: insertForbiddenError.message };
           }
           // Se conseguiu inserir, é um problema de segurança
-          return { 
-            success: false, 
-            result: 'FALHA DE SEGURANÇA: Paciente conseguiu inserir registro na tabela patients' 
+          return {
+            success: false,
+            result:
+              'FALHA DE SEGURANÇA: Paciente conseguiu inserir registro na tabela patients',
           };
 
         default:
@@ -384,24 +429,28 @@ const RLSTest: React.FC = () => {
 
     for (let i = 0; i < currentTests.length; i++) {
       const test = currentTests[i];
-      
+
       // Marcar teste como executando
-      setTests(prev => prev.map(t => 
-        t.id === test.id ? { ...t, status: 'running' } : t
-      ));
+      setTests(prev =>
+        prev.map(t => (t.id === test.id ? { ...t, status: 'running' } : t))
+      );
 
       const result = await executeTest(test);
       const success = result.success === (test.expectedResult === 'success');
-      
+
       // Atualizar resultado do teste
-      setTests(prev => prev.map(t => 
-        t.id === test.id ? {
-          ...t,
-          status: success ? 'success' : 'error',
-          result: result.result,
-          executedAt: new Date()
-        } : t
-      ));
+      setTests(prev =>
+        prev.map(t =>
+          t.id === test.id
+            ? {
+                ...t,
+                status: success ? 'success' : 'error',
+                result: result.result,
+                executedAt: new Date(),
+              }
+            : t
+        )
+      );
 
       // Pequena pausa entre testes
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -463,7 +512,9 @@ const RLSTest: React.FC = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <Shield className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Testes de Row Level Security (RLS)</h1>
+        <h1 className="text-2xl font-bold">
+          Testes de Row Level Security (RLS)
+        </h1>
       </div>
 
       {/* Informações do usuário atual */}
@@ -476,15 +527,25 @@ const RLSTest: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-2">
-            <p><strong>Nome:</strong> {profile.full_name}</p>
-            <p><strong>Email:</strong> {user.email}</p>
+            <p>
+              <strong>Nome:</strong> {profile.full_name}
+            </p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
             <div className="flex items-center gap-2">
               <strong>Role:</strong>
-              <Badge variant={profile.role === 'doctor' ? 'default' : 'secondary'}>
+              <Badge
+                variant={profile.role === 'doctor' ? 'default' : 'secondary'}
+              >
                 {profile.role}
               </Badge>
             </div>
-            {profile.crm && <p><strong>CRM:</strong> {profile.crm}</p>}
+            {profile.crm && (
+              <p>
+                <strong>CRM:</strong> {profile.crm}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -502,8 +563,8 @@ const RLSTest: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            <Button 
-              onClick={runAllTests} 
+            <Button
+              onClick={runAllTests}
               disabled={isRunningTests}
               className="flex items-center gap-2"
             >
@@ -512,12 +573,16 @@ const RLSTest: React.FC = () => {
               ) : (
                 <Lock className="h-4 w-4" />
               )}
-              {isRunningTests ? 'Executando Testes...' : 'Executar Todos os Testes'}
+              {isRunningTests
+                ? 'Executando Testes...'
+                : 'Executar Todos os Testes'}
             </Button>
-            
+
             {tests.length > 0 && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>{tests.length} testes configurados para role: {profile.role}</span>
+                <span>
+                  {tests.length} testes configurados para role: {profile.role}
+                </span>
               </div>
             )}
           </div>
@@ -535,7 +600,7 @@ const RLSTest: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {tests.map((test) => (
+              {tests.map(test => (
                 <div key={test.id} className="border rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     {getStatusIcon(test.status)}
@@ -546,30 +611,44 @@ const RLSTest: React.FC = () => {
                         <Badge variant="outline" className="text-xs">
                           {test.operation}
                         </Badge>
-                        <Badge 
-                          variant={test.expectedResult === 'success' ? 'default' : 'destructive'}
+                        <Badge
+                          variant={
+                            test.expectedResult === 'success'
+                              ? 'default'
+                              : 'destructive'
+                          }
                           className="text-xs"
                         >
                           {test.expectedResult === 'success' ? (
-                            <><Unlock className="h-3 w-3 mr-1" />Permitido</>
+                            <>
+                              <Unlock className="h-3 w-3 mr-1" />
+                              Permitido
+                            </>
                           ) : (
-                            <><Lock className="h-3 w-3 mr-1" />Bloqueado</>
+                            <>
+                              <Lock className="h-3 w-3 mr-1" />
+                              Bloqueado
+                            </>
                           )}
                         </Badge>
                       </div>
-                      
-                      <p className="text-sm text-gray-600 mb-2">{test.description}</p>
-                      
+
+                      <p className="text-sm text-gray-600 mb-2">
+                        {test.description}
+                      </p>
+
                       {test.result && (
-                        <div className={`text-sm p-2 rounded ${
-                          test.status === 'success' 
-                            ? 'bg-green-50 text-green-700 border border-green-200' 
-                            : 'bg-red-50 text-red-700 border border-red-200'
-                        }`}>
+                        <div
+                          className={`text-sm p-2 rounded ${
+                            test.status === 'success'
+                              ? 'bg-green-50 text-green-700 border border-green-200'
+                              : 'bg-red-50 text-red-700 border border-red-200'
+                          }`}
+                        >
                           <strong>Resultado:</strong> {test.result}
                         </div>
                       )}
-                      
+
                       {test.executedAt && (
                         <p className="text-xs text-gray-500 mt-2">
                           Executado em: {test.executedAt.toLocaleString()}
@@ -603,7 +682,12 @@ const RLSTest: React.FC = () => {
                 <Input
                   id="patient-name"
                   value={testPatient.full_name}
-                  onChange={(e) => setTestPatient(prev => ({ ...prev, full_name: e.target.value }))}
+                  onChange={e =>
+                    setTestPatient(prev => ({
+                      ...prev,
+                      full_name: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -612,7 +696,9 @@ const RLSTest: React.FC = () => {
                   id="patient-email"
                   type="email"
                   value={testPatient.email}
-                  onChange={(e) => setTestPatient(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={e =>
+                    setTestPatient(prev => ({ ...prev, email: e.target.value }))
+                  }
                 />
               </div>
               <div>
@@ -620,7 +706,9 @@ const RLSTest: React.FC = () => {
                 <Input
                   id="patient-phone"
                   value={testPatient.phone || ''}
-                  onChange={(e) => setTestPatient(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={e =>
+                    setTestPatient(prev => ({ ...prev, phone: e.target.value }))
+                  }
                 />
               </div>
               <div>
@@ -629,7 +717,12 @@ const RLSTest: React.FC = () => {
                   id="patient-birth"
                   type="date"
                   value={testPatient.date_of_birth || ''}
-                  onChange={(e) => setTestPatient(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                  onChange={e =>
+                    setTestPatient(prev => ({
+                      ...prev,
+                      date_of_birth: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </div>

@@ -41,7 +41,7 @@ const quickActions = [
 
 export function QuickActions() {
   const navigate = useNavigate();
-  
+
   const handleAction = (action: string) => {
     switch (action) {
       case 'start-consultation':
@@ -71,7 +71,7 @@ export function QuickActions() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {quickActions.map((action) => {
+        {quickActions.map(action => {
           const Icon = action.icon;
           return (
             <Button
@@ -86,8 +86,12 @@ export function QuickActions() {
                 <Icon className="w-4 h-4 text-primary" />
               </div>
               <div className="text-left flex-1">
-                <div className="font-medium text-foreground">{action.title}</div>
-                <div className="text-sm text-muted-foreground">{action.description}</div>
+                <div className="font-medium text-foreground">
+                  {action.title}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {action.description}
+                </div>
               </div>
             </Button>
           );

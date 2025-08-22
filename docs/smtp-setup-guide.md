@@ -16,6 +16,7 @@ Este guia fornece instruções passo a passo para configurar o envio de emails n
 ## 🎯 Visão Geral
 
 O MedAssist precisa enviar emails para:
+
 - ✅ Confirmação de cadastro de usuários
 - 🔑 Recuperação de senha
 - 📋 Notificações de relatórios médicos
@@ -23,11 +24,11 @@ O MedAssist precisa enviar emails para:
 
 ### Provedores Recomendados
 
-| Provedor | Facilidade | Custo | Confiabilidade | Recomendado para |
-|----------|------------|-------|----------------|------------------|
-| **SendGrid** | ⭐⭐⭐⭐⭐ | 💰💰 | ⭐⭐⭐⭐⭐ | Produção |
-| **AWS SES** | ⭐⭐⭐ | 💰 | ⭐⭐⭐⭐⭐ | Produção (AWS) |
-| **Gmail** | ⭐⭐⭐⭐ | 💰 | ⭐⭐⭐ | Desenvolvimento |
+| Provedor     | Facilidade | Custo | Confiabilidade | Recomendado para |
+| ------------ | ---------- | ----- | -------------- | ---------------- |
+| **SendGrid** | ⭐⭐⭐⭐⭐ | 💰💰  | ⭐⭐⭐⭐⭐     | Produção         |
+| **AWS SES**  | ⭐⭐⭐     | 💰    | ⭐⭐⭐⭐⭐     | Produção (AWS)   |
+| **Gmail**    | ⭐⭐⭐⭐   | 💰    | ⭐⭐⭐         | Desenvolvimento  |
 
 ## 🚀 Configuração SendGrid
 
@@ -165,11 +166,13 @@ admin_email = "seu_email@gmail.com"
 ### Desenvolvimento Local
 
 1. **Copie o arquivo de exemplo**:
+
    ```bash
    cp .env.example .env
    ```
 
 2. **Preencha as variáveis**:
+
    ```bash
    # Escolha um provedor e preencha as credenciais
    SENDGRID_API_KEY=SG.sua_api_key
@@ -178,6 +181,7 @@ admin_email = "seu_email@gmail.com"
    ```
 
 3. **Atualize o config.toml**:
+
    ```bash
    # Edite supabase/config.toml
    [auth.email.smtp]
@@ -237,6 +241,7 @@ supabase logs
 **Causa**: Credenciais incorretas
 
 **Solução**:
+
 1. Verifique se a API Key está correta
 2. Para SendGrid, use `apikey` como usuário
 3. Para AWS SES, use as credenciais SMTP específicas
@@ -246,6 +251,7 @@ supabase logs
 **Causa**: Host ou porta incorretos
 
 **Solução**:
+
 1. Verifique o host SMTP do provedor
 2. Use porta 587 (TLS) ou 465 (SSL)
 3. Verifique firewall/proxy
@@ -255,6 +261,7 @@ supabase logs
 **Causa**: Muitos emails enviados
 
 **Solução**:
+
 1. Aguarde o reset do limite
 2. Upgrade do plano do provedor
 3. Implemente rate limiting na aplicação
@@ -262,11 +269,13 @@ supabase logs
 ### Emails não chegam
 
 **Possíveis causas**:
+
 1. **Spam**: Verifique pasta de spam
 2. **Domínio não verificado**: Verifique domínio no provedor
 3. **Reputação**: Use domínio próprio verificado
 
 **Soluções**:
+
 1. Configure SPF, DKIM e DMARC
 2. Use domínio verificado
 3. Monitore reputação do IP
@@ -276,6 +285,7 @@ supabase logs
 **Causa**: Templates HTML não encontrados
 
 **Solução**:
+
 1. Verifique se os arquivos estão em `supabase/templates/`
 2. Reinicie o Supabase após adicionar templates
 3. Verifique permissões dos arquivos
@@ -283,16 +293,19 @@ supabase logs
 ## 💰 Custos
 
 ### SendGrid
+
 - **Gratuito**: 100 emails/dia
 - **Essentials**: $14.95/mês (40.000 emails)
 - **Pro**: $89.95/mês (100.000 emails)
 
 ### AWS SES
+
 - **Gratuito**: 62.000 emails/mês (se hospedado na AWS)
 - **Pago**: $0.10 por 1.000 emails
 - **Sem hospedagem AWS**: $0.10 por 1.000 emails (sem tier gratuito)
 
 ### Gmail
+
 - **Gratuito**: Limitado (não recomendado para produção)
 - **Google Workspace**: $6/usuário/mês
 

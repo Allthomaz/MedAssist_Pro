@@ -7,7 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { N8nIntegrationSettings } from '@/components/settings/N8nIntegrationSettings';
 import {
   Settings as SettingsIcon,
@@ -34,7 +40,7 @@ import {
   Key,
   UserCircle,
   Stethoscope,
-  Webhook
+  Webhook,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -46,13 +52,13 @@ export default function Settings() {
     push: false,
     sms: true,
     appointments: true,
-    reports: true
+    reports: true,
   });
 
   const handleSave = () => {
     toast({
-      title: "Configurações salvas",
-      description: "Suas configurações foram atualizadas com sucesso.",
+      title: 'Configurações salvas',
+      description: 'Suas configurações foram atualizadas com sucesso.',
     });
   };
 
@@ -62,8 +68,12 @@ export default function Settings() {
         <div className="flex items-center gap-3 mb-6">
           <SettingsIcon className="w-8 h-8 text-medical-blue" />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
-            <p className="text-muted-foreground">Gerencie suas preferências e configurações do sistema</p>
+            <h1 className="text-3xl font-bold text-foreground">
+              Configurações
+            </h1>
+            <p className="text-muted-foreground">
+              Gerencie suas preferências e configurações do sistema
+            </p>
           </div>
         </div>
 
@@ -73,7 +83,10 @@ export default function Settings() {
               <User className="w-4 h-4" />
               Perfil
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <TabsTrigger
+              value="notifications"
+              className="flex items-center gap-2"
+            >
               <Bell className="w-4 h-4" />
               Notificações
             </TabsTrigger>
@@ -89,7 +102,10 @@ export default function Settings() {
               <Database className="w-4 h-4" />
               Dados
             </TabsTrigger>
-            <TabsTrigger value="integrations" className="flex items-center gap-2">
+            <TabsTrigger
+              value="integrations"
+              className="flex items-center gap-2"
+            >
               <Webhook className="w-4 h-4" />
               Integrações
             </TabsTrigger>
@@ -114,7 +130,10 @@ export default function Settings() {
                     <Input id="name" placeholder="Dr. João Silva" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="specialty" className="flex items-center gap-2">
+                    <Label
+                      htmlFor="specialty"
+                      className="flex items-center gap-2"
+                    >
                       <Stethoscope className="w-4 h-4" />
                       Especialidade
                     </Label>
@@ -123,7 +142,9 @@ export default function Settings() {
                         <SelectValue placeholder="Selecione sua especialidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="clinica-geral">Clínica Geral</SelectItem>
+                        <SelectItem value="clinica-geral">
+                          Clínica Geral
+                        </SelectItem>
                         <SelectItem value="cardiologia">Cardiologia</SelectItem>
                         <SelectItem value="pediatria">Pediatria</SelectItem>
                         <SelectItem value="ginecologia">Ginecologia</SelectItem>
@@ -137,7 +158,11 @@ export default function Settings() {
                       <Mail className="w-4 h-4" />
                       E-mail
                     </Label>
-                    <Input id="email" type="email" placeholder="dr.joao@email.com" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="dr.joao@email.com"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="flex items-center gap-2">
@@ -167,12 +192,16 @@ export default function Settings() {
                       <Mail className="w-5 h-5 text-muted-foreground" />
                       <div>
                         <Label>Notificações por E-mail</Label>
-                        <p className="text-sm text-muted-foreground">Receber notificações importantes por e-mail</p>
+                        <p className="text-sm text-muted-foreground">
+                          Receber notificações importantes por e-mail
+                        </p>
                       </div>
                     </div>
-                    <Switch 
-                      checked={notifications.email} 
-                      onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
+                    <Switch
+                      checked={notifications.email}
+                      onCheckedChange={checked =>
+                        setNotifications({ ...notifications, email: checked })
+                      }
                     />
                   </div>
                   <Separator />
@@ -181,12 +210,16 @@ export default function Settings() {
                       <Smartphone className="w-5 h-5 text-muted-foreground" />
                       <div>
                         <Label>Notificações Push</Label>
-                        <p className="text-sm text-muted-foreground">Receber notificações no navegador</p>
+                        <p className="text-sm text-muted-foreground">
+                          Receber notificações no navegador
+                        </p>
                       </div>
                     </div>
-                    <Switch 
-                      checked={notifications.push} 
-                      onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
+                    <Switch
+                      checked={notifications.push}
+                      onCheckedChange={checked =>
+                        setNotifications({ ...notifications, push: checked })
+                      }
                     />
                   </div>
                   <Separator />
@@ -195,12 +228,16 @@ export default function Settings() {
                       <Phone className="w-5 h-5 text-muted-foreground" />
                       <div>
                         <Label>SMS</Label>
-                        <p className="text-sm text-muted-foreground">Receber lembretes por SMS</p>
+                        <p className="text-sm text-muted-foreground">
+                          Receber lembretes por SMS
+                        </p>
                       </div>
                     </div>
-                    <Switch 
-                      checked={notifications.sms} 
-                      onCheckedChange={(checked) => setNotifications({...notifications, sms: checked})}
+                    <Switch
+                      checked={notifications.sms}
+                      onCheckedChange={checked =>
+                        setNotifications({ ...notifications, sms: checked })
+                      }
                     />
                   </div>
                 </div>
@@ -220,15 +257,18 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="current-password" className="flex items-center gap-2">
+                    <Label
+                      htmlFor="current-password"
+                      className="flex items-center gap-2"
+                    >
                       <Lock className="w-4 h-4" />
                       Senha Atual
                     </Label>
                     <div className="relative">
-                      <Input 
-                        id="current-password" 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="Digite sua senha atual" 
+                      <Input
+                        id="current-password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Digite sua senha atual"
                       />
                       <Button
                         type="button"
@@ -246,25 +286,41 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="new-password" className="flex items-center gap-2">
+                    <Label
+                      htmlFor="new-password"
+                      className="flex items-center gap-2"
+                    >
                       <Key className="w-4 h-4" />
                       Nova Senha
                     </Label>
-                    <Input id="new-password" type="password" placeholder="Digite sua nova senha" />
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="Digite sua nova senha"
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="flex items-center gap-2">
+                    <Label
+                      htmlFor="confirm-password"
+                      className="flex items-center gap-2"
+                    >
                       <Key className="w-4 h-4" />
                       Confirmar Nova Senha
                     </Label>
-                    <Input id="confirm-password" type="password" placeholder="Confirme sua nova senha" />
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="Confirme sua nova senha"
+                    />
                   </div>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Autenticação de Dois Fatores</Label>
-                    <p className="text-sm text-muted-foreground">Adicione uma camada extra de segurança</p>
+                    <p className="text-sm text-muted-foreground">
+                      Adicione uma camada extra de segurança
+                    </p>
                   </div>
                   <Button variant="outline" className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
@@ -312,7 +368,9 @@ export default function Settings() {
                         <SelectValue placeholder="Selecione o idioma" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                        <SelectItem value="pt-BR">
+                          Português (Brasil)
+                        </SelectItem>
                         <SelectItem value="en-US">English (US)</SelectItem>
                         <SelectItem value="es-ES">Español</SelectItem>
                       </SelectContent>
@@ -339,10 +397,15 @@ export default function Settings() {
                       <Download className="w-5 h-5 text-blue-500" />
                       <div>
                         <Label>Exportar Dados</Label>
-                        <p className="text-sm text-muted-foreground">Baixar todos os seus dados em formato JSON</p>
+                        <p className="text-sm text-muted-foreground">
+                          Baixar todos os seus dados em formato JSON
+                        </p>
                       </div>
                     </div>
-                    <Button variant="outline" className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
                       <Download className="w-4 h-4" />
                       Exportar
                     </Button>
@@ -352,10 +415,15 @@ export default function Settings() {
                       <Upload className="w-5 h-5 text-green-500" />
                       <div>
                         <Label>Importar Dados</Label>
-                        <p className="text-sm text-muted-foreground">Importar dados de backup</p>
+                        <p className="text-sm text-muted-foreground">
+                          Importar dados de backup
+                        </p>
                       </div>
                     </div>
-                    <Button variant="outline" className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
                       <Upload className="w-4 h-4" />
                       Importar
                     </Button>
@@ -365,10 +433,15 @@ export default function Settings() {
                       <Trash2 className="w-5 h-5 text-red-500" />
                       <div>
                         <Label className="text-red-600">Excluir Conta</Label>
-                        <p className="text-sm text-muted-foreground">Remover permanentemente sua conta e todos os dados</p>
+                        <p className="text-sm text-muted-foreground">
+                          Remover permanentemente sua conta e todos os dados
+                        </p>
                       </div>
                     </div>
-                    <Button variant="destructive" className="flex items-center gap-2">
+                    <Button
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                    >
                       <AlertTriangle className="w-4 h-4" />
                       Excluir
                     </Button>
@@ -377,7 +450,7 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           {/* Integrações */}
           <TabsContent value="integrations" className="space-y-6">
             <N8nIntegrationSettings onSaved={handleSave} />
