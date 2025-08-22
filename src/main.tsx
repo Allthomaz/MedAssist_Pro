@@ -1,4 +1,9 @@
-import './sentry';
+// Import Sentry only in production to avoid issues in development
+if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+  import('./sentry');
+}
+
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
