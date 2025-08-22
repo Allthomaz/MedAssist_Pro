@@ -1,5 +1,5 @@
 // Import Sentry only in production to avoid issues in development
-if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+if (import.meta.env.PROD && import.meta.env['VITE_SENTRY_DSN']) {
   import('./sentry');
 }
 
