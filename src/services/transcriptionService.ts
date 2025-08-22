@@ -427,6 +427,15 @@ ${transcriptionText}
 // Instância singleton do serviço
 export const transcriptionService = new TranscriptionService();
 
+// Funções wrapper para compatibilidade
+export const transcribeAudio = (audioFile: File | Blob, options?: TranscriptionOptions) => {
+  return transcriptionService.transcribeAudio(audioFile, options);
+};
+
+export const saveTranscription = (recordingId: string, transcriptionText: string, metadata?: any) => {
+  return transcriptionService.saveTranscription(recordingId, transcriptionText, metadata);
+};
+
 // Exportar tipos para uso em outros componentes
 export type {
   TranscriptionResult,
