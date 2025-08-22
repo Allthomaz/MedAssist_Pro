@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { ReactMediaRecorder } from 'react-media-recorder';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,22 +38,15 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onRecordingComplete,
   onTranscriptionComplete
 }) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcriptionText, setTranscriptionText] = useState<string>('');
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     fetchRecordings();
@@ -60,8 +54,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
+      if (currentAudioUrl) {
+        URL.revokeObjectURL(currentAudioUrl);
       }
     };
   }, [consultationId]);
@@ -88,99 +82,25 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
     }
   };
 
-  const startRecording = async () => {
-    try {
-      setError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+  // Função para iniciar o timer de gravação
+  const startTimer = () => {
+    setRecordingTime(0);
+    timerRef.current = setInterval(() => {
+      setRecordingTime(prev => prev + 1);
+    }, 1000);
+  };
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(audioBlob);
-        
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
-        
-        // Parar todas as faixas de áudio
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start(1000); // Capturar dados a cada segundo
-      setIsRecording(true);
-      setIsPaused(false);
-      setRecordingTime(0);
-
-      // Iniciar timer
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-
-    } catch (err) {
-      console.error('Erro ao iniciar gravação:', err);
-      setError('Erro ao acessar o microfone. Verifique as permissões.');
+  // Função para parar o timer
+  const stopTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   };
 
-  const pauseRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.pause();
-      setIsPaused(true);
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    }
-  };
 
-  const resumeRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
-      mediaRecorderRef.current.resume();
-      setIsPaused(false);
-      
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-    }
-  };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setIsPaused(false);
-      
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    }
-  };
-
-  const playAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.play();
-      setIsPlaying(true);
-    }
-  };
-
-  const pauseAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const saveRecording = async () => {
+  const saveRecording = async (audioBlob: Blob, audioUrl: string) => {
     if (!audioBlob) return;
 
     try {
@@ -218,11 +138,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       if (recordingError) throw recordingError;
 
       // Limpar estado local
-      setAudioBlob(null);
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-        setAudioUrl(null);
-      }
+      setCurrentAudioUrl(null);
       setRecordingTime(0);
       
       // Atualizar lista de gravações
@@ -342,113 +258,100 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             </div>
           )}
 
-          {/* Status da Gravação */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {isRecording && (
-                <Badge className="bg-red-100 text-red-700 border-red-200">
-                  {isPaused ? 'Pausado' : 'Gravando'}
-                </Badge>
-              )}
-              
-              <div className="text-2xl font-mono font-bold text-medical-blue">
-                {formatTime(recordingTime)}
-              </div>
-            </div>
+          {/* Controles de Gravação com ReactMediaRecorder */}
+          <ReactMediaRecorder
+            audio
+            onStart={() => {
+              startTimer();
+              setError(null);
+            }}
+            onStop={(blobUrl, blob) => {
+              stopTimer();
+              setCurrentAudioUrl(blobUrl);
+              // Salvar automaticamente após parar a gravação
+              if (blob) {
+                saveRecording(blob, blobUrl);
+              }
+            }}
+            render={({ status, startRecording, stopRecording, mediaBlobUrl }) => (
+              <div className="space-y-4">
+                {/* Status da Gravação */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {status === 'recording' && (
+                      <Badge className="bg-red-100 text-red-700 border-red-200">
+                        Gravando
+                      </Badge>
+                    )}
+                    
+                    <div className="text-2xl font-mono font-bold text-medical-blue">
+                      {formatTime(recordingTime)}
+                    </div>
+                  </div>
 
-            {isRecording && (
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-muted-foreground">REC</span>
-              </div>
-            )}
-          </div>
-
-          {/* Controles */}
-          <div className="flex items-center gap-2">
-            {!isRecording ? (
-              <Button
-                onClick={startRecording}
-                className="gap-2"
-                variant="medical"
-                disabled={isUploading || isTranscribing}
-              >
-                <Mic className="w-4 h-4" />
-                Iniciar Gravação
-              </Button>
-            ) : (
-              <>
-                {!isPaused ? (
-                  <Button onClick={pauseRecording} variant="outline" className="gap-2">
-                    <Pause className="w-4 h-4" />
-                    Pausar
-                  </Button>
-                ) : (
-                  <Button onClick={resumeRecording} variant="outline" className="gap-2">
-                    <Play className="w-4 h-4" />
-                    Continuar
-                  </Button>
-                )}
-                
-                <Button onClick={stopRecording} variant="destructive" className="gap-2">
-                  <Square className="w-4 h-4" />
-                  Parar
-                </Button>
-              </>
-            )}
-          </div>
-
-          {/* Preview do Áudio Gravado */}
-          {audioBlob && audioUrl && (
-            <div className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Gravação Concluída</h4>
-                <div className="text-sm text-muted-foreground">
-                  {formatFileSize(audioBlob.size)} • {formatTime(recordingTime)}
-                </div>
-              </div>
-              
-              <audio
-                ref={audioRef}
-                src={audioUrl}
-                onEnded={() => setIsPlaying(false)}
-                className="w-full"
-                controls
-              />
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={saveRecording}
-                  disabled={isUploading || isTranscribing}
-                  className="gap-2"
-                  variant="medical"
-                >
-                  {isUploading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
+                  {status === 'recording' && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm text-muted-foreground">REC</span>
+                    </div>
                   )}
-                  {isUploading ? 'Salvando...' : 'Salvar Gravação'}
-                </Button>
-                
-                <Button
-                  onClick={() => {
-                    setAudioBlob(null);
-                    if (audioUrl) {
-                      URL.revokeObjectURL(audioUrl);
-                      setAudioUrl(null);
-                    }
-                    setRecordingTime(0);
-                  }}
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Descartar
-                </Button>
+                </div>
+
+                {/* Controles de Gravação */}
+                <div className="flex items-center gap-3">
+                  {status === 'idle' && (
+                    <Button
+                      onClick={startRecording}
+                      className="gap-2"
+                      variant="medical"
+                      disabled={isUploading || isTranscribing}
+                    >
+                      <Mic className="w-4 h-4" />
+                      Iniciar Gravação
+                    </Button>
+                  )}
+                  
+                  {status === 'recording' && (
+                    <>
+                      <div className="flex items-center gap-2 text-red-600">
+                        <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+                        <span className="font-medium">Gravando... {formatTime(recordingTime)}</span>
+                      </div>
+                      
+                      <Button onClick={stopRecording} variant="destructive" className="gap-2">
+                        <Square className="w-4 h-4" />
+                        Parar Gravação
+                      </Button>
+                    </>
+                  )}
+                  
+                  {status === 'stopped' && mediaBlobUrl && (
+                    <div className="text-green-600 font-medium">
+                      ✓ Gravação concluída e salva automaticamente
+                    </div>
+                  )}
+                </div>
+
+                {/* Preview do Áudio Gravado */}
+                {mediaBlobUrl && (
+                  <div className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Última Gravação</h4>
+                      <div className="text-sm text-muted-foreground">
+                        {formatTime(recordingTime)}
+                      </div>
+                    </div>
+                    
+                    <audio
+                      src={mediaBlobUrl}
+                      className="w-full"
+                      controls
+                    />
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )}
+          />
 
           {/* Status da Transcrição */}
           {isTranscribing && (
