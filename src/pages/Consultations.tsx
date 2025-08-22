@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { NewConsultationModal } from '@/components/consultations/NewConsultationModal';
 
 // Lazy load heavy components
 const ConsultationDetail = lazy(() => import('@/components/consultations/ConsultationDetail').then(module => ({ default: module.ConsultationDetail })));
@@ -13,17 +14,12 @@ import {
   Clock, 
   User, 
   Calendar,
-  Play,
-  Pause,
-  Square,
   Mic,
-  MicOff,
-  VideoOff,
-  Settings,
   FileText,
-  Brain,
   Plus,
-  Eye
+  Eye,
+  Stethoscope,
+  Brain
 } from 'lucide-react';
 
 interface Patient {
@@ -140,90 +136,48 @@ const Consultations = () => {
 
   return (
     <MedicalLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Consultas</h1>
-            <p className="text-muted-foreground">
-              Gerencie consultas com gravação e automação de documentos
-            </p>
+        <div className="bg-gradient-to-r from-medical-blue/5 to-medical-green/5 rounded-2xl p-6 border border-medical-blue/10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent">
+                Consultas Médicas
+              </h1>
+              <p className="text-muted-foreground mt-2 text-base">
+                Sistema inteligente de transcrição e análise médica
+              </p>
+            </div>
+            <Button variant="medical" className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-medical-blue to-medical-green hover:from-medical-blue/90 hover:to-medical-green/90" onClick={() => setShowNewConsultation(true)}>
+              <Stethoscope className="w-4 h-4" />
+              Nova Consulta
+            </Button>
           </div>
-          <Button variant="medical" className="gap-2" onClick={() => setShowNewConsultation(true)}>
-            <Plus className="w-4 h-4" />
-            Nova Consulta
-          </Button>
         </div>
 
-        {/* Video Interface Demo */}
-        <Card className="bg-gradient-to-r from-medical-blue/5 to-primary/5 border-medical-blue/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Video className="w-5 h-5 text-medical-blue" />
-              Interface de Consulta Virtual
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Mock Video Area */}
-            <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative">
-              <div className="text-center text-white space-y-2">
-                <VideoOff className="w-12 h-12 mx-auto opacity-50" />
-                <p className="text-sm opacity-75">Área de vídeo da consulta</p>
-              </div>
-              
-              {/* Recording Indicator */}
-              <div className="absolute top-4 left-4 flex items-center gap-2 bg-medical-alert/90 text-white px-3 py-1 rounded-full text-sm">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                Gravando
-              </div>
-            </div>
-
-            {/* Video Controls */}
-            <div className="flex items-center justify-center gap-4">
-              <Button variant="medical-ghost" size="sm">
-                <Mic className="w-4 h-4" />
-              </Button>
-              <Button variant="medical-ghost" size="sm">
-                <Video className="w-4 h-4" />
-              </Button>
-              <Button variant="medical-alert" size="lg" className="gap-2">
-                <Square className="w-4 h-4" />
-                Finalizar Consulta
-              </Button>
-              <Button variant="medical-ghost" size="sm">
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="bg-card rounded-lg p-4 border">
-              <h4 className="font-medium text-foreground mb-2">Fluxo de Automação</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="w-6 h-6 rounded-full bg-medical-success text-white flex items-center justify-center text-xs">1</div>
-                  Gravação da consulta
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="w-6 h-6 rounded-full bg-medical-blue text-white flex items-center justify-center text-xs">2</div>
-                  Transcrição automática
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="w-6 h-6 rounded-full bg-accent text-foreground flex items-center justify-center text-xs">3</div>
-                  Geração do documento
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* New Consultation Modal */}
+        <NewConsultationModal 
+          isOpen={showNewConsultation}
+          onClose={() => setShowNewConsultation(false)}
+          onConsultationCreated={() => {
+            setShowNewConsultation(false);
+            fetchConsultations(); // Refresh the consultations list
+          }}
+        />
 
         {/* Recent Consultations */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-medical-blue" />
-              Consultas Recentes
+        <Card className="min-h-[600px] shadow-lg border-medical-blue/20 bg-gradient-to-br from-white to-medical-blue/2">
+          <CardHeader className="bg-gradient-to-r from-medical-blue/10 to-medical-green/10 border-b border-medical-blue/20">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-medical-blue to-medical-green">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <span className="bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent font-semibold">
+                Transcrição Inteligente
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-6 space-y-4">
             {loading ? (
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
@@ -231,19 +185,16 @@ const Consultations = () => {
               </div>
             ) : consultations.length === 0 ? (
               <div className="text-center p-8">
-                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">Nenhuma consulta encontrada</p>
-                <Button variant="medical" onClick={() => setShowNewConsultation(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Agendar Primeira Consulta
-                </Button>
+                <Stethoscope className="w-16 h-16 text-medical-blue/30 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Bem-vindo ao Sistema de Transcrição</h3>
+                <p className="text-muted-foreground mb-4">Clique em "Nova Consulta" para começar sua primeira transcrição inteligente</p>
               </div>
             ) : (
               consultations.map((consultation) => (
-                <div key={consultation.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent/50 transition-colors">
+                <div key={consultation.id} className="flex items-center justify-between p-5 rounded-xl border border-medical-blue/20 hover:border-medical-blue/40 bg-gradient-to-r from-white to-medical-blue/5 hover:from-medical-blue/5 hover:to-medical-green/5 transition-all duration-300 shadow-sm hover:shadow-md">
                   <div className="flex items-center gap-4">
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
+                    <Avatar className="w-12 h-12 ring-2 ring-medical-blue/20">
+                      <AvatarFallback className="bg-gradient-to-r from-medical-blue to-medical-green text-white font-semibold">
                         {consultation.patients?.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'P'}
                       </AvatarFallback>
                     </Avatar>
@@ -281,21 +232,28 @@ const Consultations = () => {
                       {getStatusLabel(consultation.status)}
                     </Badge>
                     
+                    {consultation.has_recording && (
+                      <Badge variant="secondary" className="gap-1 bg-gradient-to-r from-medical-blue/10 to-medical-green/10 text-medical-blue border-medical-blue/20">
+                        <Mic className="w-3 h-3" />
+                        Áudio
+                      </Badge>
+                    )}
+                    
                     {consultation.document_generated && (
-                      <Button variant="medical-outline" size="sm" className="gap-2">
-                        <FileText className="w-4 h-4" />
-                        Ver Documento
-                      </Button>
+                      <Badge variant="secondary" className="gap-1 bg-gradient-to-r from-medical-green/10 to-medical-blue/10 text-medical-green border-medical-green/20">
+                        <FileText className="w-3 h-3" />
+                        Relatório
+                      </Badge>
                     )}
                     
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="gap-2"
+                      className="gap-2 border-medical-blue/30 text-medical-blue hover:bg-medical-blue hover:text-white transition-all duration-300"
                       onClick={() => setSelectedConsultation(consultation.id)}
                     >
                       <Eye className="w-4 h-4" />
-                      Ver Detalhes
+                      Visualizar
                     </Button>
                   </div>
                 </div>

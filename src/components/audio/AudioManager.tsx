@@ -14,7 +14,7 @@ import {
   Eye
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { AudioRecorder } from '../consultations/AudioRecorder';
+import AudioProcessor from '../consultations/AudioProcessor';
 import { transcribeAudio } from '../../services/transcriptionService';
 
 interface AudioFile {
@@ -362,16 +362,13 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
         </div>
       </div>
 
-      {/* Gravador de Áudio */}
+      {/* Processador de Áudio */}
       {showRecorder && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <AudioRecorder
-            consultationId={consultationId}
-            onRecordingComplete={loadAudioFiles}
-            onTranscriptionComplete={(id, text) => {
-              if (onTranscriptionUpdate) {
-                onTranscriptionUpdate(id, text);
-              }
+        <div className="mb-6">
+          <AudioProcessor
+            onProcessingComplete={(audioUrl, intention) => {
+              console.log('Processamento completo:', { audioUrl, intention });
+              loadAudioFiles();
             }}
           />
         </div>

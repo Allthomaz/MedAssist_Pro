@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { AudioRecorder } from './AudioRecorder';
+import AudioProcessor from './AudioProcessor';
 
 // Lazy load heavy components
 const ReportGenerator = lazy(() => import('../reports/ReportGenerator'));
@@ -530,12 +530,13 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
         </div>
       </div>
 
-      {/* Gravação de Áudio */}
+      {/* Processamento de Áudio */}
       {consultation.status === 'em_andamento' && (
-        <AudioRecorder
-          consultationId={consultationId}
-          onRecordingComplete={handleRecordingComplete}
-          onTranscriptionComplete={handleTranscriptionComplete}
+        <AudioProcessor
+          onProcessingComplete={(audioUrl, intention) => {
+            console.log('Processamento completo:', { audioUrl, intention });
+            handleRecordingComplete();
+          }}
         />
       )}
 
