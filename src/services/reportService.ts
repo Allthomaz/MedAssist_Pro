@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PatientInfo {
   id: string;
