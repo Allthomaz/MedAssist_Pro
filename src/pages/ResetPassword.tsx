@@ -16,13 +16,25 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+/**
+ * Schema de validação robusta para redefinição de senha
+ * Implementa validações específicas para segurança e sanitização
+ */
 const schema = z
   .object({
     password: z
       .string()
-      .min(8, 'Mínimo de 8 caracteres')
-      .regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, 'Use letras e números'),
-    confirmPassword: z.string(),
+      .min(8, 'Senha deve ter pelo menos 8 caracteres')
+      .max(128, 'Senha muito longa')
+      .regex(/^(?=.*[a-z])/, 'Deve conter pelo menos uma letra minúscula')
+      .regex(/^(?=.*[A-Z])/, 'Deve conter pelo menos uma letra maiúscula')
+      .regex(/^(?=.*\d)/, 'Deve conter pelo menos um número')
+      .regex(/^(?=.*[!@#$%^&*(),.?":{}|<>])/, 'Deve conter pelo menos um caractere especial')
+      .refine(
+        val => !/^(password|123456|qwerty|admin|letmein)$/i.test(val),
+        'Senha muito comum, escolha uma mais segura'
+      ),
+    confirmPassword: z.string().min(1, 'Confirme sua nova senha'),
   })
   .refine(v => v.password === v.confirmPassword, {
     path: ['confirmPassword'],

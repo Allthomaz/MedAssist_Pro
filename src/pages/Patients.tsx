@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   Suspense,
   lazy,
 } from 'react';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { VirtualizedList } from '@/components/ui/VirtualizedList';
 
 // Lazy load heavy components
 const PatientForm = lazy(() =>
@@ -40,6 +42,113 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
+/**
+ * Componente otimizado para renderizar itens individuais da lista de pacientes
+ * Utiliza React.memo para evitar re-renderizações desnecessárias
+ * Suporta virtualização com react-window
+ */
+const PatientItem = React.memo<{
+  patient: Patient;
+  onSelect: (id: string) => void;
+  calculateAge: (birthDate: string) => number;
+  style?: React.CSSProperties;
+}>(({ patient, onSelect, calculateAge, style }) => {
+  // Memoiza as iniciais do paciente para evitar recálculos
+  const patientInitials = useMemo(() => {
+    return patient.full_name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2);
+  }, [patient.full_name]);
+
+  // Memoiza a idade do paciente
+  const patientAge = useMemo(() => {
+    return calculateAge(patient.birth_date);
+  }, [patient.birth_date, calculateAge]);
+
+  return (
+    <div style={style}>
+      <Card
+        className="premium-patient-card cursor-pointer premium-fade-in mb-4"
+        onClick={() => onSelect(patient.id)}
+      >
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <Avatar className="w-12 h-12">
+              <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
+                {patientInitials}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="space-y-2">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {patient.full_name}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {patientAge} anos
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                {patient.email && (
+                  <div className="flex items-center gap-1">
+                    <Mail className="w-4 h-4" />
+                    {patient.email}
+                  </div>
+                )}
+                {(patient.phone || patient.mobile_phone) && (
+                  <div className="flex items-center gap-1">
+                    <Phone className="w-4 h-4" />
+                    {patient.mobile_phone || patient.phone}
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Cadastrado em:{' '}
+                  {new Date(patient.created_at).toLocaleDateString('pt-BR')}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant="outline"
+                  className={
+                    patient.status === 'ativo'
+                      ? 'bg-medical-success/10 text-medical-success border-medical-success/20'
+                      : 'bg-orange-100 text-orange-700 border-orange-200'
+                  }
+                >
+                  {patient.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                </Badge>
+                {patient.patient_number && (
+                  <span className="text-sm text-muted-foreground">
+                    #{patient.patient_number}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="medical-outline" size="sm">
+              Nova Consulta
+            </Button>
+            <Button variant="ghost" size="sm">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+    </div>
+  );
+});
+
+PatientItem.displayName = 'PatientItem';
+
 type Patient = Database['public']['Tables']['patients']['Row'];
 
 // Loading component for Suspense fallback
@@ -51,7 +160,10 @@ const ComponentLoader = () => (
 
 // Dados serão carregados do Supabase
 
-const Patients = () => {
+/**
+ * Componente principal de pacientes otimizado com React.memo
+ */
+const PatientsComponent = React.memo(() => {
   const { user } = useAuth();
   const [showPatientForm, setShowPatientForm] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
@@ -60,6 +172,11 @@ const Patients = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const listContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Constantes para virtualização
+  const PATIENT_ITEM_HEIGHT = 180; // Altura aproximada de cada item de paciente
+  const VIRTUALIZATION_THRESHOLD = 50; // Número mínimo de itens para ativar virtualização
 
   const loadPatients = useCallback(async () => {
     if (!user?.id) return;
@@ -117,6 +234,30 @@ const Patients = () => {
       ),
     [patients, searchTerm]
   );
+  
+  /**
+   * Componente de item virtualizado para react-window
+   */
+  const VirtualizedPatientItem = useCallback(
+    ({ index, style, data }: { index: number; style: React.CSSProperties; data: Patient[] }) => {
+      const patient = data[index];
+      return (
+        <PatientItem
+          key={patient.id}
+          patient={patient}
+          onSelect={setSelectedPatientId}
+          calculateAge={calculateAge}
+          style={style}
+        />
+      );
+    },
+    [calculateAge]
+  );
+  
+  /**
+   * Determina se deve usar virtualização baseado no número de itens
+   */
+  const shouldUseVirtualization = filteredPatients.length >= VIRTUALIZATION_THRESHOLD;
 
   // Show patient profile if a patient is selected
   if (selectedPatientId) {
@@ -208,7 +349,7 @@ const Patients = () => {
         </Card>
 
         {/* Patients List */}
-        <div className="grid gap-4">
+        <div ref={listContainerRef} className="grid gap-4">
           {loading ? (
             <Card>
               <CardContent className="p-6">
@@ -228,95 +369,35 @@ const Patients = () => {
                 </div>
               </CardContent>
             </Card>
+          ) : shouldUseVirtualization ? (
+            // Lista virtualizada para muitos itens
+            <div className="border rounded-lg">
+              <VirtualizedList
+                items={filteredPatients}
+                itemHeight={PATIENT_ITEM_HEIGHT}
+                height={Math.min(600, filteredPatients.length * PATIENT_ITEM_HEIGHT)}
+                renderItem={VirtualizedPatientItem}
+                className="p-2"
+                overscanCount={3}
+              />
+            </div>
           ) : (
+            // Lista normal para poucos itens
             filteredPatients.map(patient => (
-              <Card
+              <PatientItem
                 key={patient.id}
-                className="premium-patient-card cursor-pointer premium-fade-in"
-                onClick={() => setSelectedPatientId(patient.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
-                          {patient.full_name
-                            .split(' ')
-                            .map(n => n[0])
-                            .join('')
-                            .substring(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-
-                      <div className="space-y-2">
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">
-                            {patient.full_name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {calculateAge(patient.birth_date)} anos
-                          </p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          {patient.email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="w-4 h-4" />
-                              {patient.email}
-                            </div>
-                          )}
-                          {(patient.phone || patient.mobile_phone) && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="w-4 h-4" />
-                              {patient.mobile_phone || patient.phone}
-                            </div>
-                          )}
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            Cadastrado em:{' '}
-                            {new Date(patient.created_at).toLocaleDateString(
-                              'pt-BR'
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <Badge
-                            variant="outline"
-                            className={
-                              patient.status === 'ativo'
-                                ? 'bg-medical-success/10 text-medical-success border-medical-success/20'
-                                : 'bg-orange-100 text-orange-700 border-orange-200'
-                            }
-                          >
-                            {patient.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                          {patient.patient_number && (
-                            <span className="text-sm text-muted-foreground">
-                              #{patient.patient_number}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button variant="medical-outline" size="sm">
-                        Nova Consulta
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                patient={patient}
+                onSelect={setSelectedPatientId}
+                calculateAge={calculateAge}
+              />
             ))
           )}
         </div>
       </div>
     </MedicalLayout>
   );
-};
+});
 
-export default Patients;
+PatientsComponent.displayName = 'PatientsComponent';
+
+export default PatientsComponent;

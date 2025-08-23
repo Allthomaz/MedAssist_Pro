@@ -3,6 +3,26 @@ import { NotificationService } from '@/services/notificationService';
 import { useAuth } from '@/hooks/useAuth';
 import { KnownError, getErrorMessage } from '../types/common';
 
+/**
+ * Interface que define a estrutura de uma notificação
+ * 
+ * @interface Notification
+ * @property {string} id - ID único da notificação
+ * @property {string} user_id - ID do usuário destinatário
+ * @property {string} type - Tipo da notificação (appointment_reminder, document_ready, etc.)
+ * @property {string} title - Título da notificação
+ * @property {string} message - Mensagem da notificação
+ * @property {'unread' | 'read'} status - Status de leitura
+ * @property {'low' | 'normal' | 'high' | 'urgent'} priority - Prioridade da notificação
+ * @property {'in_app' | 'email' | 'sms'} channel - Canal de entrega
+ * @property {'pending' | 'sent' | 'failed'} [delivery_status] - Status de entrega
+ * @property {string} created_at - Data de criação
+ * @property {string} [read_at] - Data de leitura
+ * @property {string} [appointment_id] - ID do agendamento relacionado
+ * @property {string} [consultation_id] - ID da consulta relacionada
+ * @property {string} [document_id] - ID do documento relacionado
+ * @property {string} [patient_id] - ID do paciente relacionado
+ */
 export interface Notification {
   id: string;
   user_id: string;
@@ -21,6 +41,52 @@ export interface Notification {
   patient_id?: string;
 }
 
+/**
+ * Hook customizado para gerenciar notificações do usuário
+ * 
+ * Este hook fornece funcionalidades completas para gerenciar notificações,
+ * incluindo busca, marcação como lida, contagem de não lidas e atualizações
+ * em tempo real.
+ * 
+ * @returns {Object} Objeto contendo:
+ *   - notifications: Array de notificações do usuário
+ *   - unreadCount: Número de notificações não lidas
+ *   - loading: Estado de carregamento
+ *   - error: Mensagem de erro, se houver
+ *   - fetchNotifications: Função para buscar notificações
+ *   - markAsRead: Função para marcar notificação como lida
+ *   - markAllAsRead: Função para marcar todas como lidas
+ *   - deleteNotification: Função para deletar notificação
+ *   - refreshNotifications: Função para atualizar notificações
+ * 
+ * @example
+ * ```tsx
+ * function NotificationCenter() {
+ *   const {
+ *     notifications,
+ *     unreadCount,
+ *     loading,
+ *     markAsRead,
+ *     markAllAsRead
+ *   } = useNotifications();
+ * 
+ *   if (loading) return <div>Carregando notificações...</div>;
+ * 
+ *   return (
+ *     <div>
+ *       <h2>Notificações ({unreadCount} não lidas)</h2>
+ *       <button onClick={markAllAsRead}>Marcar todas como lidas</button>
+ *       {notifications.map(notification => (
+ *         <div key={notification.id} onClick={() => markAsRead(notification.id)}>
+ *           <h3>{notification.title}</h3>
+ *           <p>{notification.message}</p>
+ *         </div>
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export const useNotifications = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -120,7 +186,21 @@ export const useNotifications = () => {
     }
   }, [user?.id]);
 
-  // Marcar notificação como lida
+  /**
+   * Marca uma notificação específica como lida
+   * 
+   * @param {string} notificationId - ID da notificação a ser marcada como lida
+   * @returns {Promise<void>}
+   * 
+   * @example
+   * ```tsx
+   * const { markAsRead } = useNotifications();
+   * 
+   * const handleNotificationClick = async (notificationId: string) => {
+   *   await markAsRead(notificationId);
+   * };
+   * ```
+   */
   const markAsRead = async (notificationId: string) => {
     if (!user) return;
 
@@ -147,7 +227,21 @@ export const useNotifications = () => {
     }
   };
 
-  // Marcar todas as notificações como lidas
+  /**
+   * Marca todas as notificações do usuário como lidas
+   * 
+   * @returns {Promise<void>}
+   * 
+   * @example
+   * ```tsx
+   * const { markAllAsRead } = useNotifications();
+   * 
+   * const handleMarkAllAsRead = async () => {
+   *   await markAllAsRead();
+   *   console.log('Todas as notificações foram marcadas como lidas');
+   * };
+   * ```
+   */
   const markAllAsRead = async () => {
     if (!user) return;
 
@@ -178,7 +272,35 @@ export const useNotifications = () => {
     }
   };
 
-  // Criar nova notificação
+  /**
+   * Cria uma nova notificação para o usuário atual
+   * 
+   * @param {string} type - Tipo da notificação (ex: 'appointment_reminder', 'document_ready')
+   * @param {string} title - Título da notificação
+   * @param {string} content - Conteúdo/mensagem da notificação
+   * @param {'low' | 'normal' | 'high' | 'urgent'} [priority='normal'] - Prioridade da notificação
+   * @param {Object} [relatedIds] - IDs relacionados à notificação
+   * @param {string} [relatedIds.appointmentId] - ID do agendamento relacionado
+   * @param {string} [relatedIds.consultationId] - ID da consulta relacionada
+   * @param {string} [relatedIds.documentId] - ID do documento relacionado
+   * @param {string} [relatedIds.patientId] - ID do paciente relacionado
+   * @returns {Promise<void>}
+   * 
+   * @example
+   * ```tsx
+   * const { createNotification } = useNotifications();
+   * 
+   * const handleCreateReminder = async () => {
+   *   await createNotification(
+   *     'appointment_reminder',
+   *     'Consulta Agendada',
+   *     'Você tem uma consulta amanhã às 14:00',
+   *     'high',
+   *     { appointmentId: 'apt_123', patientId: 'pat_456' }
+   *   );
+   * };
+   * ```
+   */
   const createNotification = async (
     type: string,
     title: string,

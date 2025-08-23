@@ -49,7 +49,22 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     { value: 'custom', label: 'Personalizado' },
   ];
 
+  /**
+   * Gera um relatório médico baseado na transcrição usando IA
+   * 
+   * Esta função realiza o processo completo de geração de relatório:
+   * 1. Valida os dados de entrada (transcrição, tipo de relatório)
+   * 2. Chama a função Supabase Edge Function 'generate-report'
+   * 3. Processa a resposta da IA
+   * 4. Salva o relatório gerado na tabela 'documents'
+   * 5. Atualiza o estado do componente com o resultado
+   * 
+   * A função utiliza o serviço de IA configurado (OpenAI/Anthropic) via
+   * Supabase Edge Functions para processar a transcrição e gerar
+   * documentos médicos estruturados conforme o tipo selecionado.
+   */
   const generateReport = async () => {
+    // Validações de entrada
     if (!transcriptionText.trim()) {
       alert('Não há transcrição disponível para gerar o relatório.');
       return;
@@ -69,8 +84,10 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setGeneratedReport(null);
 
     try {
+      // Determinar a intenção baseada no tipo selecionado
       const intention = reportType === 'custom' ? customIntention : reportType;
 
+      // Chamar Edge Function para geração via IA
       const { data, error } = await supabase.functions.invoke(
         'generate-report',
         {
@@ -92,7 +109,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
       setGeneratedReport(data);
 
-      // Salvar relatório no banco de dados
+      // Persistir relatório no banco de dados para histórico
       const { error: saveError } = await supabase.from('documents').insert({
         doctor_id: (await supabase.auth.getUser()).data.user?.id,
         consultation_id: consultationId,
@@ -113,22 +130,36 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     }
   };
 
+  /**
+   * Gera e baixa um arquivo PDF do relatório médico
+   * 
+   * Esta função cria um documento PDF profissional usando jsPDF com:
+   * 1. Formatação adequada (margens, fontes, espaçamento)
+   * 2. Quebra automática de páginas
+   * 3. Substituição de placeholders por dados reais
+   * 4. Rodapé com timestamp de geração
+   * 5. Nome de arquivo estruturado
+   * 
+   * O PDF gerado segue padrões médicos com layout limpo e legível,
+   * adequado para impressão e arquivamento digital.
+   */
   const downloadPDF = async () => {
     if (!generatedReport) return;
 
     setIsDownloading(true);
 
     try {
+      // Configuração inicial do PDF
       const pdf = new jsPDF();
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 20;
       const maxWidth = pageWidth - margin * 2;
 
-      // Configurar fonte
+      // Configurar fonte padrão
       pdf.setFont('helvetica');
 
-      // Título
+      // Renderizar título do documento
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       const titleLines = pdf.splitTextToSize(generatedReport.title, maxWidth);
@@ -141,11 +172,11 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
       currentY += 10;
 
-      // Conteúdo
+      // Renderizar conteúdo do relatório
       pdf.setFontSize(11);
       pdf.setFont('helvetica', 'normal');
 
-      // Substituir placeholders
+      // Substituir placeholders por dados reais do paciente/médico
       let content = generatedReport.content
         .replace(/\[Nome do Paciente\]/g, patientName)
         .replace(/\[Número do CRM\]/g, 'XXXXXX')

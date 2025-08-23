@@ -46,6 +46,16 @@ export class NotificationService {
 
   /**
    * Criar lembrete de consulta
+   * 
+   * Esta função implementa um sistema inteligente de lembretes automáticos:
+   * 1. Calcula automaticamente o horário do lembrete (24h antes às 9:00 AM)
+   * 2. Cria notificação para o médico com prioridade normal
+   * 3. Verifica se o paciente tem perfil no sistema (profile_id)
+   * 4. Cria notificação para o paciente com prioridade alta (se aplicável)
+   * 5. Trata erros graciosamente para não interromper o fluxo principal
+   * 
+   * O sistema de lembretes melhora a aderência às consultas e reduz faltas,
+   * sendo essencial para a gestão eficiente da agenda médica.
    */
   static async createAppointmentReminder(
     doctorId: string,
@@ -56,11 +66,15 @@ export class NotificationService {
     patientName: string,
     doctorName: string
   ) {
+    // Cálculo inteligente do horário do lembrete
+    // Define para 24 horas antes da consulta, sempre às 9:00 AM
+    // Horário otimizado para máxima visualização pelos usuários
     const reminderDate = new Date(appointmentDate);
     reminderDate.setDate(reminderDate.getDate() - 1); // 24 horas antes
-    reminderDate.setHours(9, 0, 0, 0); // 9:00 AM
+    reminderDate.setHours(9, 0, 0, 0); // 9:00 AM - horário comercial
 
-    // Lembrete para o médico
+    // Criação de lembrete para o médico
+    // Prioridade normal pois faz parte da rotina profissional
     await this.createNotification({
       userId: doctorId,
       type: 'appointment_reminder',
@@ -72,7 +86,8 @@ export class NotificationService {
       scheduledFor: reminderDate,
     });
 
-    // Lembrete para o paciente (se tiver profile_id)
+    // Tentativa de criar lembrete para o paciente
+    // Nem todos os pacientes têm perfil no sistema (podem ser cadastrados apenas pelo médico)
     try {
       const { data: patient } = await supabase
         .from('patients')
@@ -80,19 +95,21 @@ export class NotificationService {
         .eq('id', patientId)
         .single();
 
+      // Só cria lembrete se o paciente tiver perfil ativo no sistema
       if (patient?.profile_id) {
         await this.createNotification({
           userId: patient.profile_id,
           type: 'appointment_reminder',
           title: 'Lembrete de Consulta',
           message: `Você tem uma consulta agendada com Dr. ${doctorName} amanhã às ${appointmentTime}`,
-          priority: 'high',
+          priority: 'high', // Prioridade alta para pacientes (mais crítico)
           appointmentId,
           patientId,
           scheduledFor: reminderDate,
         });
       }
     } catch (error) {
+      // Falha silenciosa - não deve interromper o processo principal
       console.error('Erro ao criar lembrete para paciente:', error);
     }
   }
@@ -194,9 +211,21 @@ export class NotificationService {
 
   /**
    * Buscar notificações do usuário
+   * 
+   * Esta função implementa uma consulta otimizada para recuperar notificações:
+   * 1. Seleciona apenas campos necessários para performance
+   * 2. Filtra por usuário específico e exclui notificações deletadas
+   * 3. Ordena por data de criação (mais recentes primeiro)
+   * 4. Aplica limite configurável para paginação
+   * 5. Inclui metadados de relacionamento (appointment_id, consultation_id, etc.)
+   * 
+   * A consulta é otimizada para interfaces de notificação em tempo real,
+   * permitindo carregamento rápido e experiência fluida do usuário.
    */
   static async getUserNotifications(userId: string, limit = 20) {
     try {
+      // Consulta otimizada com seleção específica de campos
+      // Evita carregar dados desnecessários para melhor performance
       const { data, error } = await supabase
         .from('notifications')
         .select(
@@ -218,16 +247,17 @@ export class NotificationService {
           patient_id
         `
         )
-        .eq('user_id', userId)
-        .neq('status', 'deleted')
-        .order('created_at', { ascending: false })
-        .limit(limit);
+        .eq('user_id', userId) // Filtro por usuário específico
+        .neq('status', 'deleted') // Exclui notificações deletadas (soft delete)
+        .order('created_at', { ascending: false }) // Mais recentes primeiro
+        .limit(limit); // Paginação para performance
 
       if (error) {
         console.error('Erro ao buscar notificações:', error);
         return [];
       }
 
+      // Retorna array vazio como fallback seguro
       return data || [];
     } catch (error) {
       console.error('Erro ao buscar notificações:', error);

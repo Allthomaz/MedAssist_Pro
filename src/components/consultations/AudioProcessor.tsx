@@ -124,6 +124,22 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  /**
+   * Processa e envia a gravação de áudio para o Supabase Storage
+   * 
+   * Esta função realiza o upload da gravação para o bucket 'recordings' do Supabase,
+   * incluindo metadados sobre a intenção, tempo de gravação e observações.
+   * Também simula o progresso do upload para melhor UX.
+   * 
+   * Fluxo:
+   * 1. Valida se existe uma gravação
+   * 2. Gera nome único baseado no timestamp
+   * 3. Simula progresso visual do upload
+   * 4. Faz upload para Supabase Storage com metadados
+   * 5. Obtém URL pública do arquivo
+   * 6. Notifica o componente pai via callback
+   * 7. Limpa o estado do componente
+   */
   const handleSendForProcessing = async () => {
     if (!recordedBlob) {
       toast({
@@ -138,11 +154,11 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
     setUploadProgress(0);
 
     try {
-      // Gerar nome único para o arquivo
+      // Gerar nome único para o arquivo baseado no timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `recording-${timestamp}.webm`;
 
-      // Simular progresso de upload
+      // Simular progresso de upload para melhor experiência do usuário
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -203,10 +219,19 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
     }
   };
 
+  /**
+   * Gerencia o upload de arquivos de áudio externos
+   * 
+   * Filtra apenas arquivos de áudio válidos e adiciona à lista de arquivos
+   * carregados. Exibe aviso se arquivos não-áudio forem selecionados.
+   * 
+   * @param event - Evento de mudança do input de arquivo
+   */
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     const audioFiles = files.filter(file => file.type.startsWith('audio/'));
 
+    // Validar se todos os arquivos são de áudio
     if (audioFiles.length !== files.length) {
       toast({
         title: 'Aviso',

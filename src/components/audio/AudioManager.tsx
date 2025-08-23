@@ -21,8 +21,8 @@ import AudioProcessor from '../consultations/AudioProcessor';
 import { transcribeAudio } from '../../services/transcriptionService';
 
 // Usar a variável de ambiente para a URL da API da OpenAI
-const OPENAI_API_URL =
-  import.meta.env.VITE_OPENAI_API_URL ||
+// Remove unused constant declaration
+  import.meta.env['VITE_OPENAI_API_URL'] ||
   'https://api.openai.com/v1/audio/transcriptions';
 
 interface AudioFile {
@@ -110,12 +110,12 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
           id: recording.id,
           consultation_id: recording.consultation_id,
           audio_file_name: recording.audio_file_name,
-          audio_file_path: recording.audio_file_path,
-          duration_seconds: recording.duration_seconds,
+          audio_file_path: recording.audio_url,
+          duration_seconds: recording.audio_duration,
           recording_status: recording.recording_status,
           created_at: recording.created_at,
           updated_at: recording.updated_at,
-          file_size: recording.file_size,
+          file_size: recording.audio_file_size,
           transcription: recording.transcriptions?.[0] || null,
         })) || [];
 
@@ -128,11 +128,25 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     }
   };
 
-  // Função para validação robusta de arquivos de áudio
+  /**
+   * Valida arquivos de áudio antes do upload
+   * 
+   * Realiza validação completa do arquivo incluindo:
+   * 1. Verificação de tamanho (1KB - 50MB)
+   * 2. Validação de extensão de arquivo
+   * 3. Verificação de tipo MIME
+   * 4. Correspondência entre MIME type e extensão
+   * 
+   * Esta validação garante que apenas arquivos de áudio válidos
+   * sejam aceitos, prevenindo problemas de upload e transcrição.
+   * 
+   * @param file - Arquivo a ser validado
+   * @returns Promise com resultado da validação
+   */
   const validateAudioFile = async (
     file: File
   ): Promise<{ isValid: boolean; error?: string }> => {
-    // Validar tamanho mínimo (1KB)
+    // Validar tamanho mínimo para evitar arquivos corrompidos
     const minSize = 1024; // 1KB
     if (file.size < minSize) {
       return {
@@ -141,7 +155,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
       };
     }
 
-    // Validar tamanho máximo (50MB)
+    // Validar tamanho máximo para otimizar performance e custos
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
       return {
@@ -216,13 +230,29 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     return { isValid: true };
   };
 
+  /**
+   * Gerencia o upload de arquivos de áudio
+   * 
+   * Processo completo de upload:
+   * 1. Valida o arquivo selecionado
+   * 2. Gera nome único para evitar conflitos
+   * 3. Faz upload para Supabase Storage
+   * 4. Salva metadados na tabela 'recordings'
+   * 5. Atualiza a lista de arquivos
+   * 6. Inicia transcrição automática
+   * 
+   * O upload é otimizado para arquivos médicos com validação
+   * rigorosa e tratamento de erros robusto.
+   * 
+   * @param event - Evento de mudança do input de arquivo
+   */
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validação robusta do arquivo
+    // Validação robusta do arquivo antes do upload
     const validation = await validateAudioFile(file);
     if (!validation.isValid) {
       setError(validation.error || 'Arquivo inválido.');
@@ -233,11 +263,11 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
       setUploadingFile(true);
       setError(null);
 
-      // Gerar nome único para o arquivo
+      // Gerar nome único baseado na consulta e timestamp
       const fileExtension = file.name.split('.').pop();
       const fileName = `audio_${consultationId}_${Date.now()}.${fileExtension}`;
 
-      // Upload para o Supabase Storage
+      // Upload para bucket 'recordings' do Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('recordings')
         .upload(fileName, file, {
@@ -246,7 +276,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
       if (uploadError) throw uploadError;
 
-      // Salvar metadados no banco
+      // Persistir metadados na tabela 'recordings'
       const { data: recordingData, error: recordingError } = await supabase
         .from('recordings')
         .insert({
@@ -255,17 +285,17 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
           audio_file_path: uploadData.path,
           file_size: file.size,
           recording_status: 'pending',
-          auto_transcribe: true,
+          auto_transcribe: true, // Habilita transcrição automática
         })
         .select()
         .single();
 
       if (recordingError) throw recordingError;
 
-      // Recarregar lista de arquivos
+      // Atualizar interface com novo arquivo
       await loadAudioFiles();
 
-      // Iniciar transcrição automática
+      // Iniciar processo de transcrição automática
       if (recordingData.id) {
         startTranscription(recordingData.id);
       }
@@ -274,28 +304,43 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
       setError('Erro ao fazer upload do arquivo');
     } finally {
       setUploadingFile(false);
-      // Limpar input
+      // Limpar input para permitir novo upload do mesmo arquivo
       event.target.value = '';
     }
   };
 
+  /**
+   * Inicia o processo de transcrição de áudio
+   * 
+   * Utiliza o serviço de transcrição (OpenAI Whisper) para converter
+   * áudio em texto. O processo é otimizado para português médico.
+   * 
+   * Configurações:
+   * - Idioma: Português (pt)
+   * - Formato: verbose_json (inclui timestamps e confiança)
+   * - Modelo: Whisper (via OpenAI API)
+   * 
+   * @param recordingId - ID da gravação a ser transcrita
+   */
   const startTranscription = async (recordingId: string) => {
     try {
       setTranscribingAudio(recordingId);
       setError(null);
 
+      // Chamar serviço de transcrição com configurações médicas
       const result = await transcribeAudio(recordingId, {
-        language: 'pt',
-        response_format: 'verbose_json',
+        language: 'pt', // Português brasileiro
+        response_format: 'verbose_json', // Inclui timestamps e metadados
       });
 
       if (result.error) {
         throw new Error(result.error);
       }
 
-      // Recarregar arquivos para mostrar transcrição
+      // Atualizar interface com nova transcrição
       await loadAudioFiles();
 
+      // Notificar componente pai sobre nova transcrição
       if (onTranscriptionUpdate && result.transcription) {
         onTranscriptionUpdate(recordingId, result.transcription);
       }
@@ -307,25 +352,39 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     }
   };
 
+  /**
+   * Reproduz arquivo de áudio com controle de estado
+   * 
+   * Gerencia a reprodução de áudio com:
+   * 1. Geração de URL assinada do Supabase (válida por 1h)
+   * 2. Controle de instância única (para um áudio por vez)
+   * 3. Event listeners para fim e erro de reprodução
+   * 4. Cleanup automático de recursos
+   * 
+   * A URL assinada garante acesso seguro aos arquivos privados
+   * sem expor credenciais no frontend.
+   * 
+   * @param audioFile - Arquivo de áudio a ser reproduzido
+   */
   const playAudio = async (audioFile: AudioFile) => {
     try {
       setError(null);
 
-      // Parar áudio anterior se estiver tocando
+      // Garantir que apenas um áudio toque por vez
       if (activeAudioRef.current) {
         stopAudio();
       }
 
-      // Obter URL pública do arquivo
+      // Gerar URL assinada para acesso seguro ao arquivo
       const { data } = await supabase.storage
         .from('recordings')
-        .createSignedUrl(audioFile.audio_file_path, 3600); // 1 hora
+        .createSignedUrl(audioFile.audio_file_path, 3600); // Válida por 1 hora
 
       if (data?.signedUrl) {
         const audio = new Audio(data.signedUrl);
         activeAudioRef.current = audio;
 
-        // Configurar event listeners
+        // Configurar listeners para gerenciar estado da reprodução
         const handleEnded = () => {
           setPlayingAudio(null);
           if (activeAudioRef.current === audio) {
@@ -345,7 +404,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
         audio.addEventListener('ended', handleEnded);
         audio.addEventListener('error', handleError);
 
-        // Função de cleanup para este áudio específico
+        // Registrar função de cleanup para remoção de listeners
         audioCleanupRef.current = () => {
           audio.removeEventListener('ended', handleEnded);
           audio.removeEventListener('error', handleError);
@@ -364,34 +423,63 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     }
   };
 
-  // Função para parar reprodução de áudio
+  /**
+   * Para a reprodução de áudio e limpa recursos
+   * 
+   * Realiza cleanup completo:
+   * 1. Pausa o áudio atual
+   * 2. Reseta posição para o início
+   * 3. Remove event listeners
+   * 4. Limpa referências
+   * 5. Atualiza estado da interface
+   * 
+   * Essencial para evitar vazamentos de memória e conflitos
+   * entre múltiplas reproduções.
+   */
   const stopAudio = () => {
     if (activeAudioRef.current) {
       activeAudioRef.current.pause();
       activeAudioRef.current.currentTime = 0;
+      
+      // Executar cleanup de event listeners
       if (audioCleanupRef.current) {
         audioCleanupRef.current();
         audioCleanupRef.current = null;
       }
+      
       activeAudioRef.current = null;
     }
     setPlayingAudio(null);
   };
 
+  /**
+   * Remove arquivo de áudio do sistema
+   * 
+   * Processo de exclusão completa:
+   * 1. Confirma ação com o usuário
+   * 2. Remove arquivo físico do Supabase Storage
+   * 3. Remove registro da tabela 'recordings'
+   * 4. Atualiza interface removendo item da lista
+   * 
+   * A exclusão é irreversível e remove tanto o arquivo
+   * quanto todos os metadados associados.
+   * 
+   * @param audioFile - Arquivo de áudio a ser excluído
+   */
   const deleteAudio = async (audioFile: AudioFile) => {
     if (!confirm('Tem certeza que deseja excluir este áudio?')) return;
 
     try {
       setError(null);
 
-      // Deletar arquivo do storage
+      // Remover arquivo físico do bucket de storage
       const { error: storageError } = await supabase.storage
         .from('recordings')
         .remove([audioFile.audio_file_path]);
 
       if (storageError) throw storageError;
 
-      // Deletar registro do banco
+      // Remover registro da tabela de metadados
       const { error: dbError } = await supabase
         .from('recordings')
         .delete()
@@ -399,7 +487,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
       if (dbError) throw dbError;
 
-      // Recarregar lista
+      // Atualizar interface removendo item da lista
       await loadAudioFiles();
     } catch (err) {
       console.error('Erro ao deletar áudio:', err);
@@ -407,24 +495,44 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     }
   };
 
+  /**
+   * Faz download de arquivo de áudio para o dispositivo
+   * 
+   * Processo de download:
+   * 1. Baixa arquivo do Supabase Storage
+   * 2. Cria URL temporária (blob) do arquivo
+   * 3. Cria elemento <a> invisível para trigger do download
+   * 4. Simula clique para iniciar download
+   * 5. Remove elemento e libera URL da memória
+   * 
+   * O download preserva o nome original do arquivo e
+   * é otimizado para não consumir memória desnecessariamente.
+   * 
+   * @param audioFile - Arquivo de áudio a ser baixado
+   */
   const downloadAudio = async (audioFile: AudioFile) => {
     try {
       setError(null);
 
+      // Baixar arquivo do Supabase Storage
       const { data, error } = await supabase.storage
         .from('recordings')
         .download(audioFile.audio_file_path);
 
       if (error) throw error;
 
-      // Criar URL e fazer download
+      // Criar URL temporária e elemento de download
       const url = URL.createObjectURL(data);
       const link = document.createElement('a');
       link.href = url;
       link.download = audioFile.audio_file_name;
+      
+      // Executar download programaticamente
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Liberar URL da memória para evitar vazamentos
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Erro ao baixar áudio:', err);

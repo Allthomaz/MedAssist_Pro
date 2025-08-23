@@ -34,18 +34,35 @@ if (typeof window === 'undefined') {
   }
 }
 
+/**
+ * Interface para requisições de componentes médicos personalizados
+ * @interface ComponentRequest
+ */
 interface ComponentRequest {
+  /** Tipo do componente a ser gerado */
   type: 'form' | 'card' | 'table' | 'dialog' | 'dashboard' | 'chart';
+  /** Descrição detalhada do componente desejado */
   description: string;
+  /** Especialidade médica específica (opcional) */
   specialty?: string;
+  /** Campos específicos para formulários (opcional) */
   fields?: string[];
+  /** Mensagem personalizada para o gerador de IA (opcional) */
   message?: string;
 }
 
+/**
+ * Interface para componentes gerados pelo Magic MCP
+ * @interface GeneratedComponent
+ */
 interface GeneratedComponent {
+  /** Código fonte do componente React/TypeScript */
   code: string;
+  /** Nome do componente gerado */
   name: string;
+  /** Descrição do componente */
   description: string;
+  /** Lista de dependências necessárias */
   dependencies: string[];
 }
 
@@ -63,7 +80,19 @@ interface GeneratedComponent {
  * - Refinamento de componentes existentes
  * - Biblioteca de logos médicos
  *
+ * @class MagicMcpService
+ * @author Trae AI
+ * @version 1.0.0
  * @see https://21st.dev/magic
+ * @example
+ * ```typescript
+ * const service = new MagicMcpService();
+ * await service.initialize();
+ * const component = await service.generateMedicalComponent(
+ *   'Formulário de cadastro de paciente',
+ *   'form'
+ * );
+ * ```
  */
 export class MagicMcpService {
   private server: any = null;
@@ -100,6 +129,16 @@ export class MagicMcpService {
 
   /**
    * Inicializa o serviço Magic MCP
+   * 
+   * @async
+   * @method initialize
+   * @returns {Promise<void>} Promise que resolve quando o serviço está inicializado
+   * @throws {Error} Quando a API Key não está configurada
+   * @example
+   * ```typescript
+   * const service = new MagicMcpService();
+   * await service.initialize();
+   * ```
    */
   async initialize(): Promise<void> {
     if (!this.isAvailable) {
@@ -118,9 +157,20 @@ export class MagicMcpService {
 
   /**
    * Gera um componente médico usando IA
-   * @param description Descrição do componente desejado
-   * @param componentType Tipo do componente (form, card, table, etc.)
-   * @returns Código do componente gerado
+   * 
+   * @async
+   * @method generateMedicalComponent
+   * @param {string} description - Descrição detalhada do componente desejado
+   * @param {('form'|'card'|'table'|'dialog'|'dashboard'|'chart')} [componentType='card'] - Tipo do componente a ser gerado
+   * @returns {Promise<string>} Promise que resolve com o código do componente gerado
+   * @example
+   * ```typescript
+   * const code = await service.generateMedicalComponent(
+   *   'Formulário para cadastro de pacientes com campos básicos',
+   *   'form'
+   * );
+   * console.log(code); // Código React/TypeScript do componente
+   * ```
    */
   async generateMedicalComponent(
     description: string,
@@ -132,13 +182,16 @@ export class MagicMcpService {
       | 'dashboard'
       | 'chart' = 'card'
   ): Promise<string> {
+    // Estratégia de fallback: se o Magic MCP não estiver disponível,
+    // usa templates locais para manter a funcionalidade
     if (!this.isAvailable || !this.createUiTool) {
       console.info('Usando template de demonstração para componente médico');
       return this.getMedicalComponentTemplate(description, componentType);
     }
 
     try {
-      // Usar o CreateUiTool do Magic MCP para gerar componentes reais
+      // Executa o CreateUiTool do Magic MCP com parâmetros otimizados
+      // para geração de componentes médicos específicos
       const result = await this.createUiTool.execute({
         message: `Criar um ${componentType} médico: ${description}`,
         searchQuery: `medical ${componentType}`.trim(),
@@ -147,23 +200,41 @@ export class MagicMcpService {
         componentQuery: `${componentType} médico com ${description}`,
       });
 
+      // Retorna o código gerado pela IA ou fallback para template local
       return (
         result.content[0]?.text ||
         this.getMedicalComponentTemplate(description, componentType)
       );
     } catch (error) {
       console.error('Erro ao gerar componente médico:', error);
-      // Fallback para template de exemplo
+      // Sistema de fallback robusto: sempre retorna um componente funcional
       return this.getMedicalComponentTemplate(description, componentType);
     }
   }
 
   /**
    * Gera um componente médico usando o Magic MCP com configuração avançada
+   * 
+   * @async
+   * @method generateAdvancedMedicalComponent
+   * @param {ComponentRequest} request - Configuração detalhada do componente
+   * @returns {Promise<GeneratedComponent>} Promise que resolve com o componente completo gerado
+   * @example
+   * ```typescript
+   * const component = await service.generateAdvancedMedicalComponent({
+   *   type: 'form',
+   *   description: 'Formulário de anamnese completo',
+   *   specialty: 'cardiologia',
+   *   fields: ['nome', 'idade', 'sintomas']
+   * });
+   * console.log(component.code, component.dependencies);
+   * ```
    */
   async generateAdvancedMedicalComponent(
     request: ComponentRequest
   ): Promise<GeneratedComponent> {
+    // Modo de demonstração: retorna templates pré-definidos quando
+    // o Magic MCP não está disponível (ambiente de produção)
     if (!this.isAvailable || !this.createUiTool) {
       console.info(
         'Usando template de demonstração para componente médico avançado'
@@ -184,6 +255,8 @@ export class MagicMcpService {
     }
 
     try {
+      // Constrói uma mensagem contextualizada para o gerador de IA
+      // incluindo especialidade médica e campos específicos quando fornecidos
       const result = await this.createUiTool.execute({
         message:
           request.message ||
@@ -195,6 +268,7 @@ export class MagicMcpService {
         componentQuery: `${request.type} médico com ${request.description}`,
       });
 
+      // Estrutura o resultado com metadados completos do componente
       return {
         code: result.content[0]?.text || '',
         name: `Medical${request.type.charAt(0).toUpperCase() + request.type.slice(1)}`,
@@ -207,7 +281,7 @@ export class MagicMcpService {
       };
     } catch (error) {
       console.error('Erro ao gerar componente com Magic MCP:', error);
-      // Fallback para template de exemplo
+      // Sistema de recuperação: sempre retorna um componente funcional
       return {
         code: this.getMedicalComponentTemplate(
           request.description,
@@ -226,6 +300,19 @@ export class MagicMcpService {
 
   /**
    * Busca inspiração de componentes usando o Magic MCP
+   * 
+   * @async
+   * @method fetchComponentInspiration
+   * @param {string} searchQuery - Termo de busca para inspiração
+   * @param {string} message - Mensagem contextual para a busca
+   * @returns {Promise<string>} Promise que resolve com sugestões de componentes
+   * @example
+   * ```typescript
+   * const inspiration = await service.fetchComponentInspiration(
+   *   'medical dashboard',
+   *   'Preciso de ideias para um painel médico'
+   * );
+   * ```
    */
   async fetchComponentInspiration(
     searchQuery: string,
@@ -252,6 +339,21 @@ export class MagicMcpService {
 
   /**
    * Refina um componente existente usando o Magic MCP
+   * 
+   * @async
+   * @method refineComponent
+   * @param {string} filePath - Caminho para o arquivo do componente
+   * @param {string} userMessage - Instruções de refinamento
+   * @param {string} context - Contexto adicional para o refinamento
+   * @returns {Promise<string>} Promise que resolve com o componente refinado
+   * @example
+   * ```typescript
+   * const refined = await service.refineComponent(
+   *   './src/components/PatientForm.tsx',
+   *   'Adicionar validação de CPF',
+   *   'Formulário de cadastro de pacientes'
+   * );
+   * ```
    */
   async refineComponent(
     filePath: string,
@@ -280,6 +382,19 @@ export class MagicMcpService {
 
   /**
    * Busca logos médicos usando o Magic MCP
+   * 
+   * @async
+   * @method searchMedicalLogos
+   * @param {string[]} queries - Lista de termos para busca de logos
+   * @param {('JSX'|'TSX'|'SVG')} [format='TSX'] - Formato de saída dos logos
+   * @returns {Promise<string>} Promise que resolve com os componentes de logo
+   * @example
+   * ```typescript
+   * const logos = await service.searchMedicalLogos(
+   *   ['stethoscope', 'heart', 'medical cross'],
+   *   'TSX'
+   * );
+   * ```
    */
   async searchMedicalLogos(
     queries: string[],
@@ -304,6 +419,12 @@ export class MagicMcpService {
 
   /**
    * Gera templates de componentes médicos específicos
+   * 
+   * @private
+   * @method getMedicalComponentTemplate
+   * @param {string} description - Descrição do componente
+   * @param {('form'|'card'|'table'|'dialog'|'dashboard'|'chart')} componentType - Tipo do componente
+   * @returns {string} Código template do componente
    */
   private getMedicalComponentTemplate(
     description: string,
@@ -512,7 +633,12 @@ export function ${componentName}() {
   }
 
   /**
-   * Template para formulários médicos
+   * Template para formulários médicos personalizados
+   * 
+   * @private
+   * @method generateMedicalFormTemplate
+   * @param {string} description - Descrição específica do formulário médico
+   * @returns {string} Código template do formulário React com validação
    */
   private generateMedicalFormTemplate(description: string): string {
     return `
@@ -568,7 +694,12 @@ export function MedicalForm() {
   }
 
   /**
-   * Template para cards médicos
+   * Template para cards médicos informativos
+   * 
+   * @private
+   * @method generateMedicalCardTemplate
+   * @param {string} description - Descrição específica do card médico
+   * @returns {string} Código template do card React com status e dados
    */
   private generateMedicalCardTemplate(description: string): string {
     return `
@@ -636,7 +767,12 @@ export function MedicalCard({ title, description, status = 'normal', data }: Med
   }
 
   /**
-   * Template para tabelas médicas
+   * Template para tabelas médicas interativas
+   * 
+   * @private
+   * @method generateMedicalTableTemplate
+   * @param {string} description - Descrição específica da tabela médica
+   * @returns {string} Código template da tabela React com ações
    */
   private generateMedicalTableTemplate(description: string): string {
     return `
@@ -712,7 +848,12 @@ export function MedicalTable({ data, onRowClick }: MedicalTableProps) {
   }
 
   /**
-   * Template para diálogos médicos
+   * Template para diálogos médicos modais
+   * 
+   * @private
+   * @method generateMedicalDialogTemplate
+   * @param {string} description - Descrição específica do diálogo médico
+   * @returns {string} Código template do diálogo React com formulário
    */
   private generateMedicalDialogTemplate(description: string): string {
     return `
@@ -785,7 +926,12 @@ export function MedicalDialog({ trigger, onSave }: MedicalDialogProps) {
   }
 
   /**
-   * Template para dashboards médicos
+   * Template para dashboards médicos com estatísticas
+   * 
+   * @private
+   * @method generateMedicalDashboardTemplate
+   * @param {string} description - Descrição específica do dashboard médico
+   * @returns {string} Código template do dashboard React com métricas
    */
   private generateMedicalDashboardTemplate(description: string): string {
     return `
@@ -872,7 +1018,12 @@ export function MedicalDashboard({ stats = {} }: MedicalDashboardProps) {
   }
 
   /**
-   * Template para gráficos médicos
+   * Template para gráficos médicos com visualização de dados
+   * 
+   * @private
+   * @method generateMedicalChartTemplate
+   * @param {string} description - Descrição específica do gráfico médico
+   * @returns {string} Código template do gráfico React com placeholder para bibliotecas
    */
   private generateMedicalChartTemplate(description: string): string {
     return `
@@ -926,6 +1077,16 @@ export function MedicalChart({ title = 'Gráfico Médico', data = [] }: MedicalC
 
   /**
    * Busca componentes médicos por categoria
+   * 
+   * @async
+   * @method searchMedicalComponents
+   * @param {string} category - Categoria médica para busca
+   * @returns {Promise<string[]>} Promise que resolve com lista de componentes da categoria
+   * @example
+   * ```typescript
+   * const components = await service.searchMedicalComponents('prontuario');
+   * // Retorna: ['Formulário de Anamnese', 'Histórico Médico', ...]
+   * ```
    */
   async searchMedicalComponents(category: string): Promise<string[]> {
     const medicalCategories = {
@@ -956,5 +1117,22 @@ export function MedicalChart({ title = 'Gráfico Médico', data = [] }: MedicalC
   }
 }
 
-// Instância singleton do serviço
+/**
+ * Instância singleton do serviço Magic MCP para uso global
+ * 
+ * @constant {MagicMcpService} magicMcpService
+ * @example
+ * ```typescript
+ * import { magicMcpService } from '@/services/magicMcpService';
+ * 
+ * // Inicializar o serviço
+ * await magicMcpService.initialize();
+ * 
+ * // Gerar componente médico
+ * const component = await magicMcpService.generateMedicalComponent(
+ *   'Formulário de triagem médica',
+ *   'form'
+ * );
+ * ```
+ */
 export const magicMcpService = new MagicMcpService();

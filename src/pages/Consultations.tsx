@@ -52,6 +52,135 @@ interface Consultation {
   patients?: Patient;
 }
 
+/**
+ * Componente otimizado para renderizar um item da lista de consultas
+ * Utiliza React.memo para evitar re-renderizações desnecessárias
+ */
+interface ConsultationItemProps {
+  consultation: Consultation;
+  onSelect: (id: string) => void;
+  formatDate: (date: string) => string;
+  formatDuration: (minutes?: number) => string;
+  getStatusColor: (status: string) => string;
+  getStatusLabel: (status: string) => string;
+}
+
+const ConsultationItemComponent: React.FC<ConsultationItemProps> = ({
+  consultation,
+  onSelect,
+  formatDate,
+  formatDuration,
+  getStatusColor,
+  getStatusLabel,
+}) => {
+  /**
+   * Memoiza as iniciais do paciente para evitar recálculos
+   */
+  const patientInitials = useMemo(() => {
+    return consultation.patients?.full_name
+      ?.split(' ')
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2) || 'P';
+  }, [consultation.patients?.full_name]);
+
+  /**
+   * Memoiza o tipo de consulta formatado
+   */
+  const formattedConsultationType = useMemo(() => {
+    return consultation.consultation_type
+      .replace('_', ' ')
+      .toUpperCase();
+  }, [consultation.consultation_type]);
+
+  return (
+    <div
+      className="flex items-center justify-between p-5 rounded-xl border border-medical-blue/20 hover:border-medical-blue/40 bg-gradient-to-r from-white to-medical-blue/5 hover:from-medical-blue/5 hover:to-medical-green/5 transition-all duration-300 shadow-sm hover:shadow-md"
+    >
+      <div className="flex items-center gap-4">
+        <Avatar className="w-12 h-12 ring-2 ring-medical-blue/20">
+          <AvatarFallback className="bg-gradient-to-r from-medical-blue to-medical-green text-white font-semibold">
+            {patientInitials}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <h4 className="font-medium text-foreground">
+              {consultation.patients?.full_name ||
+                'Paciente não encontrado'}
+            </h4>
+            <Badge variant="outline">
+              {formattedConsultationType}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              {formatDate(consultation.consultation_date)} às{' '}
+              {consultation.consultation_time}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              {formatDuration(consultation.actual_duration)}
+            </span>
+            {consultation.has_recording && (
+              <span className="flex items-center gap-1 text-purple-600">
+                <Mic className="w-4 h-4" />
+                Gravação
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Badge
+          variant="outline"
+          className={getStatusColor(consultation.status)}
+        >
+          {getStatusLabel(consultation.status)}
+        </Badge>
+
+        {consultation.has_recording && (
+          <Badge
+            variant="secondary"
+            className="gap-1 bg-gradient-to-r from-medical-blue/10 to-medical-green/10 text-medical-blue border-medical-blue/20"
+          >
+            <Mic className="w-3 h-3" />
+            Áudio
+          </Badge>
+        )}
+
+        {consultation.document_generated && (
+          <Badge
+            variant="secondary"
+            className="gap-1 bg-gradient-to-r from-medical-green/10 to-medical-blue/10 text-medical-green border-medical-green/20"
+          >
+            <FileText className="w-3 h-3" />
+            Relatório
+          </Badge>
+        )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 border-medical-blue/30 text-medical-blue hover:bg-medical-blue hover:text-white transition-all duration-300"
+          onClick={() => onSelect(consultation.id)}
+        >
+          <Eye className="w-4 h-4" />
+          Visualizar
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Componente otimizado com React.memo
+ */
+const ConsultationItem = React.memo(ConsultationItemComponent);
+
 const Consultations = () => {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -243,92 +372,15 @@ const Consultations = () => {
               </div>
             ) : (
               consultations.map(consultation => (
-                <div
+                <ConsultationItem
                   key={consultation.id}
-                  className="flex items-center justify-between p-5 rounded-xl border border-medical-blue/20 hover:border-medical-blue/40 bg-gradient-to-r from-white to-medical-blue/5 hover:from-medical-blue/5 hover:to-medical-green/5 transition-all duration-300 shadow-sm hover:shadow-md"
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-12 h-12 ring-2 ring-medical-blue/20">
-                      <AvatarFallback className="bg-gradient-to-r from-medical-blue to-medical-green text-white font-semibold">
-                        {consultation.patients?.full_name
-                          ?.split(' ')
-                          .map(n => n[0])
-                          .join('')
-                          .substring(0, 2) || 'P'}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-3">
-                        <h4 className="font-medium text-foreground">
-                          {consultation.patients?.full_name ||
-                            'Paciente não encontrado'}
-                        </h4>
-                        <Badge variant="outline">
-                          {consultation.consultation_type
-                            .replace('_', ' ')
-                            .toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {formatDate(consultation.consultation_date)} às{' '}
-                          {consultation.consultation_time}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {formatDuration(consultation.actual_duration)}
-                        </span>
-                        {consultation.has_recording && (
-                          <span className="flex items-center gap-1 text-purple-600">
-                            <Mic className="w-4 h-4" />
-                            Gravação
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Badge
-                      variant="outline"
-                      className={getStatusColor(consultation.status)}
-                    >
-                      {getStatusLabel(consultation.status)}
-                    </Badge>
-
-                    {consultation.has_recording && (
-                      <Badge
-                        variant="secondary"
-                        className="gap-1 bg-gradient-to-r from-medical-blue/10 to-medical-green/10 text-medical-blue border-medical-blue/20"
-                      >
-                        <Mic className="w-3 h-3" />
-                        Áudio
-                      </Badge>
-                    )}
-
-                    {consultation.document_generated && (
-                      <Badge
-                        variant="secondary"
-                        className="gap-1 bg-gradient-to-r from-medical-green/10 to-medical-blue/10 text-medical-green border-medical-green/20"
-                      >
-                        <FileText className="w-3 h-3" />
-                        Relatório
-                      </Badge>
-                    )}
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2 border-medical-blue/30 text-medical-blue hover:bg-medical-blue hover:text-white transition-all duration-300"
-                      onClick={() => setSelectedConsultation(consultation.id)}
-                    >
-                      <Eye className="w-4 h-4" />
-                      Visualizar
-                    </Button>
-                  </div>
-                </div>
+                  consultation={consultation}
+                  onSelect={setSelectedConsultation}
+                  formatDate={formatDate}
+                  formatDuration={formatDuration}
+                  getStatusColor={getStatusColor}
+                  getStatusLabel={getStatusLabel}
+                />
               ))
             )}
           </CardContent>

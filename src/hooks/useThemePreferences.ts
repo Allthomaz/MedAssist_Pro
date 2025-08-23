@@ -2,18 +2,65 @@ import { useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/hooks/useAuth';
 
+/**
+ * Hook customizado para gerenciar preferências de tema do usuário
+ * 
+ * Este hook aplica automaticamente as preferências de tema e modo compacto
+ * do usuário quando o perfil é carregado. Sincroniza as configurações
+ * salvas no banco de dados com o estado da aplicação.
+ * 
+ * @returns {Object} Objeto contendo:
+ *   - themePreference: Preferência de tema do usuário ('light' | 'dark' | 'system' | undefined)
+ *   - compactMode: Estado do modo compacto (boolean | undefined)
+ * 
+ * @example
+ * ```tsx
+ * function ThemeStatus() {
+ *   const { themePreference, compactMode } = useThemePreferences();
+ * 
+ *   return (
+ *     <div>
+ *       <p>Tema atual: {themePreference || 'Não definido'}</p>
+ *       <p>Modo compacto: {compactMode ? 'Ativado' : 'Desativado'}</p>
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * @example
+ * ```tsx
+ * // Hook é usado automaticamente em componentes que precisam das preferências
+ * function App() {
+ *   // As preferências são aplicadas automaticamente quando o hook é usado
+ *   useThemePreferences();
+ * 
+ *   return (
+ *     <div className="app">
+ *       {/* O tema e modo compacto são aplicados automaticamente */}
+ *       <MainContent />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export const useThemePreferences = () => {
   const { setTheme } = useTheme();
   const { profile } = useAuth();
 
-  // Aplicar preferências de tema quando o perfil for carregado
+  /**
+   * Aplica as preferências de tema quando o perfil é carregado
+   * Sincroniza a preferência salva no banco com o estado do next-themes
+   */
   useEffect(() => {
     if (profile?.theme_preference) {
       setTheme(profile.theme_preference);
     }
   }, [profile?.theme_preference, setTheme]);
 
-  // Aplicar modo compacto (pode ser usado para adicionar classes CSS)
+  /**
+   * Aplica o modo compacto adicionando/removendo classe CSS no body
+   * O modo compacto pode ser usado para reduzir espaçamentos e tamanhos
+   */
   useEffect(() => {
     const body = document.body;
 

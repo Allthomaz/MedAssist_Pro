@@ -127,10 +127,21 @@ class N8nService {
 
   /**
    * Envia uma solicitação para o webhook do n8n para iniciar um fluxo de trabalho de transcrição
+   * 
+   * Esta função implementa a integração com n8n para automação de workflows de transcrição:
+   * 1. Verifica se o serviço está configurado (webhook URL e workflow ID)
+   * 2. Enriquece o payload com metadados adicionais (timestamp, source, workflowId)
+   * 3. Envia requisição HTTP POST para o webhook do n8n
+   * 4. Processa a resposta e extrai informações de execução
+   * 5. Retorna resultado estruturado com dados da transcrição ou erro
+   * 
+   * O n8n permite criar workflows visuais que podem processar áudio,
+   * chamar APIs de transcrição e executar lógicas complexas de forma automatizada.
    */
   public async triggerTranscriptionWorkflow(
     payload: N8nTranscriptionPayload
   ): Promise<N8nTranscriptionResponse> {
+    // Verificação de configuração com tentativa de recarregamento
     if (!this.isConfigured()) {
       await this.loadConfig();
 
@@ -144,7 +155,8 @@ class N8nService {
     }
 
     try {
-      // Preparar o payload com informações adicionais
+      // Enriquecimento do payload com metadados para rastreabilidade
+      // Adiciona informações de contexto que o workflow n8n pode usar
       const enhancedPayload = {
         ...payload,
         workflowId: this.config!.workflowId,
@@ -152,16 +164,18 @@ class N8nService {
         source: 'doctor-brief-ai',
       };
 
-      // Enviar para o webhook do n8n
+      // Execução da requisição HTTP para o webhook do n8n
+      // O webhook é o ponto de entrada para iniciar o workflow
       const response = await fetch(this.config!.webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...this.config!.headers,
+          ...this.config!.headers, // Inclui API key se configurada
         },
         body: JSON.stringify(enhancedPayload),
       });
 
+      // Validação da resposta HTTP
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
@@ -171,6 +185,8 @@ class N8nService {
 
       const result = await response.json();
 
+      // Normalização da resposta do n8n
+      // Diferentes versões do n8n podem retornar campos com nomes ligeiramente diferentes
       return {
         success: true,
         workflowId: this.config!.workflowId,
@@ -191,8 +207,18 @@ class N8nService {
 
   /**
    * Verifica o status de uma execução de workflow no n8n
+   * 
+   * Esta função implementa o monitoramento de execuções de workflow:
+   * 1. Valida se a configuração inclui API key (necessária para acessar a API REST)
+   * 2. Constrói a URL da API REST do n8n a partir do webhook URL
+   * 3. Faz requisição GET para o endpoint de execuções
+   * 4. Retorna informações detalhadas sobre o status da execução
+   * 
+   * Permite acompanhar o progresso de workflows longos e verificar
+   * se a transcrição foi concluída com sucesso.
    */
   public async checkWorkflowStatus(executionId: string): Promise<any> {
+    // Validação de pré-requisitos para acesso à API REST
     if (!this.isConfigured() || !this.config?.apiKey) {
       return {
         success: false,
@@ -201,20 +227,24 @@ class N8nService {
     }
 
     try {
-      // Extrair o domínio base do webhook URL
+      // Construção da URL base da API a partir do webhook URL
+      // O webhook URL geralmente é algo como: https://n8n.example.com/webhook/...
+      // A API REST fica em: https://n8n.example.com/api/v1/...
       const url = new URL(this.config.webhookUrl);
       const baseUrl = `${url.protocol}//${url.host}`;
 
-      // Construir URL para a API de execuções do n8n
+      // Montagem da URL específica para consultar a execução
       const apiUrl = `${baseUrl}/api/v1/executions/${executionId}`;
 
+      // Requisição autenticada para a API REST do n8n
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'X-N8N-API-KEY': this.config.apiKey,
+          'X-N8N-API-KEY': this.config.apiKey, // Autenticação via API key
         },
       });
 
+      // Validação da resposta da API
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
@@ -222,6 +252,7 @@ class N8nService {
         );
       }
 
+      // Retorna os dados completos da execução (status, dados, logs, etc.)
       return await response.json();
     } catch (error) {
       console.error('Erro ao verificar status do workflow:', error);

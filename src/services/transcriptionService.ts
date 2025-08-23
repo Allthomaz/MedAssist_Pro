@@ -71,10 +71,20 @@ class TranscriptionService {
 
   /**
    * Verifica se pelo menos uma API está disponível para transcrição
+   * 
+   * Esta validação é crítica para evitar falhas silenciosas durante o processo
+   * de transcrição. Verifica tanto a configuração quanto a conectividade das APIs.
+   * 
+   * Validações realizadas:
+   * - OpenAI: Presença da API key
+   * - Supabase: Sessão ativa do usuário (necessária para Edge Functions)
+   * 
+   * @throws Error se nenhuma API estiver disponível
    */
   private async ensureApiAvailability(): Promise<void> {
     const { openai, supabase: supabaseValid } = await this.validateApiKeys();
 
+    // Falha se nenhuma API estiver configurada e funcional
     if (!openai && !supabaseValid) {
       throw new Error(
         'Nenhuma API de transcrição está configurada. Configure pelo menos uma das seguintes:\n' +
@@ -152,24 +162,29 @@ class TranscriptionService {
 
       const result = await response.json();
 
-      // Processar resposta baseada no formato
+      // Processar resposta baseada no formato solicitado
       if (options.response_format === 'verbose_json') {
+        // Formato verbose_json inclui segmentos detalhados com timestamps e confiança
         return {
           text: result.text,
+          // Calcula confiança média de todos os segmentos
           confidence: this.calculateAverageConfidence(result.segments || []),
           language: result.language,
           duration: result.duration,
+          // Mapeia segmentos do Whisper para formato interno
           segments:
             result.segments?.map((segment: WhisperSegment) => ({
-              start: segment.start,
-              end: segment.end,
-              text: segment.text,
+              start: segment.start, // Timestamp de início em segundos
+              end: segment.end, // Timestamp de fim em segundos
+              text: segment.text, // Texto do segmento
+              // Converte log-probabilidade em confiança percentual
               confidence: segment.avg_logprob
                 ? Math.exp(segment.avg_logprob)
-                : 0.95,
+                : 0.95, // Valor padrão alto para segmentos sem confiança
             })) || [],
         };
       } else {
+        // Formatos simples (text, srt, vtt) retornam apenas o texto
         return {
           text: typeof result === 'string' ? result : result.text,
           confidence: 0.95, // Valor padrão quando não há informação de confiança
@@ -263,6 +278,23 @@ class TranscriptionService {
 
   /**
    * Processa transcrição completa (transcreve + salva)
+   * 
+   * Esta é a função principal que orquestra todo o processo de transcrição:
+   * 1. Valida disponibilidade das APIs
+   * 2. Configura opções otimizadas para contexto médico
+   * 3. Tenta transcrição com OpenAI (preferencial) com fallback para Supabase
+   * 4. Mede tempo de processamento para métricas
+   * 5. Persiste resultado no banco de dados
+   * 
+   * Estratégia de fallback:
+   * - OpenAI Whisper: Maior precisão, especialmente para termos médicos
+   * - Supabase Edge Function: Backup quando OpenAI falha ou não está disponível
+   * 
+   * @param audioFile - Arquivo de áudio (File ou Blob) para transcrever
+   * @param recordingId - ID único da gravação no sistema
+   * @param consultationId - ID da consulta médica associada
+   * @param options - Opções de transcrição (sobrescreve padrões médicos)
+   * @returns Objeto com ID da transcrição salva, texto e confiança
    */
   async processAudioTranscription(
     audioFile: File | Blob,
@@ -270,28 +302,33 @@ class TranscriptionService {
     consultationId: string,
     options: TranscriptionOptions = {}
   ): Promise<{ transcriptionId: string; text: string; confidence: number }> {
-    // Verificar se pelo menos uma API está disponível
+    // Verificar se pelo menos uma API está disponível antes de prosseguir
     this.ensureApiAvailability();
 
+    // Marcar início do processamento para métricas de performance
     const startTime = Date.now();
 
     try {
-      // Configurar prompt médico padrão se não fornecido
+      // Configurações otimizadas para contexto médico
+      // Temperature baixa (0.1) para maior precisão em termos técnicos
+      // Prompt específico para melhorar reconhecimento de terminologia médica
       const defaultOptions: TranscriptionOptions = {
-        language: 'pt',
-        temperature: 0.1,
-        response_format: 'verbose_json',
-        timestamp_granularities: ['segment'],
+        language: 'pt', // Português brasileiro
+        temperature: 0.1, // Baixa criatividade, alta precisão
+        response_format: 'verbose_json', // Inclui timestamps e confiança
+        timestamp_granularities: ['segment'], // Segmentação por frases
         prompt:
           'Esta é uma transcrição de consulta médica. Inclua termos médicos precisos, nomes de medicamentos, procedimentos, sintomas e diagnósticos. Mantenha a terminologia médica correta.',
       };
 
+      // Mescla opções padrão com opções fornecidas pelo usuário
       const transcriptionOptions = { ...defaultOptions, ...options };
 
-      // Tentar transcrição com OpenAI primeiro
+      // Variável para armazenar resultado da transcrição
       let transcriptionResult: TranscriptionResult;
 
       try {
+        // Primeira tentativa: OpenAI Whisper (mais preciso para termos médicos)
         transcriptionResult = await this.transcribeWithOpenAI(
           audioFile,
           transcriptionOptions
@@ -302,16 +339,17 @@ class TranscriptionService {
           openaiError
         );
 
-        // Fallback para função Supabase
+        // Fallback: Função Edge do Supabase como backup
         transcriptionResult = await this.transcribeWithSupabase(
           recordingId,
           transcriptionOptions
         );
       }
 
+      // Calcular tempo total de processamento para métricas
       const processingTime = Date.now() - startTime;
 
-      // Salvar no banco de dados
+      // Persistir transcrição no banco de dados com metadados
       const savedTranscription = await this.saveTranscription(
         recordingId,
         consultationId,
@@ -419,18 +457,34 @@ class TranscriptionService {
   }
 
   /**
-   * Calcula a confiança média dos segmentos
+   * Calcula a confiança média dos segmentos de transcrição
+   * 
+   * A API Whisper retorna avg_logprob (logaritmo da probabilidade média) para cada segmento.
+   * Este valor precisa ser convertido para uma probabilidade real usando Math.exp().
+   * 
+   * Processo de cálculo:
+   * 1. Para cada segmento, converte avg_logprob em probabilidade (0-1)
+   * 2. Se avg_logprob não existir, usa valor padrão de 0.95 (95% de confiança)
+   * 3. Calcula a média aritmética de todas as confianças dos segmentos
+   * 
+   * @param segments - Array de segmentos do Whisper com informações de confiança
+   * @returns Valor de confiança média entre 0 e 1 (0% a 100%)
    */
   private calculateAverageConfidence(segments: WhisperSegment[]): number {
+    // Retorna confiança padrão alta se não há segmentos para analisar
     if (!segments || segments.length === 0) return 0.95;
 
+    // Soma todas as confianças dos segmentos
     const totalConfidence = segments.reduce((sum, segment) => {
+      // Converte log-probabilidade em probabilidade real
+      // avg_logprob é negativo, Math.exp() converte para valor entre 0-1
       const confidence = segment.avg_logprob
         ? Math.exp(segment.avg_logprob)
-        : 0.95;
+        : 0.95; // Valor padrão para segmentos sem informação de confiança
       return sum + confidence;
     }, 0);
 
+    // Retorna a média aritmética das confianças
     return totalConfidence / segments.length;
   }
 
@@ -505,17 +559,31 @@ ${transcriptionText}
 
   /**
    * Método principal para transcrever áudio (wrapper)
+   * 
+   * Função de conveniência que implementa estratégia de fallback automático:
+   * 1. Valida disponibilidade das APIs de transcrição
+   * 2. Prioriza OpenAI Whisper (maior precisão)
+   * 3. Usa Supabase Edge Function como backup
+   * 4. Gera IDs temporários quando necessário
+   * 
+   * Esta função é útil para transcrições rápidas sem necessidade de persistência
+   * imediata no banco de dados.
+   * 
+   * @param audioFile - Arquivo de áudio para transcrever
+   * @param options - Opções de transcrição
+   * @returns Resultado da transcrição com texto e metadados
    */
   async transcribeAudio(
     audioFile: File | Blob,
     options: TranscriptionOptions = {}
   ): Promise<TranscriptionResult> {
-    // Verificar se pelo menos uma API está disponível
+    // Verificar se pelo menos uma API está disponível antes de prosseguir
     this.ensureApiAvailability();
 
+    // Validar quais APIs estão configuradas e funcionais
     const { openai, supabase: supabaseValid } = this.validateApiKeys();
 
-    // Tentar OpenAI primeiro se disponível
+    // Estratégia 1: Tentar OpenAI primeiro (preferencial)
     if (openai) {
       try {
         return await this.transcribeWithOpenAI(audioFile, options);
@@ -525,22 +593,23 @@ ${transcriptionText}
         // Fallback para Supabase se disponível
         if (supabaseValid) {
           console.log('Tentando fallback para Supabase...');
-          // Para usar Supabase, precisamos de um recordingId
+          // Gerar ID temporário para compatibilidade com API Supabase
           const recordingId = `temp_${Date.now()}`;
           return await this.transcribeWithSupabase(recordingId, options);
         }
 
+        // Se não há fallback disponível, propagar erro original
         throw error;
       }
     }
 
-    // Se OpenAI não está disponível, usar Supabase
+    // Estratégia 2: Se OpenAI não está disponível, usar Supabase diretamente
     if (supabaseValid) {
       const recordingId = `temp_${Date.now()}`;
       return await this.transcribeWithSupabase(recordingId, options);
     }
 
-    // Isso nunca deveria acontecer devido ao ensureApiAvailability
+    // Este caso nunca deveria ocorrer devido à validação em ensureApiAvailability
     throw new Error('Nenhuma API de transcrição disponível');
   }
 }

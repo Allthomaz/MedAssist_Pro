@@ -65,10 +65,16 @@ interface ConsultationDetailProps {
   onStatusChange?: (status: string) => void;
 }
 
-export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
+/**
+ * ConsultationDetail Component
+ * 
+ * Componente otimizado para exibir e editar detalhes de uma consulta médica.
+ * Utiliza React.memo para evitar re-renderizações desnecessárias quando as props não mudam.
+ * 
+ * @param consultationId - ID da consulta a ser exibida
+ */
+const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
   consultationId,
-  onSave,
-  onStatusChange,
 }) => {
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -237,9 +243,15 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     return new Date(dateString).toLocaleDateString('pt-BR');
   }, []);
 
-  const calculateAge = useCallback((birthDate: string) => {
+  /**
+   * Calcula a idade do paciente de forma otimizada
+   * Usa useMemo para evitar recálculos desnecessários
+   */
+  const patientAge = useMemo(() => {
+    if (!patient?.birth_date) return 0;
+
     const today = new Date();
-    const birth = new Date(birthDate);
+    const birth = new Date(patient.birth_date);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
 
@@ -251,7 +263,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     }
 
     return age;
-  }, []);
+  }, [patient?.birth_date]);
 
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
@@ -355,7 +367,7 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
                   : patient.gender === 'female'
                     ? 'Feminino'
                     : 'Outro'}
-                ,{calculateAge(patient.birth_date)} anos
+                , {patientAge} anos
               </p>
             </div>
 
@@ -654,3 +666,8 @@ export const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
     </div>
   );
 };
+
+/**
+ * Componente otimizado com React.memo para evitar re-renderizações desnecessárias
+ */
+export const ConsultationDetail = React.memo(ConsultationDetailComponent);
