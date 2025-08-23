@@ -157,7 +157,7 @@ const AuthPage: React.FC = () => {
           'Verifique sua caixa de entrada e spam. O link expira em 1 hora.',
       });
       // Em desenvolvimento, mostrar link do Inbucket
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         toast.info('Desenvolvimento: Verifique o Inbucket', {
           description: 'Acesse http://127.0.0.1:54324 para ver o e-mail.',
         });

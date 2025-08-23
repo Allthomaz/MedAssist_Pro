@@ -67,146 +67,146 @@ const LoadingSpinner = () => (
 
 function App() {
   return (
-  <ErrorBoundary showDetails={process.env['NODE_ENV'] === 'development'}>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <BrowserRouter>
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/auth/reset" element={<ResetPassword />} />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/patients"
-                  element={
-                    <ProtectedRoute>
-                      <Patients />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/consultations"
-                  element={
-                    <ProtectedRoute>
-                      <Consultations />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/templates"
-                  element={
-                    <ProtectedRoute>
-                      <Templates />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/appointments"
-                  element={
-                    <ProtectedRoute>
-                      <Appointments />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/documents"
-                  element={
-                    <ProtectedRoute>
-                      <Documents />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/analytics"
-                  element={
-                    <ProtectedRoute>
-                      <Analytics />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/showcase"
-                  element={
-                    <ProtectedRoute>
-                      <DesignShowcase />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/test-transcription"
-                  element={
-                    <ProtectedRoute>
-                      <SimpleTranscriptionTest />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/test-reports"
-                  element={
-                    <ProtectedRoute>
-                      <ReportTest />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/test-storage"
-                  element={
-                    <ProtectedRoute>
-                      <StorageTest />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/test-auth"
-                  element={
-                    <ProtectedRoute>
-                      <AuthTest />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/test-rls"
-                  element={
-                    <ProtectedRoute>
-                      <RLSTest />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tests"
-                  element={
-                    <ProtectedRoute>
-                      <TestNavigation />
-                    </ProtectedRoute>
-                  }
-                />
+    <ErrorBoundary showDetails={import.meta.env.DEV}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <BrowserRouter>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/auth/reset" element={<ResetPassword />} />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Index />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/patients"
+                    element={
+                      <ProtectedRoute>
+                        <Patients />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/consultations"
+                    element={
+                      <ProtectedRoute>
+                        <Consultations />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/templates"
+                    element={
+                      <ProtectedRoute>
+                        <Templates />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/appointments"
+                    element={
+                      <ProtectedRoute>
+                        <Appointments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/documents"
+                    element={
+                      <ProtectedRoute>
+                        <Documents />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <Analytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/showcase"
+                    element={
+                      <ProtectedRoute>
+                        <DesignShowcase />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/test-transcription"
+                    element={
+                      <ProtectedRoute>
+                        <SimpleTranscriptionTest />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/test-reports"
+                    element={
+                      <ProtectedRoute>
+                        <ReportTest />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/test-storage"
+                    element={
+                      <ProtectedRoute>
+                        <StorageTest />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/test-auth"
+                    element={
+                      <ProtectedRoute>
+                        <AuthTest />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/test-rls"
+                    element={
+                      <ProtectedRoute>
+                        <RLSTest />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tests"
+                    element={
+                      <ProtectedRoute>
+                        <TestNavigation />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
