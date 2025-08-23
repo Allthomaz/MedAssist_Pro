@@ -1,10 +1,6 @@
 import { supabase } from '../integrations/supabase/client';
-import { Database } from '../integrations/supabase/types';
 import {
   WhisperSegment,
-  WhisperResponse,
-  KnownError,
-  getErrorMessage,
 } from '../types/common';
 
 // Usar as variáveis de ambiente corretas para o Vite
@@ -71,14 +67,14 @@ class TranscriptionService {
 
   /**
    * Verifica se pelo menos uma API está disponível para transcrição
-   * 
+   *
    * Esta validação é crítica para evitar falhas silenciosas durante o processo
    * de transcrição. Verifica tanto a configuração quanto a conectividade das APIs.
-   * 
+   *
    * Validações realizadas:
    * - OpenAI: Presença da API key
    * - Supabase: Sessão ativa do usuário (necessária para Edge Functions)
-   * 
+   *
    * @throws Error se nenhuma API estiver disponível
    */
   private async ensureApiAvailability(): Promise<void> {
@@ -278,18 +274,18 @@ class TranscriptionService {
 
   /**
    * Processa transcrição completa (transcreve + salva)
-   * 
+   *
    * Esta é a função principal que orquestra todo o processo de transcrição:
    * 1. Valida disponibilidade das APIs
    * 2. Configura opções otimizadas para contexto médico
    * 3. Tenta transcrição com OpenAI (preferencial) com fallback para Supabase
    * 4. Mede tempo de processamento para métricas
    * 5. Persiste resultado no banco de dados
-   * 
+   *
    * Estratégia de fallback:
    * - OpenAI Whisper: Maior precisão, especialmente para termos médicos
    * - Supabase Edge Function: Backup quando OpenAI falha ou não está disponível
-   * 
+   *
    * @param audioFile - Arquivo de áudio (File ou Blob) para transcrever
    * @param recordingId - ID único da gravação no sistema
    * @param consultationId - ID da consulta médica associada
@@ -458,15 +454,15 @@ class TranscriptionService {
 
   /**
    * Calcula a confiança média dos segmentos de transcrição
-   * 
+   *
    * A API Whisper retorna avg_logprob (logaritmo da probabilidade média) para cada segmento.
    * Este valor precisa ser convertido para uma probabilidade real usando Math.exp().
-   * 
+   *
    * Processo de cálculo:
    * 1. Para cada segmento, converte avg_logprob em probabilidade (0-1)
    * 2. Se avg_logprob não existir, usa valor padrão de 0.95 (95% de confiança)
    * 3. Calcula a média aritmética de todas as confianças dos segmentos
-   * 
+   *
    * @param segments - Array de segmentos do Whisper com informações de confiança
    * @returns Valor de confiança média entre 0 e 1 (0% a 100%)
    */
@@ -559,16 +555,16 @@ ${transcriptionText}
 
   /**
    * Método principal para transcrever áudio (wrapper)
-   * 
+   *
    * Função de conveniência que implementa estratégia de fallback automático:
    * 1. Valida disponibilidade das APIs de transcrição
    * 2. Prioriza OpenAI Whisper (maior precisão)
    * 3. Usa Supabase Edge Function como backup
    * 4. Gera IDs temporários quando necessário
-   * 
+   *
    * Esta função é útil para transcrições rápidas sem necessidade de persistência
    * imediata no banco de dados.
-   * 
+   *
    * @param audioFile - Arquivo de áudio para transcrever
    * @param options - Opções de transcrição
    * @returns Resultado da transcrição com texto e metadados

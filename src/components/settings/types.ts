@@ -9,14 +9,14 @@ export interface UserSettings {
   version: string;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Configurações de perfil
   profile: {
     personalInfo: PersonalInfo;
     professionalInfo: ProfessionalInfo;
     contactInfo: ContactInfo;
   };
-  
+
   // Configurações de aparência
   appearance: {
     theme: 'light' | 'dark' | 'system';
@@ -35,7 +35,7 @@ export interface UserSettings {
       density: 'comfortable' | 'compact';
     };
   };
-  
+
   // Configurações de notificações
   notifications: {
     email: {
@@ -71,7 +71,7 @@ export interface UserSettings {
       duration: number;
     };
   };
-  
+
   // Configurações de áudio
   audio: {
     microphone: {
@@ -102,7 +102,7 @@ export interface UserSettings {
       };
     };
   };
-  
+
   // Configurações de segurança
   security: {
     password: {
@@ -134,7 +134,7 @@ export interface UserSettings {
       autoDeleteInactive: boolean;
     };
   };
-  
+
   // Configurações de integrações
   integrations: {
     api: {
@@ -298,12 +298,19 @@ export interface SettingsContext {
   settings: UserSettings;
   isLoading: boolean;
   error: string | null;
-  updateSettings: (updates: Partial<UserSettings>, options?: SettingsUpdateOptions) => Promise<UserSettings>;
+  updateSettings: (
+    updates: Partial<UserSettings>,
+    options?: SettingsUpdateOptions
+  ) => Promise<UserSettings>;
   resetSettings: (category?: string) => Promise<void>;
-  exportSettings: (format?: 'json' | 'csv' | 'xml') => Promise<SettingsExportData>;
+  exportSettings: (
+    format?: 'json' | 'csv' | 'xml'
+  ) => Promise<SettingsExportData>;
   importSettings: (data: SettingsExportData) => Promise<void>;
   getAuditLog: (limit?: number) => Promise<SettingsChange[]>;
-  validateSettings: (settings: Partial<UserSettings>) => SettingsValidationError[];
+  validateSettings: (
+    settings: Partial<UserSettings>
+  ) => SettingsValidationError[];
 }
 
 export interface SettingsCategory {
@@ -326,7 +333,16 @@ export interface SettingsField {
   id: string;
   name: string;
   description?: string;
-  type: 'text' | 'number' | 'boolean' | 'select' | 'multiselect' | 'date' | 'time' | 'color' | 'file';
+  type:
+    | 'text'
+    | 'number'
+    | 'boolean'
+    | 'select'
+    | 'multiselect'
+    | 'date'
+    | 'time'
+    | 'color'
+    | 'file';
   required?: boolean;
   defaultValue?: any;
   options?: SettingsFieldOption[];

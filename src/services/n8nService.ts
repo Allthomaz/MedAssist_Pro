@@ -19,7 +19,7 @@ interface N8nTranscriptionPayload {
     temperature?: number;
     response_format?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface N8nTranscriptionResponse {
@@ -31,7 +31,12 @@ interface N8nTranscriptionResponse {
     confidence: number;
     language?: string;
     duration?: number;
-    segments?: any[];
+    segments?: Array<{
+      start: number;
+      end: number;
+      text: string;
+      confidence: number;
+    }>;
   };
   error?: string;
 }
@@ -127,14 +132,14 @@ class N8nService {
 
   /**
    * Envia uma solicitação para o webhook do n8n para iniciar um fluxo de trabalho de transcrição
-   * 
+   *
    * Esta função implementa a integração com n8n para automação de workflows de transcrição:
    * 1. Verifica se o serviço está configurado (webhook URL e workflow ID)
    * 2. Enriquece o payload com metadados adicionais (timestamp, source, workflowId)
    * 3. Envia requisição HTTP POST para o webhook do n8n
    * 4. Processa a resposta e extrai informações de execução
    * 5. Retorna resultado estruturado com dados da transcrição ou erro
-   * 
+   *
    * O n8n permite criar workflows visuais que podem processar áudio,
    * chamar APIs de transcrição e executar lógicas complexas de forma automatizada.
    */
@@ -207,17 +212,22 @@ class N8nService {
 
   /**
    * Verifica o status de uma execução de workflow no n8n
-   * 
+   *
    * Esta função implementa o monitoramento de execuções de workflow:
    * 1. Valida se a configuração inclui API key (necessária para acessar a API REST)
    * 2. Constrói a URL da API REST do n8n a partir do webhook URL
    * 3. Faz requisição GET para o endpoint de execuções
    * 4. Retorna informações detalhadas sobre o status da execução
-   * 
+   *
    * Permite acompanhar o progresso de workflows longos e verificar
    * se a transcrição foi concluída com sucesso.
    */
-  public async checkWorkflowStatus(executionId: string): Promise<any> {
+  public async checkWorkflowStatus(executionId: string): Promise<{
+    success: boolean;
+    status: string;
+    data?: unknown;
+    error?: string;
+  }> {
     // Validação de pré-requisitos para acesso à API REST
     if (!this.isConfigured() || !this.config?.apiKey) {
       return {

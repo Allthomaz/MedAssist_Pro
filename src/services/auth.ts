@@ -24,22 +24,22 @@ export interface SignUpPayload {
 
 /**
  * Utilitários de sanitização para prevenir XSS e outros ataques
- * 
+ *
  * Conjunto de funções para sanitizar e validar inputs do usuário,
  * garantindo segurança contra ataques de injeção e XSS.
- * 
+ *
  * @namespace sanitizeUtils
  */
 const sanitizeUtils = {
   /**
    * Remove caracteres perigosos e sanitiza strings genéricas
-   * 
+   *
    * Remove caracteres HTML perigosos, normaliza espaços e limita o tamanho.
    * Usado para campos de texto geral que não têm validação específica.
-   * 
+   *
    * @param {string} input - String a ser sanitizada
    * @returns {string} String sanitizada e segura
-   * 
+   *
    * @example
    * ```typescript
    * const safe = sanitizeUtils.sanitizeString('<script>alert("xss")</script>Hello');
@@ -48,7 +48,7 @@ const sanitizeUtils = {
    */
   sanitizeString(input: string): string {
     if (!input || typeof input !== 'string') return '';
-    
+
     return input
       .trim()
       .replace(/[<>"'&]/g, '') // Remove caracteres HTML perigosos
@@ -58,13 +58,13 @@ const sanitizeUtils = {
 
   /**
    * Sanitiza e valida endereços de email
-   * 
+   *
    * Remove caracteres não permitidos em emails, converte para minúsculas
    * e aplica limite de tamanho conforme RFC 5321.
-   * 
+   *
    * @param {string} email - Email a ser sanitizado
    * @returns {string} Email sanitizado ou string vazia se inválido
-   * 
+   *
    * @example
    * ```typescript
    * const email = sanitizeUtils.sanitizeEmail('  USER@EXAMPLE.COM  ');
@@ -73,7 +73,7 @@ const sanitizeUtils = {
    */
   sanitizeEmail(email: string): string {
     if (!email || typeof email !== 'string') return '';
-    
+
     return email
       .toLowerCase()
       .trim()
@@ -83,13 +83,13 @@ const sanitizeUtils = {
 
   /**
    * Sanitiza nomes completos de usuários
-   * 
+   *
    * Remove caracteres HTML perigosos, permite apenas letras (incluindo acentos),
    * espaços e pontos. Normaliza espaços múltiplos e limita o tamanho.
-   * 
+   *
    * @param {string} name - Nome a ser sanitizado
    * @returns {string} Nome sanitizado ou string vazia se inválido
-   * 
+   *
    * @example
    * ```typescript
    * const name = sanitizeUtils.sanitizeFullName('  Dr. João<script> Silva  ');
@@ -98,7 +98,7 @@ const sanitizeUtils = {
    */
   sanitizeFullName(name: string): string {
     if (!name || typeof name !== 'string') return '';
-    
+
     return name
       .trim()
       .replace(/[<>"'&]/g, '') // Remove caracteres HTML perigosos
@@ -109,32 +109,36 @@ const sanitizeUtils = {
 
   /**
    * Valida se a profissão informada é suportada pelo sistema
-   * 
+   *
    * Verifica se a profissão está na lista de valores permitidos.
-   * 
+   *
    * @param {string} profession - Profissão a ser validada
    * @returns {UserProfession|null} Profissão válida ou null se inválida
-   * 
+   *
    * @example
    * ```typescript
    * const prof = sanitizeUtils.validateProfession('medico');
    * // Retorna: 'medico'
-   * 
+   *
    * const invalid = sanitizeUtils.validateProfession('invalid');
    * // Retorna: null
    * ```
    */
   validateProfession(profession: string): UserProfession | null {
-    const validProfessions: UserProfession[] = ['medico', 'psicologo', 'terapeuta'];
-    return validProfessions.includes(profession as UserProfession) 
-      ? profession as UserProfession 
+    const validProfessions: UserProfession[] = [
+      'medico',
+      'psicologo',
+      'terapeuta',
+    ];
+    return validProfessions.includes(profession as UserProfession)
+      ? (profession as UserProfession)
       : null;
-  }
+  },
 };
 
 /**
  * Serviço de autenticação e gerenciamento de usuários
- * 
+ *
  * Fornece funcionalidades completas para:
  * - Cadastro seguro de usuários com sanitização automática
  * - Login e logout com validação
@@ -142,9 +146,9 @@ const sanitizeUtils = {
  * - Reenvio de confirmação de email
  * - Gerenciamento de sessões
  * - Criação automática de perfis no banco de dados
- * 
+ *
  * Todos os inputs são automaticamente sanitizados para prevenir ataques XSS.
- * 
+ *
  * @namespace authService
  * @example
  * ```typescript
@@ -155,7 +159,7 @@ const sanitizeUtils = {
  *   fullName: 'Dr. João Silva',
  *   profession: 'medico'
  * });
- * 
+ *
  * // Fazer login
  * const loginResult = await authService.signIn('medico@exemplo.com', 'senhaSegura123');
  * ```
@@ -163,17 +167,17 @@ const sanitizeUtils = {
 export const authService = {
   /**
    * Cadastra um novo usuário no sistema
-   * 
+   *
    * Realiza as seguintes operações:
    * 1. Sanitiza e valida todos os inputs
    * 2. Cria conta no Supabase Auth
    * 3. Cria perfil na tabela 'profiles'
    * 4. Define role baseada na profissão
-   * 
+   *
    * @param {SignUpPayload} payload - Dados do usuário para cadastro
    * @returns {Promise<{user: User|null, session: Session|null, error: Error|null}>}
    * @throws {Error} Quando dados são inválidos ou senha é muito fraca
-   * 
+   *
    * @example
    * ```typescript
    * const result = await authService.signUp({
@@ -182,7 +186,7 @@ export const authService = {
    *   fullName: 'Dr. João Silva',
    *   profession: 'medico'
    * });
-   * 
+   *
    * if (result.error) {
    *   console.error('Erro no cadastro:', result.error.message);
    * } else {
@@ -191,6 +195,12 @@ export const authService = {
    * ```
    */
   async signUp({ email, password, fullName, profession }: SignUpPayload) {
+    console.log('AuthService: Iniciando processo de cadastro para:', {
+      email,
+      fullName,
+      profession,
+    });
+
     // Sanitizar e validar inputs
     const sanitizedEmail = sanitizeUtils.sanitizeEmail(email);
     const sanitizedFullName = sanitizeUtils.sanitizeFullName(fullName);
@@ -198,18 +208,25 @@ export const authService = {
 
     // Validações de segurança
     if (!sanitizedEmail || !sanitizedFullName || !validatedProfession) {
+      console.error('AuthService: Falha na validação dos dados de cadastro.', {
+        email: sanitizedEmail,
+        fullName: sanitizedFullName,
+        profession: validatedProfession,
+      });
       return {
         user: null,
         session: null,
-        error: new Error('Dados inválidos fornecidos')
+        error: new Error('Dados inválidos fornecidos'),
       };
     }
+    console.log('AuthService: Dados de cadastro validados com sucesso.');
 
     if (!password || password.length < 8) {
+      console.error('AuthService: Senha fornecida é muito fraca.');
       return {
         user: null,
         session: null,
-        error: new Error('Senha deve ter pelo menos 8 caracteres')
+        error: new Error('Senha deve ter pelo menos 8 caracteres'),
       };
     }
 
@@ -224,6 +241,9 @@ export const authService = {
 
     const role = getRoleFromProfession(validatedProfession);
 
+    console.log(
+      `AuthService: Tentando criar usuário no Supabase com role: ${role}`
+    );
     const { data, error } = await supabase.auth.signUp({
       email: sanitizedEmail,
       password,
@@ -233,8 +253,23 @@ export const authService = {
       },
     });
 
+    if (error) {
+      console.error('AuthService: Erro ao criar usuário no Supabase Auth:', {
+        message: error.message,
+        status: (error as { status?: number }).status,
+      });
+    } else if (data.user) {
+      console.log(
+        'AuthService: Usuário criado com sucesso no Supabase Auth:',
+        data.user.id
+      );
+    }
+
     // If signup successful, create profile
     if (data.user && !error) {
+      console.log(
+        `AuthService: Criando perfil para o usuário: ${data.user.id}`
+      );
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         full_name: sanitizedFullName,
@@ -243,7 +278,16 @@ export const authService = {
       });
 
       if (profileError) {
-        console.error('Error creating profile:', profileError);
+        console.error('AuthService: Erro ao criar perfil do usuário:', {
+          userId: data.user.id,
+          message: profileError.message,
+          code: profileError.code,
+        });
+        // Opcional: decidir se o erro de perfil deve reverter o cadastro
+      } else {
+        console.log(
+          `AuthService: Perfil criado com sucesso para o usuário: ${data.user.id}`
+        );
       }
     }
 
@@ -252,18 +296,18 @@ export const authService = {
 
   /**
    * Autentica um usuário no sistema
-   * 
+   *
    * Sanitiza o email automaticamente e realiza login seguro.
    * Inclui logs detalhados para debugging e monitoramento.
-   * 
+   *
    * @param {string} email - Email do usuário (será sanitizado)
    * @param {string} password - Senha do usuário
    * @returns {Promise<{user: User|null, session: Session|null, error: Error|null}>}
-   * 
+   *
    * @example
    * ```typescript
    * const result = await authService.signIn('medico@exemplo.com', 'minhasenha');
-   * 
+   *
    * if (result.error) {
    *   console.error('Falha no login:', result.error.message);
    * } else {
@@ -275,13 +319,13 @@ export const authService = {
   async signIn(email: string, password: string) {
     // Sanitizar e validar inputs
     const sanitizedEmail = sanitizeUtils.sanitizeEmail(email);
-    
+
     // Validações de segurança
     if (!sanitizedEmail || !password) {
       return {
         user: null,
         session: null,
-        error: new Error('Email e senha são obrigatórios')
+        error: new Error('Email e senha são obrigatórios'),
       };
     }
 
@@ -306,21 +350,21 @@ export const authService = {
       return { user: data.user, session: data.session, error };
     } catch (err) {
       console.error('AuthService: Erro inesperado no login:', err);
-      return { user: null, session: null, error: err as any };
+      return { user: null, session: null, error: err as Error };
     }
   },
 
   /**
    * Realiza logout do usuário atual
-   * 
+   *
    * Encerra a sessão ativa no Supabase Auth.
-   * 
+   *
    * @returns {Promise<{error: Error|null}>}
-   * 
+   *
    * @example
    * ```typescript
    * const result = await authService.signOut();
-   * 
+   *
    * if (result.error) {
    *   console.error('Erro no logout:', result.error.message);
    * } else {
@@ -336,17 +380,17 @@ export const authService = {
 
   /**
    * Reenvia email de confirmação de cadastro
-   * 
+   *
    * Útil quando o usuário não recebeu o email inicial ou ele expirou.
    * O email é automaticamente sanitizado antes do envio.
-   * 
+   *
    * @param {string} email - Email para reenvio (será sanitizado)
    * @returns {Promise<{data: any, error: Error|null}>}
-   * 
+   *
    * @example
    * ```typescript
    * const result = await authService.resendConfirmation('medico@exemplo.com');
-   * 
+   *
    * if (result.error) {
    *   console.error('Erro ao reenviar:', result.error.message);
    * } else {
@@ -357,11 +401,11 @@ export const authService = {
   async resendConfirmation(email: string) {
     // Sanitizar e validar input
     const sanitizedEmail = sanitizeUtils.sanitizeEmail(email);
-    
+
     if (!sanitizedEmail) {
       return {
         data: null,
-        error: new Error('Email inválido fornecido')
+        error: new Error('Email inválido fornecido'),
       };
     }
 
@@ -375,17 +419,17 @@ export const authService = {
 
   /**
    * Solicita redefinição de senha via email
-   * 
+   *
    * Envia email com link seguro para redefinição de senha.
    * O usuário será redirecionado para /auth/reset após clicar no link.
-   * 
+   *
    * @param {string} email - Email do usuário (será sanitizado)
    * @returns {Promise<{data: any, error: Error|null}>}
-   * 
+   *
    * @example
    * ```typescript
    * const result = await authService.requestPasswordReset('medico@exemplo.com');
-   * 
+   *
    * if (result.error) {
    *   console.error('Erro na solicitação:', result.error.message);
    * } else {
@@ -396,34 +440,37 @@ export const authService = {
   async requestPasswordReset(email: string) {
     // Sanitizar e validar input
     const sanitizedEmail = sanitizeUtils.sanitizeEmail(email);
-    
+
     if (!sanitizedEmail) {
       return {
         data: null,
-        error: new Error('Email inválido fornecido')
+        error: new Error('Email inválido fornecido'),
       };
     }
 
     const redirectUrl = `${window.location.origin}/auth/reset`;
-    const { data, error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-      redirectTo: redirectUrl,
-    });
+    const { data, error } = await supabase.auth.resetPasswordForEmail(
+      sanitizedEmail,
+      {
+        redirectTo: redirectUrl,
+      }
+    );
     return { data, error };
   },
 
   /**
    * Atualiza a senha do usuário autenticado
-   * 
+   *
    * Requer que o usuário esteja logado. Usado principalmente
    * no fluxo de redefinição de senha.
-   * 
+   *
    * @param {string} newPassword - Nova senha do usuário
    * @returns {Promise<{data: any, error: Error|null}>}
-   * 
+   *
    * @example
    * ```typescript
    * const result = await authService.updatePassword('novaSenhaSegura123');
-   * 
+   *
    * if (result.error) {
    *   console.error('Erro ao atualizar senha:', result.error.message);
    * } else {
@@ -440,16 +487,16 @@ export const authService = {
 
   /**
    * Obtém a sessão atual do usuário
-   * 
+   *
    * Verifica se existe uma sessão ativa e retorna os dados do usuário.
    * Usado para verificar estado de autenticação.
-   * 
+   *
    * @returns {Promise<{session: Session|null, user: User|null}>}
-   * 
+   *
    * @example
    * ```typescript
    * const { session, user } = await authService.getSession();
-   * 
+   *
    * if (session && user) {
    *   console.log('Usuário logado:', user.email);
    * } else {

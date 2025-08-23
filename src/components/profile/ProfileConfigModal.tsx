@@ -29,7 +29,6 @@ import {
   Briefcase,
   Phone,
   Sparkles,
-  Eye,
   Monitor,
 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';

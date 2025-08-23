@@ -13,7 +13,7 @@ type RecordingQuality = 'high' | 'medium' | 'low';
 
 /**
  * Interface que define o retorno do hook useAudioRecorder
- * 
+ *
  * @interface UseAudioRecorderReturn
  * @property {boolean} isRecording - Indica se está gravando atualmente
  * @property {Blob | null} recordedBlob - Blob do áudio gravado
@@ -46,7 +46,7 @@ interface UseAudioRecorderReturn {
 
 /**
  * Configurações de áudio para a gravação
- * 
+ *
  * @interface AudioConstraints
  * @property {boolean} [echoCancellation] - Cancelamento de eco
  * @property {boolean} [noiseSuppression] - Supressão de ruído
@@ -62,7 +62,7 @@ interface AudioConstraints {
 
 /**
  * Opções de configuração para o hook useAudioRecorder
- * 
+ *
  * @interface UseAudioRecorderOptions
  * @property {AudioConstraints} [audioConstraints] - Configurações de áudio
  * @property {(blob: Blob, url: string) => void} [onRecordingComplete] - Callback quando gravação é concluída
@@ -76,7 +76,7 @@ interface UseAudioRecorderOptions {
 
 /**
  * Hook customizado para gravação de áudio com funcionalidades avançadas
- * 
+ *
  * Este hook fornece uma interface completa para gravação de áudio, incluindo:
  * - Verificação automática de permissões do microfone
  * - Gravação com configurações de qualidade personalizáveis
@@ -84,14 +84,14 @@ interface UseAudioRecorderOptions {
  * - Limpeza automática de recursos
  * - Tratamento robusto de erros
  * - Callbacks para eventos de gravação
- * 
+ *
  * @param {UseAudioRecorderOptions} [options={}] - Opções de configuração
  * @param {AudioConstraints} [options.audioConstraints] - Configurações de áudio
  * @param {Function} [options.onRecordingComplete] - Callback executado quando gravação é concluída
  * @param {Function} [options.onError] - Callback para tratamento de erros
- * 
+ *
  * @returns {UseAudioRecorderReturn} Objeto contendo estados e funções para controle de gravação
- * 
+ *
  * @example
  * ```tsx
  * function AudioRecorder() {
@@ -117,18 +117,18 @@ interface UseAudioRecorderOptions {
  *       console.error('Erro na gravação:', error);
  *     }
  *   });
- * 
+ *
  *   return (
  *     <div>
- *       <button 
+ *       <button
  *         onClick={isRecording ? stopRecording : startRecording}
  *         disabled={microphoneStatus !== 'available'}
  *       >
  *         {isRecording ? 'Parar' : 'Gravar'}
  *       </button>
- *       
+ *
  *       {isRecording && <p>Gravando: {recordingTime}s</p>}
- *       
+ *
  *       {recordedUrl && (
  *         <div>
  *           <audio src={recordedUrl} controls />
@@ -173,7 +173,7 @@ export const useAudioRecorder = (
 
   /**
    * Função de limpeza robusta que libera todos os recursos de áudio
-   * 
+   *
    * Esta função:
    * - Para a gravação se estiver ativa
    * - Limpa event listeners do MediaRecorder
@@ -181,7 +181,7 @@ export const useAudioRecorder = (
    * - Limpa timers ativos
    * - Revoga URLs de objeto criadas
    * - Reseta estados para valores iniciais
-   * 
+   *
    * @returns {void}
    */
   const cleanup = useCallback(() => {
@@ -240,13 +240,13 @@ export const useAudioRecorder = (
 
   /**
    * Verifica e monitora as permissões do microfone
-   * 
+   *
    * Esta função:
    * - Verifica se o navegador suporta getUserMedia
    * - Consulta o status atual das permissões
    * - Configura listener para mudanças de permissão
    * - Atualiza o estado microphoneStatus adequadamente
-   * 
+   *
    * @returns {Promise<void>}
    */
   const checkMicrophonePermissions = useCallback(async () => {
@@ -257,7 +257,7 @@ export const useAudioRecorder = (
       }
 
       const permission = await navigator.permissions.query({
-        name: 'microphone' as any,
+        name: 'microphone' as PermissionName,
       });
 
       const updateStatus = () => {
@@ -286,7 +286,7 @@ export const useAudioRecorder = (
 
   /**
    * Inicia a gravação de áudio
-   * 
+   *
    * Esta função:
    * - Verifica suporte do navegador e permissões
    * - Limpa recursos de gravações anteriores
@@ -295,7 +295,7 @@ export const useAudioRecorder = (
    * - Inicia timer de contagem de tempo
    * - Configura listeners para eventos de gravação
    * - Trata erros específicos com mensagens apropriadas
-   * 
+   *
    * @returns {Promise<void>}
    * @throws {Error} Quando há problemas com permissões, dispositivos ou configurações
    */
@@ -315,7 +315,7 @@ export const useAudioRecorder = (
 
       // Verificar permissões
       const permission = await navigator.permissions.query({
-        name: 'microphone' as any,
+        name: 'microphone' as PermissionName,
       });
       if (permission.state === 'denied') {
         throw new Error(
@@ -411,29 +411,30 @@ export const useAudioRecorder = (
       toast.success(
         'Gravação iniciada. Fale próximo ao microfone para melhor qualidade.'
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao iniciar gravação:', error);
 
       let errorMessage = 'Erro desconhecido ao acessar o microfone';
 
-      if (error.name === 'NotAllowedError') {
+      const err = error as Error;
+      if (err.name === 'NotAllowedError') {
         errorMessage =
           'Permissão de microfone negada. Clique no ícone de cadeado na barra de endereços e permita o acesso ao microfone.';
         setMicrophoneStatus('denied');
-      } else if (error.name === 'NotFoundError') {
+      } else if (err.name === 'NotFoundError') {
         errorMessage =
           'Nenhum microfone encontrado. Verifique se há um microfone conectado.';
         setMicrophoneStatus('error');
-      } else if (error.name === 'NotReadableError') {
+      } else if (err.name === 'NotReadableError') {
         errorMessage =
           'Microfone está sendo usado por outro aplicativo. Feche outros programas que possam estar usando o microfone.';
         setMicrophoneStatus('error');
-      } else if (error.name === 'OverconstrainedError') {
+      } else if (err.name === 'OverconstrainedError') {
         errorMessage =
           'Configurações de áudio não suportadas pelo seu dispositivo.';
         setMicrophoneStatus('error');
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
 
       onError?.(error);
@@ -446,18 +447,18 @@ export const useAudioRecorder = (
 
       setIsRecording(false);
     }
-  }, [audioConstraints, onRecordingComplete, onError]);
+  }, [audioConstraints, onRecordingComplete, onError, cleanup]);
 
   /**
    * Para a gravação de áudio atual
-   * 
+   *
    * Esta função:
    * - Para o MediaRecorder se estiver gravando
    * - Limpa o timer de contagem
    * - Para e desabilita tracks do stream
    * - Atualiza estados apropriadamente
    * - Trata erros durante o processo de parada
-   * 
+   *
    * @returns {void}
    */
   const stopRecording = useCallback(() => {
@@ -501,13 +502,13 @@ export const useAudioRecorder = (
 
   /**
    * Limpa a gravação atual e libera recursos associados
-   * 
+   *
    * Esta função:
    * - Revoga a URL do objeto de áudio
    * - Limpa o blob gravado
    * - Reseta o tempo de gravação
    * - Remove referências para permitir garbage collection
-   * 
+   *
    * @returns {void}
    */
   const clearRecording = useCallback(() => {

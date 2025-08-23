@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,28 +15,25 @@ import {
   Activity,
   BarChart3,
   TrendingUp,
-  TrendingDown,
+
   Users,
   Calendar,
   FileText,
   Clock,
   Heart,
   Stethoscope,
-  Pill,
+
   Target,
   Award,
   AlertCircle,
   CheckCircle,
-  Eye,
   Download,
-  Filter,
+
   RefreshCw,
   PieChart,
   LineChart,
   BarChart,
-  DollarSign,
-  Percent,
-  Timer,
+
   UserCheck,
   CalendarCheck,
   FileCheck,

@@ -51,14 +51,14 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
   /**
    * Gera um relatório médico baseado na transcrição usando IA
-   * 
+   *
    * Esta função realiza o processo completo de geração de relatório:
    * 1. Valida os dados de entrada (transcrição, tipo de relatório)
    * 2. Chama a função Supabase Edge Function 'generate-report'
    * 3. Processa a resposta da IA
    * 4. Salva o relatório gerado na tabela 'documents'
    * 5. Atualiza o estado do componente com o resultado
-   * 
+   *
    * A função utiliza o serviço de IA configurado (OpenAI/Anthropic) via
    * Supabase Edge Functions para processar a transcrição e gerar
    * documentos médicos estruturados conforme o tipo selecionado.
@@ -132,14 +132,14 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
   /**
    * Gera e baixa um arquivo PDF do relatório médico
-   * 
+   *
    * Esta função cria um documento PDF profissional usando jsPDF com:
    * 1. Formatação adequada (margens, fontes, espaçamento)
    * 2. Quebra automática de páginas
    * 3. Substituição de placeholders por dados reais
    * 4. Rodapé com timestamp de geração
    * 5. Nome de arquivo estruturado
-   * 
+   *
    * O PDF gerado segue padrões médicos com layout limpo e legível,
    * adequado para impressão e arquivamento digital.
    */
@@ -177,7 +177,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       pdf.setFont('helvetica', 'normal');
 
       // Substituir placeholders por dados reais do paciente/médico
-      let content = generatedReport.content
+      const content = generatedReport.content
         .replace(/\[Nome do Paciente\]/g, patientName)
         .replace(/\[Número do CRM\]/g, 'XXXXXX')
         .replace(/Médico Responsável/g, doctorName)

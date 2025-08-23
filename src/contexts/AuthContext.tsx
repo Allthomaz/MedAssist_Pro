@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
@@ -8,6 +8,7 @@ import React, {
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/auth';
+
 
 interface UserProfile {
   id: string;
@@ -24,22 +25,28 @@ interface UserProfile {
   first_login_at?: string | null;
 }
 
+interface SupabaseError {
+  name: string;
+  message: string;
+  status: number;
+}
+
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
   profile: UserProfile | null;
   initializing: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: SupabaseError | null }>;
   signUp: (
     email: string,
     password: string,
     fullName: string,
     profession: 'medico' | 'psicologo' | 'terapeuta'
-  ) => Promise<{ error: any | null }>;
+  ) => Promise<{ error: SupabaseError | null }>;
   signOut: () => Promise<void>;
-  resendConfirmation: (email: string) => Promise<{ error: any | null }>;
-  requestPasswordReset: (email: string) => Promise<{ error: any | null }>;
-  updatePassword: (newPassword: string) => Promise<{ error: any | null }>;
+  resendConfirmation: (email: string) => Promise<{ error: SupabaseError | null }>;
+  requestPasswordReset: (email: string) => Promise<{ error: SupabaseError | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: SupabaseError | null }>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
@@ -96,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Função para criar notificação de boas-vindas
   const createWelcomeNotification = async (userProfile: UserProfile) => {
     try {
-      let welcomeTitle = 'Bem-vindo ao Doctor Brief AI!';
+      const welcomeTitle = 'Bem-vindo ao Doctor Brief AI!';
       let welcomeMessage = '';
 
       if (userProfile.role === 'doctor') {

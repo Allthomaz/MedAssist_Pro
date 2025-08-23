@@ -5,6 +5,7 @@ Este módulo gerencia todo o ciclo de vida dos dados de pacientes no sistema Doc
 ## Visão Geral
 
 O módulo de pacientes é responsável por:
+
 - Cadastro e gerenciamento de dados pessoais
 - Histórico médico completo e estruturado
 - Relacionamento com consultas e procedimentos
@@ -15,6 +16,7 @@ O módulo de pacientes é responsável por:
 ## Arquitetura de Dados
 
 ### Estrutura Hierárquica
+
 ```
 Paciente
 ├── Dados Pessoais (identificação, contato)
@@ -26,6 +28,7 @@ Paciente
 ```
 
 ### Relacionamentos
+
 - **1:N** Paciente → Consultas
 - **1:N** Paciente → Documentos
 - **N:M** Paciente → Médicos (através de consultas)
@@ -34,6 +37,7 @@ Paciente
 ## Interfaces de Dados
 
 ### Patient Interface
+
 ```typescript
 interface Patient {
   id: string;
@@ -43,23 +47,23 @@ interface Patient {
   rg?: string;
   birth_date: Date;
   gender: Gender;
-  
+
   // Contato
   email?: string;
   phone: string;
   emergency_contact?: EmergencyContact;
-  
+
   // Endereço
   address: Address;
-  
+
   // Dados Médicos
   medical_data: MedicalData;
-  
+
   // Metadados
   created_at: Date;
   updated_at: Date;
   created_by: string; // ID do médico que cadastrou
-  
+
   // Controle de Acesso
   privacy_settings: PrivacySettings;
   consent_given: boolean;
@@ -68,32 +72,33 @@ interface Patient {
 ```
 
 ### MedicalData Interface
+
 ```typescript
 interface MedicalData {
   // Informações Básicas
   blood_type?: BloodType;
   height?: number; // em cm
   weight?: number; // em kg
-  
+
   // Alergias e Restrições
   allergies: Allergy[];
   food_restrictions: string[];
-  
+
   // Medicamentos
   current_medications: Medication[];
   medication_history: MedicationHistory[];
-  
+
   // Histórico Médico
   chronic_conditions: ChronicCondition[];
   previous_surgeries: Surgery[];
   family_history: FamilyHistory[];
-  
+
   // Hábitos de Vida
   lifestyle: LifestyleData;
-  
+
   // Observações Gerais
   general_notes?: string;
-  
+
   // Última Atualização
   last_updated: Date;
   updated_by: string;
@@ -101,6 +106,7 @@ interface MedicalData {
 ```
 
 ### Address Interface
+
 ```typescript
 interface Address {
   street: string;
@@ -119,21 +125,22 @@ interface Address {
 ```
 
 ### PrivacySettings Interface
+
 ```typescript
 interface PrivacySettings {
   // Compartilhamento de Dados
   allow_data_sharing: boolean;
   allow_research_participation: boolean;
   allow_marketing_communication: boolean;
-  
+
   // Acesso a Dados
   data_retention_period: number; // em anos
   allow_family_access: boolean;
   authorized_contacts: string[]; // IDs de contatos autorizados
-  
+
   // Notificações
   notification_preferences: NotificationPreferences;
-  
+
   // Auditoria
   last_privacy_update: Date;
   privacy_version: string;
@@ -143,9 +150,11 @@ interface PrivacySettings {
 ## Componentes Principais
 
 ### PatientForm.tsx
+
 **Propósito**: Formulário completo para cadastro e edição de pacientes.
 
 **Funcionalidades**:
+
 - ✅ Validação robusta de CPF, RG e dados pessoais
 - ✅ Campos condicionais baseados em contexto médico
 - ✅ Integração com API de CEP para endereços
@@ -154,37 +163,44 @@ interface PrivacySettings {
 - ✅ Salvamento automático (draft)
 
 **Validações Implementadas**:
+
 ```typescript
 const patientSchema = z.object({
-  full_name: z.string()
+  full_name: z
+    .string()
     .min(2, 'Nome deve ter pelo menos 2 caracteres')
     .max(100, 'Nome muito longo')
     .regex(/^[A-Za-zÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
-  
-  cpf: z.string()
+
+  cpf: z
+    .string()
     .length(11, 'CPF deve ter 11 dígitos')
     .regex(/^\d+$/, 'CPF deve conter apenas números')
     .refine(validateCPF, 'CPF inválido'),
-  
-  birth_date: z.date()
+
+  birth_date: z
+    .date()
     .max(new Date(), 'Data de nascimento não pode ser futura')
     .min(new Date('1900-01-01'), 'Data muito antiga'),
-  
-  phone: z.string()
+
+  phone: z
+    .string()
     .min(10, 'Telefone deve ter pelo menos 10 dígitos')
     .regex(/^\d+$/, 'Telefone deve conter apenas números'),
-  
+
   email: z.string().email('Email inválido').optional(),
-  
+
   // Validações médicas específicas
-  medical_data: medicalDataSchema
+  medical_data: medicalDataSchema,
 });
 ```
 
 ### PatientList.tsx
+
 **Propósito**: Lista paginada e pesquisável de pacientes.
 
 **Funcionalidades**:
+
 - ✅ Busca avançada (nome, CPF, telefone)
 - ✅ Filtros por idade, gênero, cidade
 - ✅ Ordenação por múltiplos campos
@@ -193,15 +209,18 @@ const patientSchema = z.object({
 - ✅ Visualização responsiva
 
 **Performance**:
+
 - Virtualização para listas grandes (>1000 pacientes)
 - Debounce na busca (300ms)
 - Cache inteligente de resultados
 - Lazy loading de dados médicos
 
 ### PatientProfile.tsx
+
 **Propósito**: Visualização completa do perfil do paciente.
 
 **Seções**:
+
 - **Dados Pessoais**: Informações básicas e contato
 - **Histórico Médico**: Condições, alergias, medicamentos
 - **Consultas**: Timeline de consultas realizadas
@@ -209,9 +228,11 @@ const patientSchema = z.object({
 - **Estatísticas**: Gráficos de evolução de saúde
 
 ### MedicalHistory.tsx
+
 **Propósito**: Gerenciamento do histórico médico detalhado.
 
 **Funcionalidades**:
+
 - ✅ Timeline interativa de eventos médicos
 - ✅ Categorização por tipo de evento
 - ✅ Anexo de documentos por evento
@@ -222,11 +243,13 @@ const patientSchema = z.object({
 ## Serviços e Integrações
 
 ### PatientService
+
 **Localização**: `src/services/patientService.ts`
 
 **Funcionalidades Principais**:
 
 #### CRUD Operations
+
 ```typescript
 class PatientService {
   // Criar novo paciente
@@ -237,25 +260,30 @@ class PatientService {
     // Salvamento no banco
     // Log de auditoria
   }
-  
+
   // Buscar pacientes com filtros
-  async searchPatients(filters: PatientFilters): Promise<PaginatedResponse<Patient>> {
+  async searchPatients(
+    filters: PatientFilters
+  ): Promise<PaginatedResponse<Patient>> {
     // Construção de query otimizada
     // Aplicação de filtros
     // Paginação
     // Ordenação
     // Cache de resultados
   }
-  
+
   // Atualizar dados do paciente
-  async updatePatient(id: string, updates: UpdatePatientRequest): Promise<Patient> {
+  async updatePatient(
+    id: string,
+    updates: UpdatePatientRequest
+  ): Promise<Patient> {
     // Validação de permissões
     // Merge inteligente de dados
     // Versionamento de alterações
     // Notificação de mudanças
     // Auditoria completa
   }
-  
+
   // Arquivar paciente (soft delete)
   async archivePatient(id: string, reason: string): Promise<void> {
     // Verificação de dependências
@@ -267,23 +295,24 @@ class PatientService {
 ```
 
 #### Integrações Externas
+
 ```typescript
 // Integração com API de CEP
 const fetchAddressByCEP = async (cep: string): Promise<Address> => {
   const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
   const data = await response.json();
-  
+
   if (data.erro) {
     throw new Error('CEP não encontrado');
   }
-  
+
   return {
     street: data.logradouro,
     neighborhood: data.bairro,
     city: data.localidade,
     state: data.uf,
     zip_code: cep,
-    country: 'Brasil'
+    country: 'Brasil',
   };
 };
 
@@ -291,32 +320,32 @@ const fetchAddressByCEP = async (cep: string): Promise<Address> => {
 const validateCPF = (cpf: string): boolean => {
   // Remove caracteres não numéricos
   const cleanCPF = cpf.replace(/\D/g, '');
-  
+
   // Verifica se tem 11 dígitos
   if (cleanCPF.length !== 11) return false;
-  
+
   // Verifica se todos os dígitos são iguais
   if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-  
+
   // Algoritmo de validação do CPF
   let sum = 0;
   for (let i = 0; i < 9; i++) {
     sum += parseInt(cleanCPF[i]) * (10 - i);
   }
-  
+
   let digit1 = 11 - (sum % 11);
   if (digit1 > 9) digit1 = 0;
-  
+
   if (parseInt(cleanCPF[9]) !== digit1) return false;
-  
+
   sum = 0;
   for (let i = 0; i < 10; i++) {
     sum += parseInt(cleanCPF[i]) * (11 - i);
   }
-  
+
   let digit2 = 11 - (sum % 11);
   if (digit2 > 9) digit2 = 0;
-  
+
   return parseInt(cleanCPF[10]) === digit2;
 };
 ```
@@ -324,6 +353,7 @@ const validateCPF = (cpf: string): boolean => {
 ### Integração com Supabase
 
 #### Estrutura de Tabelas
+
 ```sql
 -- Tabela principal de pacientes
 CREATE TABLE patients (
@@ -391,6 +421,7 @@ CREATE INDEX idx_patient_documents_patient_id ON patient_documents(patient_id);
 ```
 
 #### Row Level Security (RLS)
+
 ```sql
 -- Políticas de acesso para pacientes
 CREATE POLICY "Doctors can view their patients" ON patients
@@ -445,9 +476,13 @@ CREATE POLICY "Access medical events through patient access" ON medical_events
 ### LGPD (Lei Geral de Proteção de Dados)
 
 #### Implementações de Conformidade
+
 ```typescript
 // Consentimento explícito
-const requestConsent = async (patientId: string, purposes: ConsentPurpose[]): Promise<ConsentRecord> => {
+const requestConsent = async (
+  patientId: string,
+  purposes: ConsentPurpose[]
+): Promise<ConsentRecord> => {
   const consentRecord = {
     patient_id: patientId,
     purposes: purposes,
@@ -455,61 +490,69 @@ const requestConsent = async (patientId: string, purposes: ConsentPurpose[]): Pr
     consent_date: null,
     consent_version: CURRENT_CONSENT_VERSION,
     ip_address: getUserIP(),
-    user_agent: navigator.userAgent
+    user_agent: navigator.userAgent,
   };
-  
+
   // Apresentar termos de consentimento
   const userConsent = await showConsentModal(purposes);
-  
+
   if (userConsent) {
     consentRecord.consent_given = true;
     consentRecord.consent_date = new Date();
   }
-  
+
   // Salvar registro de consentimento
   return await saveConsentRecord(consentRecord);
 };
 
 // Direito ao esquecimento
-const deletePatientData = async (patientId: string, reason: string): Promise<void> => {
+const deletePatientData = async (
+  patientId: string,
+  reason: string
+): Promise<void> => {
   // Verificar se há impedimentos legais
   const legalHolds = await checkLegalHolds(patientId);
   if (legalHolds.length > 0) {
-    throw new Error('Não é possível excluir dados devido a impedimentos legais');
+    throw new Error(
+      'Não é possível excluir dados devido a impedimentos legais'
+    );
   }
-  
+
   // Backup para auditoria (dados anonimizados)
   await createAnonymizedBackup(patientId);
-  
+
   // Exclusão em cascata
   await deletePatientCascade(patientId);
-  
+
   // Log de auditoria
   await logDataDeletion(patientId, reason);
-  
+
   // Notificação de confirmação
   await notifyDataDeletion(patientId);
 };
 
 // Portabilidade de dados
-const exportPatientData = async (patientId: string, format: 'json' | 'pdf' | 'xml'): Promise<ExportResult> => {
+const exportPatientData = async (
+  patientId: string,
+  format: 'json' | 'pdf' | 'xml'
+): Promise<ExportResult> => {
   // Verificar permissões
   await checkExportPermissions(patientId);
-  
+
   // Coletar todos os dados
   const patientData = await collectAllPatientData(patientId);
-  
+
   // Formatar conforme solicitado
   const formattedData = await formatData(patientData, format);
-  
+
   // Log de auditoria
   await logDataExport(patientId, format);
-  
+
   return {
     data: formattedData,
     export_date: new Date(),
     format: format,
-    checksum: calculateChecksum(formattedData)
+    checksum: calculateChecksum(formattedData),
   };
 };
 ```
@@ -517,6 +560,7 @@ const exportPatientData = async (patientId: string, format: 'json' | 'pdf' | 'xm
 ### HIPAA (Health Insurance Portability and Accountability Act)
 
 #### Medidas de Segurança
+
 ```typescript
 // Criptografia de dados sensíveis
 const encryptSensitiveData = (data: any): string => {
@@ -531,7 +575,11 @@ const decryptSensitiveData = (encryptedData: string): any => {
 };
 
 // Auditoria de acesso
-const logDataAccess = async (patientId: string, accessType: string, userId: string): Promise<void> => {
+const logDataAccess = async (
+  patientId: string,
+  accessType: string,
+  userId: string
+): Promise<void> => {
   await supabase.from('audit_logs').insert({
     patient_id: patientId,
     user_id: userId,
@@ -540,24 +588,28 @@ const logDataAccess = async (patientId: string, accessType: string, userId: stri
     access_type: accessType,
     timestamp: new Date(),
     ip_address: getUserIP(),
-    user_agent: navigator.userAgent
+    user_agent: navigator.userAgent,
   });
 };
 
 // Controle de acesso baseado em contexto
-const checkAccessPermission = async (patientId: string, userId: string, action: string): Promise<boolean> => {
+const checkAccessPermission = async (
+  patientId: string,
+  userId: string,
+  action: string
+): Promise<boolean> => {
   // Verificar relacionamento médico-paciente
   const relationship = await checkDoctorPatientRelationship(patientId, userId);
   if (!relationship) return false;
-  
+
   // Verificar permissões específicas da ação
   const permissions = await getUserPermissions(userId);
   if (!permissions.includes(action)) return false;
-  
+
   // Verificar restrições temporais
   const timeRestrictions = await getTimeRestrictions(userId);
   if (!isWithinAllowedTime(timeRestrictions)) return false;
-  
+
   return true;
 };
 ```
@@ -565,68 +617,76 @@ const checkAccessPermission = async (patientId: string, userId: string, action: 
 ## Validações e Qualidade de Dados
 
 ### Validações de Entrada
+
 ```typescript
 // Validação de CPF com verificação de duplicatas
-const validateUniquePatient = async (cpf: string, excludeId?: string): Promise<ValidationResult> => {
+const validateUniquePatient = async (
+  cpf: string,
+  excludeId?: string
+): Promise<ValidationResult> => {
   const existingPatient = await supabase
     .from('patients')
     .select('id, full_name')
     .eq('cpf', cpf)
     .neq('id', excludeId || '')
     .single();
-  
+
   if (existingPatient.data) {
     return {
       valid: false,
-      error: `Paciente já cadastrado: ${existingPatient.data.full_name}`
+      error: `Paciente já cadastrado: ${existingPatient.data.full_name}`,
     };
   }
-  
+
   return { valid: true };
 };
 
 // Validação de dados médicos
 const validateMedicalData = (medicalData: MedicalData): ValidationResult[] => {
   const errors: ValidationResult[] = [];
-  
+
   // Validar alergias
   medicalData.allergies.forEach((allergy, index) => {
     if (!allergy.substance || !allergy.severity) {
       errors.push({
         field: `allergies[${index}]`,
         valid: false,
-        error: 'Substância e severidade são obrigatórias'
+        error: 'Substância e severidade são obrigatórias',
       });
     }
   });
-  
+
   // Validar medicamentos atuais
   medicalData.current_medications.forEach((medication, index) => {
     if (!medication.name || !medication.dosage) {
       errors.push({
         field: `current_medications[${index}]`,
         valid: false,
-        error: 'Nome e dosagem são obrigatórios'
+        error: 'Nome e dosagem são obrigatórios',
       });
     }
-    
+
     // Verificar interações medicamentosas
-    const interactions = checkDrugInteractions(medication, medicalData.current_medications);
+    const interactions = checkDrugInteractions(
+      medication,
+      medicalData.current_medications
+    );
     if (interactions.length > 0) {
       errors.push({
         field: `current_medications[${index}]`,
         valid: false,
         error: `Possível interação medicamentosa: ${interactions.join(', ')}`,
-        severity: 'warning'
+        severity: 'warning',
       });
     }
   });
-  
+
   return errors;
 };
 ```
 
 ### Limpeza e Normalização
+
 ```typescript
 // Normalização de dados de entrada
 const normalizePatientData = (rawData: any): Patient => {
@@ -641,8 +701,8 @@ const normalizePatientData = (rawData: any): Patient => {
       zip_code: rawData.address.zip_code.replace(/\D/g, ''),
       street: rawData.address.street.trim(),
       city: rawData.address.city.trim().toUpperCase(),
-      state: rawData.address.state.trim().toUpperCase()
-    }
+      state: rawData.address.state.trim().toUpperCase(),
+    },
   };
 };
 
@@ -655,7 +715,7 @@ const sanitizeForLogging = (patientData: Patient): any => {
     age: calculateAge(patientData.birth_date),
     gender: patientData.gender,
     city: patientData.address.city,
-    state: patientData.address.state
+    state: patientData.address.state,
   };
 };
 ```
@@ -663,26 +723,30 @@ const sanitizeForLogging = (patientData: Patient): any => {
 ## Performance e Otimização
 
 ### Estratégias de Cache
+
 ```typescript
 // Cache de busca de pacientes
 const patientSearchCache = new Map<string, CacheEntry>();
 
-const searchPatientsWithCache = async (query: string, filters: PatientFilters): Promise<Patient[]> => {
+const searchPatientsWithCache = async (
+  query: string,
+  filters: PatientFilters
+): Promise<Patient[]> => {
   const cacheKey = generateCacheKey(query, filters);
   const cached = patientSearchCache.get(cacheKey);
-  
+
   if (cached && !isCacheExpired(cached)) {
     return cached.data;
   }
-  
+
   const results = await searchPatients(query, filters);
-  
+
   patientSearchCache.set(cacheKey, {
     data: results,
     timestamp: Date.now(),
-    ttl: 5 * 60 * 1000 // 5 minutos
+    ttl: 5 * 60 * 1000, // 5 minutos
   });
-  
+
   return results;
 };
 
@@ -692,25 +756,24 @@ const preloadPatientData = async (patientId: string): Promise<void> => {
   const [medicalHistory, documents, consultations] = await Promise.all([
     loadMedicalHistory(patientId),
     loadPatientDocuments(patientId),
-    loadRecentConsultations(patientId)
+    loadRecentConsultations(patientId),
   ]);
-  
+
   // Armazenar no cache local
   cachePatientData(patientId, {
     medicalHistory,
     documents,
-    consultations
+    consultations,
   });
 };
 ```
 
 ### Otimização de Queries
+
 ```typescript
 // Query otimizada para busca de pacientes
 const buildOptimizedPatientQuery = (filters: PatientFilters) => {
-  let query = supabase
-    .from('patients')
-    .select(`
+  let query = supabase.from('patients').select(`
       id,
       full_name,
       cpf,
@@ -723,31 +786,31 @@ const buildOptimizedPatientQuery = (filters: PatientFilters) => {
       medical_data->blood_type,
       medical_data->chronic_conditions
     `);
-  
+
   // Aplicar filtros de forma otimizada
   if (filters.name) {
     query = query.textSearch('full_name', filters.name, {
       type: 'websearch',
-      config: 'portuguese'
+      config: 'portuguese',
     });
   }
-  
+
   if (filters.city) {
     query = query.eq('address->city', filters.city);
   }
-  
+
   if (filters.ageRange) {
     const { min, max } = filters.ageRange;
     const maxDate = new Date();
     maxDate.setFullYear(maxDate.getFullYear() - min);
     const minDate = new Date();
     minDate.setFullYear(minDate.getFullYear() - max);
-    
+
     query = query
       .gte('birth_date', minDate.toISOString().split('T')[0])
       .lte('birth_date', maxDate.toISOString().split('T')[0]);
   }
-  
+
   return query
     .order('full_name')
     .range(filters.offset || 0, (filters.offset || 0) + (filters.limit || 50));
@@ -757,37 +820,43 @@ const buildOptimizedPatientQuery = (filters: PatientFilters) => {
 ## Relatórios e Analytics
 
 ### Relatórios Estatísticos
+
 ```typescript
 // Relatório demográfico
-const generateDemographicReport = async (doctorId: string): Promise<DemographicReport> => {
+const generateDemographicReport = async (
+  doctorId: string
+): Promise<DemographicReport> => {
   const patients = await getPatientsByDoctor(doctorId);
-  
+
   return {
     total_patients: patients.length,
     age_distribution: calculateAgeDistribution(patients),
     gender_distribution: calculateGenderDistribution(patients),
     geographic_distribution: calculateGeographicDistribution(patients),
     most_common_conditions: getMostCommonConditions(patients),
-    registration_trends: getRegistrationTrends(patients)
+    registration_trends: getRegistrationTrends(patients),
   };
 };
 
 // Relatório de qualidade de dados
-const generateDataQualityReport = async (doctorId: string): Promise<DataQualityReport> => {
+const generateDataQualityReport = async (
+  doctorId: string
+): Promise<DataQualityReport> => {
   const patients = await getPatientsByDoctor(doctorId);
-  
+
   return {
     completeness: {
       basic_info: calculateCompletenessScore(patients, BASIC_FIELDS),
       medical_data: calculateCompletenessScore(patients, MEDICAL_FIELDS),
-      contact_info: calculateCompletenessScore(patients, CONTACT_FIELDS)
+      contact_info: calculateCompletenessScore(patients, CONTACT_FIELDS),
     },
     data_issues: {
       missing_cpf: patients.filter(p => !p.cpf).length,
-      invalid_emails: patients.filter(p => p.email && !isValidEmail(p.email)).length,
-      outdated_records: patients.filter(p => isRecordOutdated(p)).length
+      invalid_emails: patients.filter(p => p.email && !isValidEmail(p.email))
+        .length,
+      outdated_records: patients.filter(p => isRecordOutdated(p)).length,
     },
-    recommendations: generateDataQualityRecommendations(patients)
+    recommendations: generateDataQualityRecommendations(patients),
   };
 };
 ```
@@ -795,6 +864,7 @@ const generateDataQualityReport = async (doctorId: string): Promise<DataQualityR
 ## Configuração e Deploy
 
 ### Variáveis de Ambiente
+
 ```env
 # Supabase
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
@@ -820,6 +890,7 @@ VITE_PRELOAD_RELATED_DATA=true
 ```
 
 ### Scripts de Migração
+
 ```sql
 -- Migração para adicionar campos de auditoria
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS last_accessed_at TIMESTAMP WITH TIME ZONE;
@@ -838,13 +909,14 @@ ALTER TABLE patients ADD COLUMN IF NOT EXISTS data_retention_until DATE;
 ## Uso Prático
 
 ### Exemplo: Cadastro Completo
+
 ```tsx
 import { PatientForm } from './components/patients/PatientForm';
 import { usePatients } from './hooks/usePatients';
 
 function NewPatientPage() {
   const { createPatient, loading, error } = usePatients();
-  
+
   const handleSubmit = async (patientData: CreatePatientRequest) => {
     try {
       const newPatient = await createPatient(patientData);
@@ -854,11 +926,11 @@ function NewPatientPage() {
       toast.error('Erro ao cadastrar paciente');
     }
   };
-  
+
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Novo Paciente</h1>
-      
+
       <PatientForm
         onSubmit={handleSubmit}
         loading={loading}
@@ -872,6 +944,7 @@ function NewPatientPage() {
 ```
 
 ### Exemplo: Busca Avançada
+
 ```tsx
 import { PatientList } from './components/patients/PatientList';
 import { PatientFilters } from './components/patients/PatientFilters';
@@ -879,27 +952,24 @@ import { PatientFilters } from './components/patients/PatientFilters';
 function PatientsPage() {
   const [filters, setFilters] = useState<PatientFilters>({});
   const { patients, loading, searchPatients } = usePatients();
-  
+
   const handleFilterChange = (newFilters: PatientFilters) => {
     setFilters(newFilters);
     searchPatients(newFilters);
   };
-  
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex gap-6">
         <aside className="w-1/4">
-          <PatientFilters
-            filters={filters}
-            onChange={handleFilterChange}
-          />
+          <PatientFilters filters={filters} onChange={handleFilterChange} />
         </aside>
-        
+
         <main className="flex-1">
           <PatientList
             patients={patients}
             loading={loading}
-            onPatientSelect={(patient) => navigate(`/patients/${patient.id}`)}
+            onPatientSelect={patient => navigate(`/patients/${patient.id}`)}
             enableBulkActions={true}
             showMedicalSummary={true}
           />
@@ -913,6 +983,7 @@ function PatientsPage() {
 ## Testes
 
 ### Testes de Integração
+
 ```typescript
 describe('Patient Management', () => {
   test('should create patient with valid data', async () => {
@@ -925,27 +996,28 @@ describe('Patient Management', () => {
         street: 'Rua das Flores, 123',
         city: 'São Paulo',
         state: 'SP',
-        zip_code: '01234567'
-      }
+        zip_code: '01234567',
+      },
     };
-    
+
     const patient = await patientService.createPatient(patientData);
-    
+
     expect(patient.id).toBeDefined();
     expect(patient.full_name).toBe('JOÃO SILVA');
     expect(patient.cpf).toBe('12345678901');
   });
-  
+
   test('should reject duplicate CPF', async () => {
     const patientData = {
       full_name: 'Maria Silva',
       cpf: '12345678901', // CPF já usado no teste anterior
       birth_date: new Date('1985-01-01'),
-      phone: '11888888888'
+      phone: '11888888888',
     };
-    
-    await expect(patientService.createPatient(patientData))
-      .rejects.toThrow('Paciente já cadastrado');
+
+    await expect(patientService.createPatient(patientData)).rejects.toThrow(
+      'Paciente já cadastrado'
+    );
   });
 });
 ```
@@ -953,6 +1025,7 @@ describe('Patient Management', () => {
 ## Roadmap
 
 ### Próximas Funcionalidades
+
 - [ ] Integração com cartão SUS
 - [ ] Reconhecimento facial para identificação
 - [ ] Chatbot para coleta de anamnese
@@ -960,6 +1033,7 @@ describe('Patient Management', () => {
 - [ ] Análise preditiva de riscos de saúde
 
 ### Melhorias Planejadas
+
 - [ ] Interface mobile nativa
 - [ ] Sincronização offline
 - [ ] Backup automático em múltiplas nuvens
@@ -969,6 +1043,7 @@ describe('Patient Management', () => {
 ## Contribuição
 
 Para contribuir com este módulo:
+
 1. **Privacidade**: Sempre considere implicações de privacidade
 2. **Validação**: Implemente validação robusta em todas as camadas
 3. **Auditoria**: Registre todas as operações críticas
@@ -978,6 +1053,7 @@ Para contribuir com este módulo:
 ## Suporte
 
 Para problemas relacionados ao módulo de pacientes:
+
 1. Verifique logs de auditoria para operações falhadas
 2. Confirme configurações de RLS no Supabase
 3. Valide integridade dos dados no banco
@@ -985,6 +1061,7 @@ Para problemas relacionados ao módulo de pacientes:
 5. Verifique conformidade com LGPD/HIPAA
 
 ### Contatos Especializados
+
 - **Privacidade**: privacy@doctorbriefai.com
 - **Dados Médicos**: medical-data@doctorbriefai.com
 - **Performance**: performance@doctorbriefai.com

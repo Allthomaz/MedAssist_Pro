@@ -29,7 +29,10 @@ const schema = z
       .regex(/^(?=.*[a-z])/, 'Deve conter pelo menos uma letra minúscula')
       .regex(/^(?=.*[A-Z])/, 'Deve conter pelo menos uma letra maiúscula')
       .regex(/^(?=.*\d)/, 'Deve conter pelo menos um número')
-      .regex(/^(?=.*[!@#$%^&*(),.?":{}|<>])/, 'Deve conter pelo menos um caractere especial')
+      .regex(
+        /^(?=.*[!@#$%^&*(),.?":{}|<>])/,
+        'Deve conter pelo menos um caractere especial'
+      )
       .refine(
         val => !/^(password|123456|qwerty|admin|letmein)$/i.test(val),
         'Senha muito comum, escolha uma mais segura'

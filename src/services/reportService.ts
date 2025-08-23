@@ -83,22 +83,22 @@ interface ReportData {
 
 /**
  * Serviço para geração e gerenciamento de relatórios médicos em PDF
- * 
+ *
  * Este serviço oferece funcionalidades completas para:
  * - Geração de relatórios de consulta em formato PDF
  * - Armazenamento seguro no Supabase Storage
  * - Download e recuperação de relatórios
  * - Formatação profissional com dados do paciente, consulta e transcrições
- * 
+ *
  * @class ReportService
  * @example
  * ```typescript
  * // Gerar relatório de consulta
  * const reportBlob = await ReportService.generateConsultationReport(consultationId);
- * 
+ *
  * // Salvar no storage
  * const filePath = await ReportService.saveReportToStorage(consultationId, reportBlob);
- * 
+ *
  * // Baixar relatório
  * const reportData = await ReportService.downloadReport(filePath);
  * ```
@@ -156,7 +156,7 @@ export class ReportService {
 
   /**
    * Gera um relatório completo de consulta médica em formato PDF
-   * 
+   *
    * Busca todos os dados relacionados à consulta (paciente, médico, transcrições)
    * e gera um PDF profissionalmente formatado com:
    * - Cabeçalho com informações do sistema
@@ -166,11 +166,11 @@ export class ReportService {
    * - Diagnóstico e plano de tratamento
    * - Observações médicas
    * - Rodapé com data/hora de geração e numeração de páginas
-   * 
+   *
    * @param {string} consultationId - ID único da consulta
    * @returns {Promise<Blob>} Promise que resolve com o PDF gerado como Blob
    * @throws {Error} Quando há falha na busca de dados ou geração do PDF
-   * 
+   *
    * @example
    * ```typescript
    * try {
@@ -228,13 +228,13 @@ export class ReportService {
 
   /**
    * Cria um documento PDF estruturado com os dados da consulta
-   * 
+   *
    * Esta função implementa um algoritmo complexo de formatação que:
    * - Gerencia quebras de página automáticas baseadas na posição Y
    * - Aplica formatação consistente (fontes, cores, espaçamentos)
    * - Estrutura o conteúdo em seções bem definidas
    * - Adiciona rodapé com numeração de páginas
-   * 
+   *
    * @private
    * @param {ReportData} data - Dados completos da consulta para o relatório
    * @returns {Blob} Arquivo PDF como Blob pronto para download/armazenamento
@@ -372,7 +372,7 @@ export class ReportService {
           transcription.transcript_text,
           contentWidth
         );
-        
+
         // Renderiza cada linha com controle rigoroso de quebra de página
         lines.forEach((line: string) => {
           if (yPosition > 280) {
@@ -472,7 +472,7 @@ export class ReportService {
       doc.setPage(i); // Navega para a página específica
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150); // Cor cinza clara para o rodapé
-      
+
       // Rodapé centralizado com timestamp de geração e numeração sequencial
       doc.text(
         `Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} - Página ${i} de ${pageCount}`,
@@ -488,18 +488,18 @@ export class ReportService {
 
   /**
    * Salva o relatório PDF no Supabase Storage e registra no banco de dados
-   * 
+   *
    * Realiza duas operações:
    * 1. Upload do arquivo PDF para o bucket 'reports'
    * 2. Registro da referência na tabela 'consultation_reports'
-   * 
+   *
    * O nome do arquivo é gerado automaticamente com timestamp para evitar conflitos.
-   * 
+   *
    * @param {string} consultationId - ID da consulta associada
    * @param {Blob} reportBlob - Arquivo PDF como Blob
    * @returns {Promise<string>} Promise que resolve com o caminho do arquivo no storage
    * @throws {Error} Quando há falha no upload ou registro no banco
-   * 
+   *
    * @example
    * ```typescript
    * const reportBlob = await ReportService.generateConsultationReport(consultationId);
@@ -540,11 +540,11 @@ export class ReportService {
 
   /**
    * Baixa um relatório do Supabase Storage
-   * 
+   *
    * @param {string} filePath - Caminho do arquivo no storage
    * @returns {Promise<Blob>} Promise que resolve com o arquivo PDF como Blob
    * @throws {Error} Quando o arquivo não é encontrado ou há falha no download
-   * 
+   *
    * @example
    * ```typescript
    * try {
@@ -573,14 +573,14 @@ export class ReportService {
 
   /**
    * Busca todos os relatórios gerados para uma consulta específica
-   * 
+   *
    * Retorna uma lista ordenada por data de geração (mais recentes primeiro)
    * com metadados completos de cada relatório.
-   * 
+   *
    * @param {string} consultationId - ID da consulta
    * @returns {Promise<Array>} Promise que resolve com array de relatórios
    * @throws {Error} Quando há falha na consulta ao banco de dados
-   * 
+   *
    * @example
    * ```typescript
    * const reports = await ReportService.getConsultationReports(consultationId);

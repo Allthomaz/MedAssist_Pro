@@ -67,10 +67,10 @@ interface ConsultationDetailProps {
 
 /**
  * ConsultationDetail Component
- * 
+ *
  * Componente otimizado para exibir e editar detalhes de uma consulta médica.
  * Utiliza React.memo para evitar re-renderizações desnecessárias quando as props não mudam.
- * 
+ *
  * @param consultationId - ID da consulta a ser exibida
  */
 const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({

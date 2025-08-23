@@ -8,7 +8,7 @@ import React, {
   lazy,
 } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +35,6 @@ import {
   Phone,
   Mail,
   Calendar,
-  MapPin,
   MoreVertical,
   Filter,
   Loader2,
@@ -73,76 +72,76 @@ const PatientItem = React.memo<{
         className="premium-patient-card cursor-pointer premium-fade-in mb-4"
         onClick={() => onSelect(patient.id)}
       >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-4">
-            <Avatar className="w-12 h-12">
-              <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
-                {patientInitials}
-              </AvatarFallback>
-            </Avatar>
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-4">
+              <Avatar className="w-12 h-12">
+                <AvatarFallback className="bg-medical-blue/10 text-medical-blue">
+                  {patientInitials}
+                </AvatarFallback>
+              </Avatar>
 
-            <div className="space-y-2">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {patient.full_name}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {patientAge} anos
-                </p>
-              </div>
+              <div className="space-y-2">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {patient.full_name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {patientAge} anos
+                  </p>
+                </div>
 
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                {patient.email && (
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  {patient.email && (
+                    <div className="flex items-center gap-1">
+                      <Mail className="w-4 h-4" />
+                      {patient.email}
+                    </div>
+                  )}
+                  {(patient.phone || patient.mobile_phone) && (
+                    <div className="flex items-center gap-1">
+                      <Phone className="w-4 h-4" />
+                      {patient.mobile_phone || patient.phone}
+                    </div>
+                  )}
                   <div className="flex items-center gap-1">
-                    <Mail className="w-4 h-4" />
-                    {patient.email}
+                    <Calendar className="w-4 h-4" />
+                    Cadastrado em:{' '}
+                    {new Date(patient.created_at).toLocaleDateString('pt-BR')}
                   </div>
-                )}
-                {(patient.phone || patient.mobile_phone) && (
-                  <div className="flex items-center gap-1">
-                    <Phone className="w-4 h-4" />
-                    {patient.mobile_phone || patient.phone}
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Cadastrado em:{' '}
-                  {new Date(patient.created_at).toLocaleDateString('pt-BR')}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Badge
+                    variant="outline"
+                    className={
+                      patient.status === 'ativo'
+                        ? 'bg-medical-success/10 text-medical-success border-medical-success/20'
+                        : 'bg-orange-100 text-orange-700 border-orange-200'
+                    }
+                  >
+                    {patient.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                  {patient.patient_number && (
+                    <span className="text-sm text-muted-foreground">
+                      #{patient.patient_number}
+                    </span>
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-3">
-                <Badge
-                  variant="outline"
-                  className={
-                    patient.status === 'ativo'
-                      ? 'bg-medical-success/10 text-medical-success border-medical-success/20'
-                      : 'bg-orange-100 text-orange-700 border-orange-200'
-                  }
-                >
-                  {patient.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                </Badge>
-                {patient.patient_number && (
-                  <span className="text-sm text-muted-foreground">
-                    #{patient.patient_number}
-                  </span>
-                )}
-              </div>
+            <div className="flex items-center gap-2">
+              <Button variant="medical-outline" size="sm">
+                Nova Consulta
+              </Button>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="medical-outline" size="sm">
-              Nova Consulta
-            </Button>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 });
@@ -173,7 +172,7 @@ const PatientsComponent = React.memo(() => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const listContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Constantes para virtualização
   const PATIENT_ITEM_HEIGHT = 180; // Altura aproximada de cada item de paciente
   const VIRTUALIZATION_THRESHOLD = 50; // Número mínimo de itens para ativar virtualização
@@ -206,7 +205,7 @@ const PatientsComponent = React.memo(() => {
     if (user?.id) {
       loadPatients();
     }
-  }, [user?.id]);
+  }, [user?.id, loadPatients]);
 
   const calculateAge = useCallback((birthDate: string) => {
     const today = new Date();
@@ -234,12 +233,20 @@ const PatientsComponent = React.memo(() => {
       ),
     [patients, searchTerm]
   );
-  
+
   /**
    * Componente de item virtualizado para react-window
    */
   const VirtualizedPatientItem = useCallback(
-    ({ index, style, data }: { index: number; style: React.CSSProperties; data: Patient[] }) => {
+    ({
+      index,
+      style,
+      data,
+    }: {
+      index: number;
+      style: React.CSSProperties;
+      data: Patient[];
+    }) => {
       const patient = data[index];
       return (
         <PatientItem
@@ -253,11 +260,12 @@ const PatientsComponent = React.memo(() => {
     },
     [calculateAge]
   );
-  
+
   /**
    * Determina se deve usar virtualização baseado no número de itens
    */
-  const shouldUseVirtualization = filteredPatients.length >= VIRTUALIZATION_THRESHOLD;
+  const shouldUseVirtualization =
+    filteredPatients.length >= VIRTUALIZATION_THRESHOLD;
 
   // Show patient profile if a patient is selected
   if (selectedPatientId) {
@@ -375,7 +383,10 @@ const PatientsComponent = React.memo(() => {
               <VirtualizedList
                 items={filteredPatients}
                 itemHeight={PATIENT_ITEM_HEIGHT}
-                height={Math.min(600, filteredPatients.length * PATIENT_ITEM_HEIGHT)}
+                height={Math.min(
+                  600,
+                  filteredPatients.length * PATIENT_ITEM_HEIGHT
+                )}
                 renderItem={VirtualizedPatientItem}
                 className="p-2"
                 overscanCount={3}

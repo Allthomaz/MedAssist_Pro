@@ -14,7 +14,11 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-const mockSupabase = supabase as any;
+const mockSupabase = supabase as {
+  from: ReturnType<typeof vi.fn>;
+  functions: { invoke: ReturnType<typeof vi.fn> };
+  storage: { from: ReturnType<typeof vi.fn> };
+};
 
 describe('Consultations and Reports Integration Tests', () => {
   const mockDoctorId = 'ef14284c-594f-40d4-92ac-8f83f8f83ce3';
@@ -517,7 +521,7 @@ describe('Consultations and Reports Integration Tests', () => {
       });
 
       // Act
-      const { data, error } = await supabase.functions.invoke(
+      const { data } = await supabase.functions.invoke(
         'generate-report',
         {
           body: invalidRequest,

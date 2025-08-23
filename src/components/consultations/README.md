@@ -5,6 +5,7 @@ Este módulo gerencia todo o fluxo de consultas médicas no sistema Doctor Brief
 ## Visão Geral
 
 O módulo de consultas é o núcleo do sistema, responsável por:
+
 - Processamento de áudio médico com IA
 - Geração automática de relatórios médicos
 - Integração com modelos de linguagem (OpenAI/Anthropic)
@@ -14,9 +15,11 @@ O módulo de consultas é o núcleo do sistema, responsável por:
 ## Componentes Principais
 
 ### AudioProcessor.tsx
+
 **Propósito**: Processa arquivos de áudio e coordena a transcrição com análise por IA.
 
 **Funcionalidades**:
+
 - ✅ Upload de arquivos de áudio para Supabase Storage
 - ✅ Integração com serviço de transcrição (OpenAI Whisper)
 - ✅ Processamento via MCP (Model Context Protocol)
@@ -25,6 +28,7 @@ O módulo de consultas é o núcleo do sistema, responsável por:
 - ✅ Tratamento robusto de erros
 
 **Props**:
+
 ```typescript
 interface AudioProcessorProps {
   consultationId: string;
@@ -34,6 +38,7 @@ interface AudioProcessorProps {
 ```
 
 **Fluxo de Processamento**:
+
 1. **Upload**: Arquivo enviado para Supabase Storage
 2. **Transcrição**: Processamento via OpenAI Whisper
 3. **Análise**: Interpretação do conteúdo médico via MCP
@@ -41,9 +46,11 @@ interface AudioProcessorProps {
 5. **Callback**: Notificação do componente pai
 
 ### ReportGenerator.tsx
+
 **Propósito**: Gera relatórios médicos estruturados usando IA e exporta em PDF.
 
 **Funcionalidades**:
+
 - ✅ Geração de relatórios via função Supabase Edge
 - ✅ Tipos de relatório predefinidos (Anamnese, Evolução, etc.)
 - ✅ Campo personalizado para intenções específicas
@@ -52,6 +59,7 @@ interface AudioProcessorProps {
 - ✅ Salvamento automático no banco de dados
 
 **Props**:
+
 ```typescript
 interface ReportGeneratorProps {
   consultationId: string;
@@ -61,6 +69,7 @@ interface ReportGeneratorProps {
 ```
 
 **Tipos de Relatório Disponíveis**:
+
 - **Anamnese Completa**: Histórico detalhado do paciente
 - **Evolução Médica**: Acompanhamento do quadro clínico
 - **Prescrição Médica**: Medicamentos e orientações
@@ -71,6 +80,7 @@ interface ReportGeneratorProps {
 ## Interfaces de Dados
 
 ### GeneratedReport
+
 ```typescript
 interface GeneratedReport {
   id: string;
@@ -88,6 +98,7 @@ interface GeneratedReport {
 ```
 
 ### ProcessingResult
+
 ```typescript
 interface ProcessingResult {
   transcription: string;
@@ -105,37 +116,44 @@ interface ProcessingResult {
 ## Serviços Integrados
 
 ### MCP Service (Model Context Protocol)
+
 **Localização**: `src/services/magicMcpService.ts`
 
 **Funcionalidades**:
+
 - Processamento de áudio médico
 - Análise contextual de transcrições
 - Extração de informações clínicas
 - Estruturação de dados médicos
 
 **Configuração**:
+
 ```typescript
 const mcpConfig = {
   model: 'gpt-4-turbo',
   temperature: 0.3,
   max_tokens: 4000,
-  context: 'medical_consultation'
+  context: 'medical_consultation',
 };
 ```
 
 ### Report Service
+
 **Localização**: `src/services/reportService.ts`
 
 **Funcionalidades**:
+
 - Geração de relatórios via Supabase Edge Functions
 - Templates predefinidos para diferentes tipos
 - Formatação automática de conteúdo
 - Integração com banco de dados
 
 ### PDF Generation
+
 **Biblioteca**: jsPDF
 
 **Configurações**:
+
 - **Formato**: A4 (210 x 297mm)
 - **Margens**: 20mm em todos os lados
 - **Fonte**: Helvetica (padrão médico)
@@ -144,40 +162,46 @@ const mcpConfig = {
 ## Fluxo de Trabalho Completo
 
 ### 1. Processamento de Áudio
+
 ```
-Upload do Arquivo → Validação → Armazenamento → 
-Transcrição (Whisper) → Análise (MCP) → 
+Upload do Arquivo → Validação → Armazenamento →
+Transcrição (Whisper) → Análise (MCP) →
 Estruturação → Callback de Sucesso
 ```
 
 ### 2. Geração de Relatório
+
 ```
-Seleção do Tipo → Configuração de Parâmetros → 
-Chamada para Edge Function → Processamento IA → 
+Seleção do Tipo → Configuração de Parâmetros →
+Chamada para Edge Function → Processamento IA →
 Salvamento no Banco → Exibição para Usuário
 ```
 
 ### 3. Exportação PDF
+
 ```
-Solicitação de Download → Criação do Documento → 
-Formatação do Conteúdo → Substituição de Placeholders → 
+Solicitação de Download → Criação do Documento →
+Formatação do Conteúdo → Substituição de Placeholders →
 Aplicação de Estilos → Download Automático
 ```
 
 ## Validações e Segurança
 
 ### Validação de Entrada
+
 - **Arquivos de Áudio**: Tipo, tamanho e integridade
 - **Transcrições**: Conteúdo mínimo e formato
 - **Relatórios**: Campos obrigatórios e estrutura
 
 ### Segurança de Dados
+
 - **Criptografia**: Dados sensíveis em trânsito e repouso
 - **Autenticação**: Validação de usuário para cada operação
 - **Auditoria**: Log de todas as operações críticas
 - **LGPD/HIPAA**: Conformidade com regulamentações
 
 ### Sanitização
+
 - **Inputs**: Limpeza de caracteres especiais
 - **Outputs**: Escape de conteúdo HTML/XML
 - **SQL**: Prevenção de injection via Supabase RLS
@@ -185,6 +209,7 @@ Aplicação de Estilos → Download Automático
 ## Tratamento de Erros
 
 ### Cenários Cobertos
+
 - **Falha na transcrição**: Retry automático + fallback
 - **Erro de IA**: Mensagem específica + log detalhado
 - **Problema de rede**: Timeout + reconexão
@@ -192,6 +217,7 @@ Aplicação de Estilos → Download Automático
 - **Limite de API**: Rate limiting + queue
 
 ### Estratégias de Recuperação
+
 - **Retry exponencial**: Para falhas temporárias
 - **Fallback graceful**: Funcionalidade reduzida
 - **Cache local**: Dados críticos preservados
@@ -200,12 +226,14 @@ Aplicação de Estilos → Download Automático
 ## Performance e Otimização
 
 ### Otimizações Implementadas
+
 - **Lazy loading**: Componentes carregados sob demanda
 - **Memoização**: Cache de resultados computacionais
 - **Debouncing**: Redução de chamadas desnecessárias
 - **Compression**: Arquivos otimizados para upload
 
 ### Métricas de Performance
+
 - **Transcrição**: ~1min para 10min de áudio
 - **Geração de relatório**: ~30s para análise completa
 - **Export PDF**: ~2s para documento padrão
@@ -214,6 +242,7 @@ Aplicação de Estilos → Download Automático
 ## Configuração do Ambiente
 
 ### Variáveis Necessárias
+
 ```env
 # Supabase
 VITE_SUPABASE_URL=sua_url_supabase
@@ -231,6 +260,7 @@ VITE_MCP_API_KEY=sua_chave_mcp
 ### Configuração do Supabase
 
 #### Edge Functions
+
 ```sql
 -- Função para geração de relatórios
 CREATE OR REPLACE FUNCTION generate_medical_report(
@@ -244,6 +274,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
 #### Tabelas Necessárias
+
 ```sql
 -- Tabela de relatórios
 CREATE TABLE reports (
@@ -260,6 +291,7 @@ CREATE TABLE reports (
 ## Uso Prático
 
 ### Exemplo: Processamento Completo
+
 ```tsx
 import { AudioProcessor, ReportGenerator } from './components/consultations';
 
@@ -267,25 +299,25 @@ function ConsultationWorkflow({ consultationId }) {
   const [transcription, setTranscription] = useState('');
   const [processingComplete, setProcessingComplete] = useState(false);
 
-  const handleProcessingComplete = (result) => {
+  const handleProcessingComplete = result => {
     setTranscription(result.transcription);
     setProcessingComplete(true);
   };
 
-  const handleReportGenerated = (report) => {
+  const handleReportGenerated = report => {
     console.log('Relatório gerado:', report);
     // Lógica adicional
   };
 
   return (
     <div>
-      <AudioProcessor 
+      <AudioProcessor
         consultationId={consultationId}
         onProcessingComplete={handleProcessingComplete}
       />
-      
+
       {processingComplete && (
-        <ReportGenerator 
+        <ReportGenerator
           consultationId={consultationId}
           transcription={transcription}
           onReportGenerated={handleReportGenerated}
@@ -297,39 +329,45 @@ function ConsultationWorkflow({ consultationId }) {
 ```
 
 ### Exemplo: Geração de Relatório Personalizado
+
 ```tsx
 const customReportConfig = {
   type: 'personalizado',
-  intention: 'Relatório para cirurgia cardíaca com foco em riscos pré-operatórios',
+  intention:
+    'Relatório para cirurgia cardíaca com foco em riscos pré-operatórios',
   includeExams: true,
   includeMedications: true,
-  format: 'detailed'
+  format: 'detailed',
 };
 
-<ReportGenerator 
+<ReportGenerator
   consultationId={consultationId}
   transcription={transcription}
   config={customReportConfig}
-/>
+/>;
 ```
 
 ## Integração com Outros Módulos
 
 ### Módulo de Áudio
+
 - **AudioManager**: Fornece arquivos para processamento
 - **useAudioRecorder**: Gravação em tempo real
 
 ### Módulo de Pacientes
+
 - **PatientData**: Contexto para relatórios personalizados
 - **MedicalHistory**: Histórico para análise contextual
 
 ### Módulo de Documentos
+
 - **DocumentManager**: Armazenamento de PDFs gerados
 - **TemplateEngine**: Templates personalizados
 
 ## Roadmap
 
 ### Próximas Funcionalidades
+
 - [ ] Análise de sentimento em consultas
 - [ ] Sugestões automáticas de CID-10
 - [ ] Integração com prontuário eletrônico
@@ -337,6 +375,7 @@ const customReportConfig = {
 - [ ] Assinatura digital de documentos
 
 ### Melhorias Planejadas
+
 - [ ] Interface de edição de relatórios
 - [ ] Versionamento de documentos
 - [ ] Colaboração em tempo real
@@ -346,6 +385,7 @@ const customReportConfig = {
 ## Monitoramento e Logs
 
 ### Eventos Rastreados
+
 - Início/fim de processamento de áudio
 - Geração de relatórios (tipo, tempo, sucesso)
 - Erros de transcrição ou IA
@@ -353,6 +393,7 @@ const customReportConfig = {
 - Tempo de resposta das APIs
 
 ### Métricas de Negócio
+
 - Taxa de sucesso na transcrição
 - Tempo médio de geração de relatórios
 - Tipos de relatório mais utilizados
@@ -361,6 +402,7 @@ const customReportConfig = {
 ## Contribuição
 
 Para contribuir com este módulo:
+
 1. **Testes**: Adicione testes para novas funcionalidades
 2. **Documentação**: Mantenha JSDoc e README atualizados
 3. **Performance**: Monitore impacto nas métricas
@@ -372,21 +414,25 @@ Para contribuir com este módulo:
 ### Problemas Comuns
 
 **Transcrição falha**:
+
 - Verificar conectividade com OpenAI
 - Validar formato do arquivo de áudio
 - Confirmar limites de API
 
 **Relatório não gera**:
+
 - Verificar Edge Functions do Supabase
 - Validar transcrição mínima
 - Confirmar configuração do MCP
 
 **PDF não baixa**:
+
 - Verificar bloqueador de pop-ups
 - Validar conteúdo do relatório
 - Confirmar suporte do navegador
 
 ### Logs Úteis
+
 ```javascript
 // Habilitar logs detalhados
 localStorage.setItem('debug_consultations', 'true');

@@ -26,7 +26,7 @@ interface VirtualizedListProps<T> {
 /**
  * Componente de lista virtualizada usando react-window
  * Otimiza a performance renderizando apenas os itens visíveis
- * 
+ *
  * @template T - Tipo dos itens da lista
  */
 export function VirtualizedList<T>({
@@ -42,7 +42,15 @@ export function VirtualizedList<T>({
    */
   const ItemComponent = useMemo(
     () =>
-      ({ index, style, data }: { index: number; style: React.CSSProperties; data: T[] }) =>
+      ({
+        index,
+        style,
+        data,
+      }: {
+        index: number;
+        style: React.CSSProperties;
+        data: T[];
+      }) =>
         renderItem({ index, style, data }),
     [renderItem]
   );
@@ -50,7 +58,7 @@ export function VirtualizedList<T>({
   // Se não há itens, renderiza estado vazio
   if (items.length === 0) {
     return (
-      <div 
+      <div
         className={`flex items-center justify-center ${className}`}
         style={{ height }}
       >
@@ -94,14 +102,17 @@ export function useVirtualizedListHeight({
     const updateHeight = () => {
       if (containerRef.current) {
         const containerHeight = containerRef.current.clientHeight;
-        const calculatedHeight = Math.min(Math.max(containerHeight - 100, minHeight), maxHeight);
+        const calculatedHeight = Math.min(
+          Math.max(containerHeight - 100, minHeight),
+          maxHeight
+        );
         setHeight(calculatedHeight);
       }
     };
 
     updateHeight();
     window.addEventListener('resize', updateHeight);
-    
+
     return () => window.removeEventListener('resize', updateHeight);
   }, [containerRef, maxHeight, minHeight]);
 
@@ -121,12 +132,11 @@ export function AutoHeightVirtualizedList<T>({
   maxHeight?: number;
   minHeight?: number;
 }) {
-  const height = useVirtualizedListHeight({ containerRef, maxHeight, minHeight });
+  const height = useVirtualizedListHeight({
+    containerRef,
+    maxHeight,
+    minHeight,
+  });
 
-  return (
-    <VirtualizedList
-      {...props}
-      height={height}
-    />
-  );
+  return <VirtualizedList {...props} height={height} />;
 }

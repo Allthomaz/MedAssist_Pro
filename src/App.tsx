@@ -1,12 +1,13 @@
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { Toaster as Sonner } from 'sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useWebVitals } from '@/components/PerformanceMonitor';
 
 // Lazy load pages for better performance with strategic preloading
 const Index = lazy(() => import('./pages/Index'));
@@ -47,7 +48,15 @@ const AuthTest = lazy(() => import('@/components/test/AuthTest'));
 const RLSTest = lazy(() => import('@/components/test/RLSTest'));
 const TestNavigation = lazy(() => import('@/components/test/TestNavigation'));
 
-const queryClient = new QueryClient();
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -56,8 +65,9 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const App = () => (
-  <ErrorBoundary showDetails={process.env.NODE_ENV === 'development'}>
+function App() {
+  return (
+  <ErrorBoundary showDetails={process.env['NODE_ENV'] === 'development'}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
@@ -197,6 +207,13 @@ const App = () => (
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
-);
+  );
+}
 
-export default App;
+// Componente que integra monitoramento de performance
+function AppWithMonitoring() {
+  useWebVitals();
+  return <App />;
+}
+
+export default AppWithMonitoring;

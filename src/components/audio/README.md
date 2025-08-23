@@ -5,6 +5,7 @@ Este módulo gerencia todas as funcionalidades relacionadas ao processamento de 
 ## Visão Geral
 
 O módulo de áudio é responsável por:
+
 - Gravação de áudio em tempo real
 - Upload e gerenciamento de arquivos de áudio
 - Transcrição automática usando OpenAI Whisper
@@ -14,9 +15,11 @@ O módulo de áudio é responsável por:
 ## Componentes Principais
 
 ### AudioManager.tsx
+
 **Propósito**: Componente principal para gerenciamento completo de arquivos de áudio.
 
 **Funcionalidades**:
+
 - ✅ Listagem de gravações por consulta
 - ✅ Upload de arquivos de áudio (formatos: mp3, wav, m4a, ogg)
 - ✅ Validação robusta de arquivos (tamanho, tipo MIME, extensão)
@@ -26,6 +29,7 @@ O módulo de áudio é responsável por:
 - ✅ Exclusão segura (storage + banco)
 
 **Props**:
+
 ```typescript
 interface AudioManagerProps {
   consultationId: string;
@@ -34,6 +38,7 @@ interface AudioManagerProps {
 ```
 
 **Estados Gerenciados**:
+
 - `audioFiles`: Lista de arquivos de áudio
 - `loading`: Estado de carregamento
 - `error`: Mensagens de erro
@@ -44,9 +49,11 @@ interface AudioManagerProps {
 ## Hooks Utilizados
 
 ### useAudioRecorder
+
 **Localização**: `src/hooks/useAudioRecorder.ts`
 
 **Funcionalidades**:
+
 - Gravação de áudio em tempo real
 - Controle de permissões do microfone
 - Gerenciamento de tempo de gravação
@@ -56,17 +63,21 @@ interface AudioManagerProps {
 ## Serviços Integrados
 
 ### transcribeAudio
+
 **Localização**: `src/services/transcriptionService.ts`
 
 **Configurações**:
+
 - **Idioma**: Português brasileiro (pt)
 - **Formato**: verbose_json (inclui timestamps)
 - **Modelo**: OpenAI Whisper
 - **Otimização**: Terminologia médica
 
 ### Supabase Storage
+
 **Bucket**: `recordings`
 **Configurações**:
+
 - Tamanho máximo: 50MB por arquivo
 - Tipos permitidos: audio/mpeg, audio/wav, audio/mp4, audio/ogg
 - URLs assinadas com validade de 1 hora
@@ -74,6 +85,7 @@ interface AudioManagerProps {
 ## Estrutura de Dados
 
 ### AudioFile Interface
+
 ```typescript
 interface AudioFile {
   id: string;
@@ -92,29 +104,33 @@ interface AudioFile {
 ## Fluxo de Trabalho
 
 ### 1. Upload de Arquivo
+
 ```
-Seleção do Arquivo → Validação → Upload para Storage → 
+Seleção do Arquivo → Validação → Upload para Storage →
 Salvar Metadados → Iniciar Transcrição → Atualizar Interface
 ```
 
 ### 2. Transcrição Automática
+
 ```
-Arquivo Carregado → Chamar OpenAI Whisper → 
+Arquivo Carregado → Chamar OpenAI Whisper →
 Processar Resposta → Salvar Transcrição → Notificar Componente Pai
 ```
 
 ### 3. Reprodução de Áudio
+
 ```
-Solicitar Reprodução → Gerar URL Assinada → 
+Solicitar Reprodução → Gerar URL Assinada →
 Criar Instância Audio → Configurar Listeners → Reproduzir
 ```
 
 ## Validações de Segurança
 
 ### Validação de Arquivos
+
 - **Tamanho mínimo**: 1KB (evita arquivos corrompidos)
 - **Tamanho máximo**: 50MB (otimiza performance)
-- **Tipos MIME permitidos**: 
+- **Tipos MIME permitidos**:
   - `audio/mpeg` (.mp3)
   - `audio/wav` (.wav)
   - `audio/mp4` (.m4a)
@@ -122,6 +138,7 @@ Criar Instância Audio → Configurar Listeners → Reproduzir
 - **Correspondência MIME/Extensão**: Validação cruzada
 
 ### Segurança de Acesso
+
 - URLs assinadas para acesso aos arquivos
 - Validação de propriedade por consulta
 - Cleanup automático de recursos
@@ -129,6 +146,7 @@ Criar Instância Audio → Configurar Listeners → Reproduzir
 ## Tratamento de Erros
 
 ### Cenários Cobertos
+
 - Falha na validação de arquivo
 - Erro de upload para storage
 - Falha na transcrição
@@ -136,6 +154,7 @@ Criar Instância Audio → Configurar Listeners → Reproduzir
 - Problemas de conectividade
 
 ### Estratégias
+
 - Mensagens de erro específicas para o usuário
 - Logs detalhados para debugging
 - Rollback automático em caso de falha
@@ -144,12 +163,14 @@ Criar Instância Audio → Configurar Listeners → Reproduzir
 ## Performance
 
 ### Otimizações Implementadas
+
 - Lazy loading de arquivos de áudio
 - Cleanup automático de URLs blob
 - Cancelamento de requisições pendentes
 - Controle de instância única para reprodução
 
 ### Métricas
+
 - Tempo médio de upload: < 5s para arquivos de 10MB
 - Tempo de transcrição: ~1min para 10min de áudio
 - Uso de memória: Otimizado com cleanup automático
@@ -157,11 +178,13 @@ Criar Instância Audio → Configurar Listeners → Reproduzir
 ## Dependências
 
 ### Principais
+
 - `@supabase/supabase-js`: Integração com backend
 - `lucide-react`: Ícones da interface
 - `react`: Framework base
 
 ### Serviços Externos
+
 - **OpenAI Whisper**: Transcrição de áudio
 - **Supabase Storage**: Armazenamento de arquivos
 - **Supabase Database**: Metadados e transcrições
@@ -169,6 +192,7 @@ Criar Instância Audio → Configurar Listeners → Reproduzir
 ## Configuração
 
 ### Variáveis de Ambiente
+
 ```env
 VITE_SUPABASE_URL=sua_url_supabase
 VITE_SUPABASE_ANON_KEY=sua_chave_anonima
@@ -176,6 +200,7 @@ VITE_OPENAI_API_URL=https://api.openai.com/v1/audio/transcriptions
 ```
 
 ### Configuração do Supabase
+
 1. Criar bucket `recordings` no Storage
 2. Configurar políticas RLS apropriadas
 3. Configurar tabela `recordings` com campos necessários
@@ -183,6 +208,7 @@ VITE_OPENAI_API_URL=https://api.openai.com/v1/audio/transcriptions
 ## Uso
 
 ### Exemplo Básico
+
 ```tsx
 import { AudioManager } from './components/audio/AudioManager';
 
@@ -192,7 +218,7 @@ function ConsultationPage({ consultationId }) {
   };
 
   return (
-    <AudioManager 
+    <AudioManager
       consultationId={consultationId}
       onTranscriptionUpdate={handleTranscriptionUpdate}
     />
@@ -203,6 +229,7 @@ function ConsultationPage({ consultationId }) {
 ## Roadmap
 
 ### Próximas Funcionalidades
+
 - [ ] Suporte a mais formatos de áudio
 - [ ] Transcrição em tempo real
 - [ ] Análise de sentimento do áudio
@@ -210,6 +237,7 @@ function ConsultationPage({ consultationId }) {
 - [ ] Backup automático na nuvem
 
 ### Melhorias Planejadas
+
 - [ ] Interface de edição de transcrições
 - [ ] Marcadores temporais na reprodução
 - [ ] Visualização de forma de onda
@@ -218,6 +246,7 @@ function ConsultationPage({ consultationId }) {
 ## Contribuição
 
 Para contribuir com este módulo:
+
 1. Mantenha a documentação JSDoc atualizada
 2. Adicione testes para novas funcionalidades
 3. Siga os padrões de nomenclatura estabelecidos
@@ -227,6 +256,7 @@ Para contribuir com este módulo:
 ## Suporte
 
 Para dúvidas ou problemas relacionados ao módulo de áudio:
+
 - Verifique os logs do console para erros detalhados
 - Confirme as configurações do Supabase
 - Valide as permissões de microfone no navegador

@@ -1,36 +1,38 @@
 // Importações condicionais para evitar problemas no navegador
-let McpServer: any = null;
-let StdioServerTransport: any = null;
-let CreateUiTool: any = null;
-let FetchUiTool: any = null;
-let RefineUiTool: any = null;
-let LogoSearchTool: any = null;
+let McpServer: unknown = null;
+let StdioServerTransport: unknown = null;
+let CreateUiTool: unknown = null;
+let FetchUiTool: unknown = null;
+let RefineUiTool: unknown = null;
+let LogoSearchTool: unknown = null;
 
-// Carregamento dinâmico apenas no ambiente Node.js
-if (typeof window === 'undefined') {
-  try {
-    const mcpModule = require('@modelcontextprotocol/sdk/server/mcp.js');
-    McpServer = mcpModule.McpServer;
+// Função para carregamento dinâmico apenas no ambiente Node.js
+async function loadMcpModules(): Promise<void> {
+  if (typeof window === 'undefined') {
+    try {
+      const mcpModule = await import('@modelcontextprotocol/sdk/server/mcp.js');
+      McpServer = mcpModule.McpServer;
 
-    const stdioModule = require('@modelcontextprotocol/sdk/server/stdio.js');
-    StdioServerTransport = stdioModule.StdioServerTransport;
+      const stdioModule = await import('@modelcontextprotocol/sdk/server/stdio.js');
+      StdioServerTransport = stdioModule.StdioServerTransport;
 
-    const createUiModule = require('../../magic-mcp/src/tools/create-ui.js');
-    CreateUiTool = createUiModule.CreateUiTool;
+      const createUiModule = await import('../../magic-mcp/src/tools/create-ui.js');
+      CreateUiTool = createUiModule.CreateUiTool;
 
-    const fetchUiModule = require('../../magic-mcp/src/tools/fetch-ui.js');
-    FetchUiTool = fetchUiModule.FetchUiTool;
+      const fetchUiModule = await import('../../magic-mcp/src/tools/fetch-ui.js');
+      FetchUiTool = fetchUiModule.FetchUiTool;
 
-    const refineUiModule = require('../../magic-mcp/src/tools/refine-ui.js');
-    RefineUiTool = refineUiModule.RefineUiTool;
+      const refineUiModule = await import('../../magic-mcp/src/tools/refine-ui.js');
+      RefineUiTool = refineUiModule.RefineUiTool;
 
-    const logoSearchModule = require('../../magic-mcp/src/tools/logo-search.js');
-    LogoSearchTool = logoSearchModule.LogoSearchTool;
-  } catch (error) {
-    console.warn(
-      'Magic MCP tools not available in browser environment:',
-      error
-    );
+      const logoSearchModule = await import('../../magic-mcp/src/tools/logo-search.js');
+      LogoSearchTool = logoSearchModule.LogoSearchTool;
+    } catch (error) {
+      console.warn(
+        'Magic MCP tools not available in browser environment:',
+        error
+      );
+    }
   }
 }
 
@@ -95,12 +97,12 @@ interface GeneratedComponent {
  * ```
  */
 export class MagicMcpService {
-  private server: any = null;
+  private server: unknown = null;
   private apiKey: string;
-  private createUiTool: any = null;
-  private fetchUiTool: any = null;
-  private refineUiTool: any = null;
-  private logoSearchTool: any = null;
+  private createUiTool: unknown = null;
+  private fetchUiTool: unknown = null;
+  private refineUiTool: unknown = null;
+  private logoSearchTool: unknown = null;
   private isAvailable: boolean = false;
 
   constructor() {
@@ -129,7 +131,7 @@ export class MagicMcpService {
 
   /**
    * Inicializa o serviço Magic MCP
-   * 
+   *
    * @async
    * @method initialize
    * @returns {Promise<void>} Promise que resolve quando o serviço está inicializado
@@ -141,6 +143,9 @@ export class MagicMcpService {
    * ```
    */
   async initialize(): Promise<void> {
+    // Carrega os módulos MCP dinamicamente
+    await loadMcpModules();
+    
     if (!this.isAvailable) {
       console.info('Magic MCP inicializado em modo de demonstração');
       return;
@@ -157,7 +162,7 @@ export class MagicMcpService {
 
   /**
    * Gera um componente médico usando IA
-   * 
+   *
    * @async
    * @method generateMedicalComponent
    * @param {string} description - Descrição detalhada do componente desejado
@@ -214,7 +219,7 @@ export class MagicMcpService {
 
   /**
    * Gera um componente médico usando o Magic MCP com configuração avançada
-   * 
+   *
    * @async
    * @method generateAdvancedMedicalComponent
    * @param {ComponentRequest} request - Configuração detalhada do componente
@@ -300,7 +305,7 @@ export class MagicMcpService {
 
   /**
    * Busca inspiração de componentes usando o Magic MCP
-   * 
+   *
    * @async
    * @method fetchComponentInspiration
    * @param {string} searchQuery - Termo de busca para inspiração
@@ -339,7 +344,7 @@ export class MagicMcpService {
 
   /**
    * Refina um componente existente usando o Magic MCP
-   * 
+   *
    * @async
    * @method refineComponent
    * @param {string} filePath - Caminho para o arquivo do componente
@@ -382,7 +387,7 @@ export class MagicMcpService {
 
   /**
    * Busca logos médicos usando o Magic MCP
-   * 
+   *
    * @async
    * @method searchMedicalLogos
    * @param {string[]} queries - Lista de termos para busca de logos
@@ -419,7 +424,7 @@ export class MagicMcpService {
 
   /**
    * Gera templates de componentes médicos específicos
-   * 
+   *
    * @private
    * @method getMedicalComponentTemplate
    * @param {string} description - Descrição do componente
@@ -634,7 +639,7 @@ export function ${componentName}() {
 
   /**
    * Template para formulários médicos personalizados
-   * 
+   *
    * @private
    * @method generateMedicalFormTemplate
    * @param {string} description - Descrição específica do formulário médico
@@ -695,7 +700,7 @@ export function MedicalForm() {
 
   /**
    * Template para cards médicos informativos
-   * 
+   *
    * @private
    * @method generateMedicalCardTemplate
    * @param {string} description - Descrição específica do card médico
@@ -768,7 +773,7 @@ export function MedicalCard({ title, description, status = 'normal', data }: Med
 
   /**
    * Template para tabelas médicas interativas
-   * 
+   *
    * @private
    * @method generateMedicalTableTemplate
    * @param {string} description - Descrição específica da tabela médica
@@ -849,7 +854,7 @@ export function MedicalTable({ data, onRowClick }: MedicalTableProps) {
 
   /**
    * Template para diálogos médicos modais
-   * 
+   *
    * @private
    * @method generateMedicalDialogTemplate
    * @param {string} description - Descrição específica do diálogo médico
@@ -927,7 +932,7 @@ export function MedicalDialog({ trigger, onSave }: MedicalDialogProps) {
 
   /**
    * Template para dashboards médicos com estatísticas
-   * 
+   *
    * @private
    * @method generateMedicalDashboardTemplate
    * @param {string} description - Descrição específica do dashboard médico
@@ -1019,7 +1024,7 @@ export function MedicalDashboard({ stats = {} }: MedicalDashboardProps) {
 
   /**
    * Template para gráficos médicos com visualização de dados
-   * 
+   *
    * @private
    * @method generateMedicalChartTemplate
    * @param {string} description - Descrição específica do gráfico médico
@@ -1077,7 +1082,7 @@ export function MedicalChart({ title = 'Gráfico Médico', data = [] }: MedicalC
 
   /**
    * Busca componentes médicos por categoria
-   * 
+   *
    * @async
    * @method searchMedicalComponents
    * @param {string} category - Categoria médica para busca
@@ -1119,15 +1124,15 @@ export function MedicalChart({ title = 'Gráfico Médico', data = [] }: MedicalC
 
 /**
  * Instância singleton do serviço Magic MCP para uso global
- * 
+ *
  * @constant {MagicMcpService} magicMcpService
  * @example
  * ```typescript
  * import { magicMcpService } from '@/services/magicMcpService';
- * 
+ *
  * // Inicializar o serviço
  * await magicMcpService.initialize();
- * 
+ *
  * // Gerar componente médico
  * const component = await magicMcpService.generateMedicalComponent(
  *   'Formulário de triagem médica',

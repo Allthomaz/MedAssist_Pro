@@ -22,7 +22,9 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-const mockSupabase = supabase as any;
+const mockSupabase = supabase as {
+  from: ReturnType<typeof vi.fn>;
+};
 
 describe('Patients CRUD Operations', () => {
   const mockDoctorId = '123e4567-e89b-12d3-a456-426614174000';

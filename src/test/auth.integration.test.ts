@@ -55,7 +55,7 @@ describe('Auth Service Integration Tests', () => {
       const mockInsert = vi.fn().mockResolvedValue({ error: null });
       vi.mocked(supabase.from).mockReturnValue({
         insert: mockInsert,
-      } as any);
+      } as ReturnType<typeof supabase.from>);
 
       const result = await authService.signUp(signUpPayload);
 

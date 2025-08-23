@@ -1,51 +1,25 @@
-import { useState, useEffect, useRef, Suspense } from 'react';
-import { format, addDays } from 'date-fns';
+import { useState, useEffect, Suspense, useCallback } from 'react';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { v4 as uuidv4 } from 'uuid';
+
 import {
-  Brain,
   CalendarIcon,
-  Check,
-  Clock,
-  ExternalLink,
-  FileText,
-  MapPin,
-  Phone,
   Plus,
-  X,
 } from 'lucide-react';
 
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { LazyAppointmentForm } from '@/components/appointments/LazyAppointmentForm';
@@ -82,17 +56,15 @@ const Appointments = () => {
   const [editingAppointment, setEditingAppointment] =
     useState<Appointment | null>(null);
   const [isSyncOpen, setIsSyncOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = 'Agendamentos | MedAssist Pro';
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
 
   // Função para buscar agendamentos do banco de dados
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
@@ -123,10 +95,8 @@ const Appointments = () => {
       setAppointments(formattedAppointments);
     } catch (error) {
       console.error('Erro ao buscar agendamentos:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
   // Função para formatar tipo de agendamento
   const formatAppointmentType = (type: string): string => {
@@ -153,7 +123,6 @@ const Appointments = () => {
     return modes[mode] || mode;
   };
 
-  const handleOpenModal = () => setIsSyncOpen(true);
   const handleSyncGoogle = async () => {
     try {
       const redirectTo = `${window.location.origin}/auth/callback?provider=google`;
@@ -169,7 +138,7 @@ const Appointments = () => {
       } else {
         setIsSyncOpen(false);
       }
-    } catch (e) {
+    } catch {
       alert('Erro inesperado ao iniciar autenticação com Google.');
     }
   };
@@ -472,7 +441,7 @@ const Appointments = () => {
                   {selectedDate && (
                     <div className="p-4 rounded-lg bg-accent/50 border border-accent text-center space-y-2">
                       <p className="font-semibold text-lg text-foreground">
-                        {format(selectedDate, "EEEE, dd 'de' MMMM", {
+                        {format(selectedDate, 'EEEE, dd \'de\' MMMM', {
                           locale: ptBR,
                         })}
                       </p>
@@ -494,7 +463,7 @@ const Appointments = () => {
                   <CardHeader className="pb-4 border-b border-border/50">
                     <CardTitle className="text-xl font-semibold">
                       {selectedDate
-                        ? `Agendamentos para ${format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`
+                        ? `Agendamentos para ${format(selectedDate, 'dd \'de\' MMMM \'de\' yyyy', { locale: ptBR })}`
                         : 'Selecione uma data no calendário'}
                     </CardTitle>
                   </CardHeader>

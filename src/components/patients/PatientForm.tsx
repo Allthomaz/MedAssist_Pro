@@ -65,33 +65,37 @@ const patientFormSchema = z.object({
     .max(100, 'Nome deve ter no máximo 100 caracteres')
     .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras e espaços')
     .transform(val => val.trim().replace(/\s+/g, ' ')), // Sanitização: remove espaços extras
-  
+
   birth_date: z
     .date({
       required_error: 'Data de nascimento é obrigatória',
     })
-    .refine(
-      date => {
-        const today = new Date();
-        const age = today.getFullYear() - date.getFullYear();
-        return age >= 0 && age <= 120;
-      },
-      'Data de nascimento deve ser válida (0-120 anos)'
-    ),
-  
+    .refine(date => {
+      const today = new Date();
+      const age = today.getFullYear() - date.getFullYear();
+      return age >= 0 && age <= 120;
+    }, 'Data de nascimento deve ser válida (0-120 anos)'),
+
   gender: z.enum(['male', 'female', 'other'], {
     required_error: 'Selecione o gênero',
   }),
-  
+
   phone: z
     .string()
     .optional()
     .refine(
-      val => !val || /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/.test(val.replace(/\s/g, '')),
+      val =>
+        !val || /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/.test(val.replace(/\s/g, '')),
       'Formato de telefone inválido. Use: (11) 99999-9999'
     )
-    .transform(val => val ? val.replace(/\D/g, '').replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3') : val),
-  
+    .transform(val =>
+      val
+        ? val
+            .replace(/\D/g, '')
+            .replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')
+        : val
+    ),
+
   email: z
     .string()
     .optional()
@@ -99,30 +103,30 @@ const patientFormSchema = z.object({
       val => !val || z.string().email().safeParse(val).success,
       'E-mail inválido'
     )
-    .transform(val => val ? val.toLowerCase().trim() : val), // Sanitização: lowercase e trim
-  
+    .transform(val => (val ? val.toLowerCase().trim() : val)), // Sanitização: lowercase e trim
+
   chief_complaint: z
     .string()
     .optional()
-    .transform(val => val ? val.trim() : val)
+    .transform(val => (val ? val.trim() : val))
     .refine(
       val => !val || val.length <= 500,
       'Queixa principal deve ter no máximo 500 caracteres'
     ),
-  
+
   family_history: z
     .string()
     .optional()
-    .transform(val => val ? val.trim() : val)
+    .transform(val => (val ? val.trim() : val))
     .refine(
       val => !val || val.length <= 1000,
       'Histórico familiar deve ter no máximo 1000 caracteres'
     ),
-  
+
   current_medications: z
     .string()
     .optional()
-    .transform(val => val ? val.trim() : val)
+    .transform(val => (val ? val.trim() : val))
     .refine(
       val => !val || val.length <= 500,
       'Medicamentos atuais devem ter no máximo 500 caracteres'

@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Loader2,
   Download,
-  Eye,
   FileText,
 } from 'lucide-react';
 
@@ -21,9 +20,7 @@ import AudioProcessor from '../consultations/AudioProcessor';
 import { transcribeAudio } from '../../services/transcriptionService';
 
 // Usar a variável de ambiente para a URL da API da OpenAI
-// Remove unused constant declaration
-  import.meta.env['VITE_OPENAI_API_URL'] ||
-  'https://api.openai.com/v1/audio/transcriptions';
+// const OPENAI_API_URL = import.meta.env.VITE_OPENAI_API_URL || 'https://api.openai.com/v1/audio/transcriptions';
 
 interface AudioFile {
   id: string;
@@ -76,7 +73,16 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
   // Cleanup de recursos de áudio na desmontagem do componente
   useEffect(() => {
     return () => {
-      stopAudio();
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+        if (audioCleanupRef.current) {
+          audioCleanupRef.current();
+          audioCleanupRef.current = null;
+        }
+        activeAudioRef.current = null;
+      }
+      setPlayingAudio(null);
       setTranscribingAudio(null);
     };
   }, []);
@@ -130,16 +136,16 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   /**
    * Valida arquivos de áudio antes do upload
-   * 
+   *
    * Realiza validação completa do arquivo incluindo:
    * 1. Verificação de tamanho (1KB - 50MB)
    * 2. Validação de extensão de arquivo
    * 3. Verificação de tipo MIME
    * 4. Correspondência entre MIME type e extensão
-   * 
+   *
    * Esta validação garante que apenas arquivos de áudio válidos
    * sejam aceitos, prevenindo problemas de upload e transcrição.
-   * 
+   *
    * @param file - Arquivo a ser validado
    * @returns Promise com resultado da validação
    */
@@ -232,7 +238,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   /**
    * Gerencia o upload de arquivos de áudio
-   * 
+   *
    * Processo completo de upload:
    * 1. Valida o arquivo selecionado
    * 2. Gera nome único para evitar conflitos
@@ -240,10 +246,10 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
    * 4. Salva metadados na tabela 'recordings'
    * 5. Atualiza a lista de arquivos
    * 6. Inicia transcrição automática
-   * 
+   *
    * O upload é otimizado para arquivos médicos com validação
    * rigorosa e tratamento de erros robusto.
-   * 
+   *
    * @param event - Evento de mudança do input de arquivo
    */
   const handleFileUpload = async (
@@ -311,15 +317,15 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   /**
    * Inicia o processo de transcrição de áudio
-   * 
+   *
    * Utiliza o serviço de transcrição (OpenAI Whisper) para converter
    * áudio em texto. O processo é otimizado para português médico.
-   * 
+   *
    * Configurações:
    * - Idioma: Português (pt)
    * - Formato: verbose_json (inclui timestamps e confiança)
    * - Modelo: Whisper (via OpenAI API)
-   * 
+   *
    * @param recordingId - ID da gravação a ser transcrita
    */
   const startTranscription = async (recordingId: string) => {
@@ -354,16 +360,16 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   /**
    * Reproduz arquivo de áudio com controle de estado
-   * 
+   *
    * Gerencia a reprodução de áudio com:
    * 1. Geração de URL assinada do Supabase (válida por 1h)
    * 2. Controle de instância única (para um áudio por vez)
    * 3. Event listeners para fim e erro de reprodução
    * 4. Cleanup automático de recursos
-   * 
+   *
    * A URL assinada garante acesso seguro aos arquivos privados
    * sem expor credenciais no frontend.
-   * 
+   *
    * @param audioFile - Arquivo de áudio a ser reproduzido
    */
   const playAudio = async (audioFile: AudioFile) => {
@@ -425,14 +431,14 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   /**
    * Para a reprodução de áudio e limpa recursos
-   * 
+   *
    * Realiza cleanup completo:
    * 1. Pausa o áudio atual
    * 2. Reseta posição para o início
    * 3. Remove event listeners
    * 4. Limpa referências
    * 5. Atualiza estado da interface
-   * 
+   *
    * Essencial para evitar vazamentos de memória e conflitos
    * entre múltiplas reproduções.
    */
@@ -440,13 +446,13 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
     if (activeAudioRef.current) {
       activeAudioRef.current.pause();
       activeAudioRef.current.currentTime = 0;
-      
+
       // Executar cleanup de event listeners
       if (audioCleanupRef.current) {
         audioCleanupRef.current();
         audioCleanupRef.current = null;
       }
-      
+
       activeAudioRef.current = null;
     }
     setPlayingAudio(null);
@@ -454,16 +460,16 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   /**
    * Remove arquivo de áudio do sistema
-   * 
+   *
    * Processo de exclusão completa:
    * 1. Confirma ação com o usuário
    * 2. Remove arquivo físico do Supabase Storage
    * 3. Remove registro da tabela 'recordings'
    * 4. Atualiza interface removendo item da lista
-   * 
+   *
    * A exclusão é irreversível e remove tanto o arquivo
    * quanto todos os metadados associados.
-   * 
+   *
    * @param audioFile - Arquivo de áudio a ser excluído
    */
   const deleteAudio = async (audioFile: AudioFile) => {
@@ -497,17 +503,17 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   /**
    * Faz download de arquivo de áudio para o dispositivo
-   * 
+   *
    * Processo de download:
    * 1. Baixa arquivo do Supabase Storage
    * 2. Cria URL temporária (blob) do arquivo
    * 3. Cria elemento <a> invisível para trigger do download
    * 4. Simula clique para iniciar download
    * 5. Remove elemento e libera URL da memória
-   * 
+   *
    * O download preserva o nome original do arquivo e
    * é otimizado para não consumir memória desnecessariamente.
-   * 
+   *
    * @param audioFile - Arquivo de áudio a ser baixado
    */
   const downloadAudio = async (audioFile: AudioFile) => {
@@ -526,12 +532,12 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
       const link = document.createElement('a');
       link.href = url;
       link.download = audioFile.audio_file_name;
-      
+
       // Executar download programaticamente
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Liberar URL da memória para evitar vazamentos
       URL.revokeObjectURL(url);
     } catch (err) {

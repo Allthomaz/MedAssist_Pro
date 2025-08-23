@@ -1,16 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,108 +30,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import {
-  Mail,
-  Lock,
-  User,
-  Stethoscope,
-  LogIn,
-  ArrowLeft,
-  UserPlus,
-  KeyRound,
-  Eye,
-  EyeOff,
-  Loader2,
-  Shield,
-} from 'lucide-react';
+  signInSchema,
+  signUpSchema,
+  forgotSchema,
+} from '@/lib/auth-schemas';
 
-/**
- * Schemas de validação robusta para autenticação
- * Implementa validações específicas para segurança e sanitização
- */
-const emailSchema = z
-  .string()
-  .min(1, 'E-mail é obrigatório')
-  .email('Informe um e-mail válido')
-  .max(254, 'E-mail muito longo') // RFC 5321 limit
-  .transform(val => val.toLowerCase().trim()); // Sanitização
+import { useDebouncedLock } from '@/hooks/use-debounced-lock';
 
-const passwordSchema = z
-  .string()
-  .min(8, 'Senha deve ter pelo menos 8 caracteres')
-  .max(128, 'Senha muito longa')
-  .regex(/^(?=.*[a-z])/, 'Deve conter pelo menos uma letra minúscula')
-  .regex(/^(?=.*[A-Z])/, 'Deve conter pelo menos uma letra maiúscula')
-  .regex(/^(?=.*\d)/, 'Deve conter pelo menos um número')
-  .regex(/^(?=.*[!@#$%^&*(),.?":{}|<>])/, 'Deve conter pelo menos um caractere especial')
-  .refine(
-    val => !/^(password|123456|qwerty|admin|letmein)$/i.test(val),
-    'Senha muito comum, escolha uma mais segura'
-  );
+import { useSeo } from '@/hooks/use-seo';
 
-const signInSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, 'Informe sua senha'),
-});
-
-const signUpSchema = z
-  .object({
-    fullName: z
-      .string()
-      .min(2, 'Nome deve ter pelo menos 2 caracteres')
-      .max(100, 'Nome muito longo')
-      .regex(/^[a-zA-ZÀ-ÿ\s.]+$/, 'Nome deve conter apenas letras, espaços e pontos')
-      .transform(val => val.trim().replace(/\s+/g, ' ')), // Sanitização
-    profession: z.enum(['medico', 'psicologo', 'terapeuta'], {
-      required_error: 'Selecione sua profissão',
-    }),
-    email: emailSchema,
-    password: passwordSchema,
-    confirmPassword: z.string().min(1, 'Confirme sua senha'),
-  })
-  .refine(data => data.password === data.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Senhas não conferem',
-  });
-
-const forgotSchema = z.object({ 
-  email: emailSchema 
-});
-
-const useDebouncedLock = (delayMs = 1200) => {
-  const [locked, setLocked] = useState(false);
-  const acquire = () => {
-    if (locked) return false;
-    setLocked(true);
-    setTimeout(() => setLocked(false), delayMs);
-    return true;
-  };
-  return { locked, acquire };
-};
-
-const useSeo = () => {
-  useEffect(() => {
-    document.title = 'Entrar ou criar conta | MedAssist Pro';
-    const desc = 'Autenticação segura para médicos e pacientes';
-    const canonicalHref = `${window.location.origin}/auth`;
-
-    const metaDesc =
-      document.querySelector('meta[name="description"]') ||
-      document.createElement('meta');
-    metaDesc.setAttribute('name', 'description');
-    metaDesc.setAttribute('content', desc);
-    document.head.appendChild(metaDesc);
-
-    const canonical =
-      document.querySelector('link[rel="canonical"]') ||
-      document.createElement('link');
-    canonical.setAttribute('rel', 'canonical');
-    canonical.setAttribute('href', canonicalHref);
-    document.head.appendChild(canonical);
-  }, []);
-};
-
-export const AuthPage: React.FC = () => {
+const AuthPage: React.FC = () => {
   const { signIn, signUp, resendConfirmation, requestPasswordReset, user } =
     useAuth();
   const navigate = useNavigate();
@@ -249,35 +158,7 @@ export const AuthPage: React.FC = () => {
     setTab('signin');
   };
 
-  const resend = async () => {
-    const email =
-      signInForm.getValues('email') || signUpForm.getValues('email');
-    if (!email) {
-      toast.warning('E-mail necessário', {
-        description: 'Digite seu e-mail primeiro para reenviar a confirmação.',
-      });
-      return;
-    }
 
-    const { error } = await resendConfirmation(email);
-    if (error) {
-      toast.error('Erro ao reenviar confirmação', {
-        description: 'Tente novamente em alguns minutos.',
-      });
-      return;
-    }
-
-    toast.success('E-mail de confirmação reenviado!', {
-      description: 'Verifique sua caixa de entrada e spam.',
-    });
-
-    // Em desenvolvimento, mostrar link do Inbucket
-    if (process.env.NODE_ENV === 'development') {
-      toast.info('Desenvolvimento: Verifique o Inbucket', {
-        description: 'Acesse http://127.0.0.1:54324 para ver o e-mail.',
-      });
-    }
-  };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
@@ -299,7 +180,7 @@ export const AuthPage: React.FC = () => {
         <CardContent>
           <Tabs
             value={tab}
-            onValueChange={v => setTab(v as any)}
+            onValueChange={v => setTab(v as 'signin' | 'signup' | 'forgot')}
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-3">
@@ -329,10 +210,10 @@ export const AuthPage: React.FC = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          E-mail
-                        </FormLabel>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                           <Mail className="w-4 h-4" />
+                           E-mail
+                         </label>
                         <FormControl>
                           <Input
                             type="email"
@@ -351,10 +232,10 @@ export const AuthPage: React.FC = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          Senha
-                        </FormLabel>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                           <Lock className="w-4 h-4" />
+                           Senha
+                         </label>
                         <FormControl>
                           <Input
                             type="password"
@@ -394,7 +275,7 @@ export const AuthPage: React.FC = () => {
                   <div className="text-xs text-muted-foreground text-right">
                     <button
                       type="button"
-                      onClick={resend}
+                      onClick={() => resendConfirmation(signInForm.getValues('email'))}
                       className="underline"
                     >
                       Reenviar confirmação
@@ -416,10 +297,10 @@ export const AuthPage: React.FC = () => {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          Nome completo
-                        </FormLabel>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                           <User className="w-4 h-4" />
+                           Nome completo
+                         </label>
                         <FormControl>
                           <Input
                             type="text"
@@ -437,10 +318,10 @@ export const AuthPage: React.FC = () => {
                     name="profession"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Stethoscope className="w-4 h-4" />
-                          Profissão
-                        </FormLabel>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                           <Stethoscope className="w-4 h-4" />
+                           Profissão
+                         </label>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -466,10 +347,10 @@ export const AuthPage: React.FC = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          E-mail
-                        </FormLabel>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                           <Mail className="w-4 h-4" />
+                           E-mail
+                         </label>
                         <FormControl>
                           <Input
                             type="email"
@@ -488,10 +369,10 @@ export const AuthPage: React.FC = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          Senha
-                        </FormLabel>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                           <Lock className="w-4 h-4" />
+                           Senha
+                         </label>
                         <FormControl>
                           <Input
                             type="password"
@@ -509,10 +390,10 @@ export const AuthPage: React.FC = () => {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          Confirmar senha
-                        </FormLabel>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                           <Lock className="w-4 h-4" />
+                           Confirmar senha
+                         </label>
                         <FormControl>
                           <Input
                             type="password"
@@ -572,10 +453,10 @@ export const AuthPage: React.FC = () => {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <Mail className="w-4 h-4" />
-                            E-mail cadastrado
-                          </FormLabel>
+                          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                             <Mail className="w-4 h-4" />
+                             E-mail cadastrado
+                           </label>
                           <FormControl>
                             <Input
                               type="email"

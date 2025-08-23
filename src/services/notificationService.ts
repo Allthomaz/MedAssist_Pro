@@ -46,14 +46,14 @@ export class NotificationService {
 
   /**
    * Criar lembrete de consulta
-   * 
+   *
    * Esta função implementa um sistema inteligente de lembretes automáticos:
    * 1. Calcula automaticamente o horário do lembrete (24h antes às 9:00 AM)
    * 2. Cria notificação para o médico com prioridade normal
    * 3. Verifica se o paciente tem perfil no sistema (profile_id)
    * 4. Cria notificação para o paciente com prioridade alta (se aplicável)
    * 5. Trata erros graciosamente para não interromper o fluxo principal
-   * 
+   *
    * O sistema de lembretes melhora a aderência às consultas e reduz faltas,
    * sendo essencial para a gestão eficiente da agenda médica.
    */
@@ -211,14 +211,14 @@ export class NotificationService {
 
   /**
    * Buscar notificações do usuário
-   * 
+   *
    * Esta função implementa uma consulta otimizada para recuperar notificações:
    * 1. Seleciona apenas campos necessários para performance
    * 2. Filtra por usuário específico e exclui notificações deletadas
    * 3. Ordena por data de criação (mais recentes primeiro)
    * 4. Aplica limite configurável para paginação
    * 5. Inclui metadados de relacionamento (appointment_id, consultation_id, etc.)
-   * 
+   *
    * A consulta é otimizada para interfaces de notificação em tempo real,
    * permitindo carregamento rápido e experiência fluida do usuário.
    */

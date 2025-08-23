@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MedicalLayout } from '@/components/layout/MedicalLayout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { QuickActions } from '@/components/dashboard/QuickActions';
@@ -10,7 +10,6 @@ import {
   Video,
   FileText,
   Clock,
-  TrendingUp,
   Plus,
   ArrowRight,
   Loader2,
@@ -40,7 +39,7 @@ const Index = () => {
   });
 
   // Load dashboard data
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -89,13 +88,13 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     if (user?.id) {
       loadDashboardData();
     }
-  }, [user?.id]);
+  }, [user?.id, loadDashboardData]);
 
   const calculateAge = (birthDate: string) => {
     const today = new Date();

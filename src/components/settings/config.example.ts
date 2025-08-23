@@ -1,7 +1,7 @@
 /**
  * Arquivo de configuração de exemplo para o módulo de configurações
  * Doctor Brief AI - Sistema de Configurações
- * 
+ *
  * Este arquivo demonstra como configurar as configurações padrão do sistema
  * e como personalizar diferentes aspectos da aplicação.
  */
@@ -14,7 +14,7 @@ import { UserSettings, SettingsCategory, SettingsTheme } from './types';
  */
 export const defaultUserSettings: Partial<UserSettings> = {
   version: '1.0.0',
-  
+
   // Configurações de aparência padrão
   appearance: {
     theme: 'system',
@@ -25,7 +25,7 @@ export const defaultUserSettings: Partial<UserSettings> = {
     compactMode: false,
     sidebar: {
       collapsed: false,
-      position: 'left'
+      position: 'left',
     },
     dashboard: {
       layout: 'grid',
@@ -33,12 +33,12 @@ export const defaultUserSettings: Partial<UserSettings> = {
         'overview-stats',
         'recent-patients',
         'consultation-trends',
-        'upcoming-appointments'
+        'upcoming-appointments',
       ],
-      density: 'comfortable'
-    }
+      density: 'comfortable',
+    },
   },
-  
+
   // Configurações de notificações padrão
   notifications: {
     email: {
@@ -48,7 +48,7 @@ export const defaultUserSettings: Partial<UserSettings> = {
       consultationSummary: true,
       systemUpdates: false,
       securityAlerts: true,
-      frequency: 'immediate'
+      frequency: 'immediate',
     },
     push: {
       enabled: true,
@@ -59,29 +59,29 @@ export const defaultUserSettings: Partial<UserSettings> = {
       quietHours: {
         enabled: true,
         start: '22:00',
-        end: '07:00'
-      }
+        end: '07:00',
+      },
     },
     sound: {
       enabled: true,
       volume: 0.7,
       notificationSound: 'default',
-      alertSound: 'urgent'
+      alertSound: 'urgent',
     },
     desktop: {
       enabled: true,
       position: 'top-right',
-      duration: 5000
-    }
+      duration: 5000,
+    },
   },
-  
+
   // Configurações de áudio padrão
   audio: {
     microphone: {
       gain: 0.8,
       noiseReduction: true,
       echoCancellation: true,
-      autoGainControl: true
+      autoGainControl: true,
     },
     transcription: {
       language: 'pt-BR',
@@ -95,8 +95,8 @@ export const defaultUserSettings: Partial<UserSettings> = {
         'diabetes',
         'cardiovascular',
         'pneumonia',
-        'bronquite'
-      ]
+        'bronquite',
+      ],
     },
     recording: {
       quality: 'high',
@@ -106,11 +106,11 @@ export const defaultUserSettings: Partial<UserSettings> = {
       channels: 'mono',
       autoStop: {
         enabled: true,
-        silenceDuration: 3000
-      }
-    }
+        silenceDuration: 3000,
+      },
+    },
   },
-  
+
   // Configurações de segurança padrão
   security: {
     password: {
@@ -120,29 +120,29 @@ export const defaultUserSettings: Partial<UserSettings> = {
       requireSpecialChars: true,
       requireNumbers: true,
       requireUppercase: true,
-      preventReuse: 5
+      preventReuse: 5,
     },
     twoFactor: {
       enabled: false,
       method: 'email',
       backupCodes: [],
-      trustedDevices: []
+      trustedDevices: [],
     },
     session: {
       timeout: 3600000, // 1 hora
       maxConcurrentSessions: 3,
       requireReauthForSensitive: true,
-      logoutOnClose: false
+      logoutOnClose: false,
     },
     privacy: {
       shareUsageData: false,
       shareErrorReports: true,
       allowAnalytics: false,
       dataRetention: 365,
-      autoDeleteInactive: true
-    }
+      autoDeleteInactive: true,
+    },
   },
-  
+
   // Configurações de integrações padrão
   integrations: {
     api: {
@@ -150,8 +150,8 @@ export const defaultUserSettings: Partial<UserSettings> = {
       keys: [],
       rateLimit: {
         requests: 100,
-        window: 3600000 // 1 hora
-      }
+        window: 3600000, // 1 hora
+      },
     },
     webhooks: {
       enabled: false,
@@ -159,32 +159,32 @@ export const defaultUserSettings: Partial<UserSettings> = {
       retryPolicy: {
         maxRetries: 3,
         backoffMultiplier: 2,
-        maxBackoffTime: 30000
-      }
+        maxBackoffTime: 30000,
+      },
     },
     externalServices: {
       openai: {
         enabled: false,
         model: 'gpt-4',
-        maxTokens: 2000
+        maxTokens: 2000,
       },
       anthropic: {
         enabled: false,
         model: 'claude-3-sonnet',
-        maxTokens: 2000
+        maxTokens: 2000,
       },
       googleCloud: {
         enabled: false,
         region: 'us-central1',
-        services: []
+        services: [],
       },
       aws: {
         enabled: false,
         region: 'us-east-1',
-        services: []
-      }
-    }
-  }
+        services: [],
+      },
+    },
+  },
 };
 
 /**
@@ -207,20 +207,20 @@ export const settingsCategories: SettingsCategory[] = [
             id: 'firstName',
             name: 'Nome',
             type: 'text',
-            required: true
+            required: true,
           },
           {
             id: 'lastName',
             name: 'Sobrenome',
             type: 'text',
-            required: true
+            required: true,
           },
           {
             id: 'avatar',
             name: 'Foto do Perfil',
-            type: 'file'
-          }
-        ]
+            type: 'file',
+          },
+        ],
       },
       {
         id: 'professional',
@@ -233,8 +233,8 @@ export const settingsCategories: SettingsCategory[] = [
             type: 'text',
             required: true,
             validation: {
-              pattern: '^[0-9]{4,6}$'
-            }
+              pattern: '^[0-9]{4,6}$',
+            },
           },
           {
             id: 'specialty',
@@ -246,12 +246,12 @@ export const settingsCategories: SettingsCategory[] = [
               { value: 'dermatologia', label: 'Dermatologia' },
               { value: 'neurologia', label: 'Neurologia' },
               { value: 'pediatria', label: 'Pediatria' },
-              { value: 'psiquiatria', label: 'Psiquiatria' }
-            ]
-          }
-        ]
-      }
-    ]
+              { value: 'psiquiatria', label: 'Psiquiatria' },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'appearance',
@@ -272,8 +272,8 @@ export const settingsCategories: SettingsCategory[] = [
             options: [
               { value: 'light', label: 'Claro' },
               { value: 'dark', label: 'Escuro' },
-              { value: 'system', label: 'Sistema' }
-            ]
+              { value: 'system', label: 'Sistema' },
+            ],
           },
           {
             id: 'colorScheme',
@@ -283,10 +283,10 @@ export const settingsCategories: SettingsCategory[] = [
             options: [
               { value: 'default', label: 'Padrão' },
               { value: 'high-contrast', label: 'Alto Contraste' },
-              { value: 'colorblind', label: 'Daltônicos' }
-            ]
-          }
-        ]
+              { value: 'colorblind', label: 'Daltônicos' },
+            ],
+          },
+        ],
       },
       {
         id: 'layout',
@@ -297,7 +297,7 @@ export const settingsCategories: SettingsCategory[] = [
             id: 'compactMode',
             name: 'Modo Compacto',
             type: 'boolean',
-            defaultValue: false
+            defaultValue: false,
           },
           {
             id: 'sidebarPosition',
@@ -306,12 +306,12 @@ export const settingsCategories: SettingsCategory[] = [
             defaultValue: 'left',
             options: [
               { value: 'left', label: 'Esquerda' },
-              { value: 'right', label: 'Direita' }
-            ]
-          }
-        ]
-      }
-    ]
+              { value: 'right', label: 'Direita' },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'notifications',
@@ -328,7 +328,7 @@ export const settingsCategories: SettingsCategory[] = [
             id: 'emailEnabled',
             name: 'Ativar Notificações por Email',
             type: 'boolean',
-            defaultValue: true
+            defaultValue: true,
           },
           {
             id: 'emailFrequency',
@@ -338,19 +338,19 @@ export const settingsCategories: SettingsCategory[] = [
             options: [
               { value: 'immediate', label: 'Imediato' },
               { value: 'daily', label: 'Diário' },
-              { value: 'weekly', label: 'Semanal' }
+              { value: 'weekly', label: 'Semanal' },
             ],
             dependencies: [
               {
                 field: 'emailEnabled',
                 value: true,
-                condition: 'equals'
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                condition: 'equals',
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'audio',
@@ -371,18 +371,18 @@ export const settingsCategories: SettingsCategory[] = [
             options: [
               { value: 'low', label: 'Baixa' },
               { value: 'medium', label: 'Média' },
-              { value: 'high', label: 'Alta' }
-            ]
+              { value: 'high', label: 'Alta' },
+            ],
           },
           {
             id: 'noiseReduction',
             name: 'Redução de Ruído',
             type: 'boolean',
-            defaultValue: true
-          }
-        ]
-      }
-    ]
+            defaultValue: true,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'security',
@@ -399,7 +399,7 @@ export const settingsCategories: SettingsCategory[] = [
             id: 'twoFactorEnabled',
             name: 'Autenticação de Dois Fatores',
             type: 'boolean',
-            defaultValue: false
+            defaultValue: false,
           },
           {
             id: 'sessionTimeout',
@@ -408,12 +408,12 @@ export const settingsCategories: SettingsCategory[] = [
             defaultValue: 60,
             validation: {
               min: 5,
-              max: 480
-            }
-          }
-        ]
-      }
-    ]
+              max: 480,
+            },
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'integrations',
@@ -430,19 +430,19 @@ export const settingsCategories: SettingsCategory[] = [
             id: 'openaiEnabled',
             name: 'OpenAI',
             type: 'boolean',
-            defaultValue: false
+            defaultValue: false,
           },
           {
             id: 'anthropicEnabled',
             name: 'Anthropic',
             type: 'boolean',
-            defaultValue: false
-          }
-        ]
-      }
+            defaultValue: false,
+          },
+        ],
+      },
     ],
-    permissions: ['admin', 'manager']
-  }
+    permissions: ['admin', 'manager'],
+  },
 ];
 
 /**
@@ -463,30 +463,30 @@ export const availableThemes: SettingsTheme[] = [
       border: '#e2e8f0',
       success: '#10b981',
       warning: '#f59e0b',
-      error: '#ef4444'
+      error: '#ef4444',
     },
     fonts: {
       primary: 'Inter, sans-serif',
       secondary: 'Inter, sans-serif',
-      mono: 'JetBrains Mono, monospace'
+      mono: 'JetBrains Mono, monospace',
     },
     spacing: {
       xs: '0.25rem',
       sm: '0.5rem',
       md: '1rem',
       lg: '1.5rem',
-      xl: '2rem'
+      xl: '2rem',
     },
     borderRadius: {
       sm: '0.25rem',
       md: '0.5rem',
-      lg: '0.75rem'
+      lg: '0.75rem',
     },
     shadows: {
       sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
       md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-      lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
-    }
+      lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+    },
   },
   {
     id: 'dark',
@@ -501,31 +501,31 @@ export const availableThemes: SettingsTheme[] = [
       border: '#334155',
       success: '#22c55e',
       warning: '#eab308',
-      error: '#f87171'
+      error: '#f87171',
     },
     fonts: {
       primary: 'Inter, sans-serif',
       secondary: 'Inter, sans-serif',
-      mono: 'JetBrains Mono, monospace'
+      mono: 'JetBrains Mono, monospace',
     },
     spacing: {
       xs: '0.25rem',
       sm: '0.5rem',
       md: '1rem',
       lg: '1.5rem',
-      xl: '2rem'
+      xl: '2rem',
     },
     borderRadius: {
       sm: '0.25rem',
       md: '0.5rem',
-      lg: '0.75rem'
+      lg: '0.75rem',
     },
     shadows: {
       sm: '0 1px 2px 0 rgb(0 0 0 / 0.3)',
       md: '0 4px 6px -1px rgb(0 0 0 / 0.4)',
-      lg: '0 10px 15px -3px rgb(0 0 0 / 0.4)'
-    }
-  }
+      lg: '0 10px 15px -3px rgb(0 0 0 / 0.4)',
+    },
+  },
 ];
 
 /**
@@ -537,80 +537,80 @@ export const systemConfig = {
   cache: {
     ttl: 300000, // 5 minutos
     maxSize: 100,
-    cleanupInterval: 60000 // 1 minuto
+    cleanupInterval: 60000, // 1 minuto
   },
-  
+
   // Configurações de validação
   validation: {
     debounceTime: 300,
     showErrorsOnBlur: true,
-    showErrorsOnSubmit: true
+    showErrorsOnSubmit: true,
   },
-  
+
   // Configurações de auditoria
   audit: {
     enabled: true,
     retentionDays: 90,
     logLevel: 'detailed',
     includeIpAddress: true,
-    includeUserAgent: true
+    includeUserAgent: true,
   },
-  
+
   // Configurações de backup
   backup: {
     enabled: true,
     interval: 86400000, // 24 horas
     maxBackups: 30,
     compress: true,
-    encrypt: true
+    encrypt: true,
   },
-  
+
   // Configurações de sincronização
   sync: {
     enabled: true,
     interval: 30000, // 30 segundos
     retryAttempts: 3,
-    retryDelay: 5000
+    retryDelay: 5000,
   },
-  
+
   // Configurações de performance
   performance: {
     lazyLoadThreshold: 100,
     virtualScrollThreshold: 1000,
-    debounceSearchTime: 300
+    debounceSearchTime: 300,
   },
-  
+
   // Configurações de segurança
   security: {
     maxLoginAttempts: 5,
     lockoutDuration: 900000, // 15 minutos
     passwordMinLength: 8,
     sessionTimeout: 3600000, // 1 hora
-    requireHttps: true
+    requireHttps: true,
   },
-  
+
   // Configurações de notificações
   notifications: {
     maxVisible: 5,
     defaultDuration: 5000,
     position: 'top-right',
-    enableSound: true
+    enableSound: true,
   },
-  
+
   // Configurações de upload
   upload: {
     maxFileSize: 10485760, // 10MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'],
-    maxFiles: 10
+    maxFiles: 10,
   },
-  
+
   // Configurações de API
   api: {
     timeout: 30000, // 30 segundos
     retryAttempts: 3,
     retryDelay: 1000,
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
-  }
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+  },
 };
 
 /**
@@ -622,22 +622,22 @@ export const developmentConfig = {
     enabled: true,
     logLevel: 'verbose',
     showPerformanceMetrics: true,
-    enableDevTools: true
+    enableDevTools: true,
   },
-  
+
   mock: {
     enabled: false,
     delay: 1000,
-    errorRate: 0.1
+    errorRate: 0.1,
   },
-  
+
   testing: {
     enabled: true,
     coverage: {
       threshold: 80,
-      includeUntested: true
-    }
-  }
+      includeUntested: true,
+    },
+  },
 };
 
 /**
@@ -649,22 +649,22 @@ export const productionConfig = {
     enabled: false,
     logLevel: 'error',
     showPerformanceMetrics: false,
-    enableDevTools: false
+    enableDevTools: false,
   },
-  
+
   monitoring: {
     enabled: true,
     errorReporting: true,
     performanceTracking: true,
-    userAnalytics: false
+    userAnalytics: false,
   },
-  
+
   optimization: {
     minifyCode: true,
     compressAssets: true,
     enableCaching: true,
-    lazyLoading: true
-  }
+    lazyLoading: true,
+  },
 };
 
 /**
@@ -673,11 +673,11 @@ export const productionConfig = {
 export function getEnvironmentConfig() {
   const isProduction = process.env.NODE_ENV === 'production';
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
+
   return {
     ...systemConfig,
     ...(isDevelopment && developmentConfig),
-    ...(isProduction && productionConfig)
+    ...(isProduction && productionConfig),
   };
 }
 
@@ -686,16 +686,20 @@ export function getEnvironmentConfig() {
  */
 export function validateSettings(settings: Partial<UserSettings>): boolean {
   // Implementar validação básica
-  if (settings.profile?.personalInfo?.firstName && 
-      settings.profile?.personalInfo?.firstName.length < 2) {
+  if (
+    settings.profile?.personalInfo?.firstName &&
+    settings.profile?.personalInfo?.firstName.length < 2
+  ) {
     return false;
   }
-  
-  if (settings.profile?.professionalInfo?.crm && 
-      !/^[0-9]{4,6}$/.test(settings.profile.professionalInfo.crm)) {
+
+  if (
+    settings.profile?.professionalInfo?.crm &&
+    !/^[0-9]{4,6}$/.test(settings.profile.professionalInfo.crm)
+  ) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -713,23 +717,23 @@ export function mergeSettings(
     // Merge específico para objetos aninhados
     appearance: {
       ...defaultSettings.appearance,
-      ...userSettings.appearance
+      ...userSettings.appearance,
     },
     notifications: {
       ...defaultSettings.notifications,
-      ...userSettings.notifications
+      ...userSettings.notifications,
     },
     audio: {
       ...defaultSettings.audio,
-      ...userSettings.audio
+      ...userSettings.audio,
     },
     security: {
       ...defaultSettings.security,
-      ...userSettings.security
+      ...userSettings.security,
     },
     integrations: {
       ...defaultSettings.integrations,
-      ...userSettings.integrations
-    }
+      ...userSettings.integrations,
+    },
   } as UserSettings;
 }

@@ -1,5 +1,4 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from '@supabase/supabase-js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -184,8 +183,8 @@ function generateMedicalCertificate(
 Data: ${timestamp}
 
 ` +
-    `Atesto para os devidos fins que o(a) paciente [Nome do Paciente] ` +
-    `esteve sob meus cuidados médicos e necessita de afastamento de suas atividades ` +
+    'Atesto para os devidos fins que o(a) paciente [Nome do Paciente] ' +
+    'esteve sob meus cuidados médicos e necessita de afastamento de suas atividades ' +
     `por motivo de saúde.
 
 ` +

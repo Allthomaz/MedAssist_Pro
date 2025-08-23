@@ -17,26 +17,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  User,
-  Shield,
-  UserCheck,
-  UserX,
-  Database,
-  Key,
-  Lock,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Stethoscope,
-  Users,
-  Eye,
-  EyeOff,
+
 } from 'lucide-react';
 
 interface TestUser {

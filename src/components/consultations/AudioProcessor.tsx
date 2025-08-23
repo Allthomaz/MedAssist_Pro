@@ -54,7 +54,6 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
   // Usar o hook customizado para gravação de áudio
   const {
     isRecording,
@@ -65,8 +64,6 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
     recordingQuality,
     startRecording,
     stopRecording,
-    clearRecording,
-    cleanup,
   } = useAudioRecorder({
     onRecordingComplete: (blob, url) => {
       // Callback quando gravação é concluída com sucesso
@@ -84,9 +81,8 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
     { value: 'solicitar-exames', label: 'Solicitar Exames' },
   ];
 
-  // Função de limpeza simplificada - agora delegada ao hook
+  // Função de limpeza simplificada
   const handleCleanup = () => {
-    cleanup();
     setNotes('');
     setUploadProgress(0);
     setUploadedFiles([]);
@@ -105,17 +101,7 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
 
   // Função stopRecording agora é fornecida pelo hook useAudioRecorder
 
-  const playRecording = () => {
-    if (recordedUrl && audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play();
-        setIsPlaying(true);
-      }
-    }
-  };
+
 
   // Função para formatar tempo de gravação
   const formatTime = (seconds: number) => {
@@ -126,11 +112,11 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
 
   /**
    * Processa e envia a gravação de áudio para o Supabase Storage
-   * 
+   *
    * Esta função realiza o upload da gravação para o bucket 'recordings' do Supabase,
    * incluindo metadados sobre a intenção, tempo de gravação e observações.
    * Também simula o progresso do upload para melhor UX.
-   * 
+   *
    * Fluxo:
    * 1. Valida se existe uma gravação
    * 2. Gera nome único baseado no timestamp
@@ -221,10 +207,10 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
 
   /**
    * Gerencia o upload de arquivos de áudio externos
-   * 
+   *
    * Filtra apenas arquivos de áudio válidos e adiciona à lista de arquivos
    * carregados. Exibe aviso se arquivos não-áudio forem selecionados.
-   * 
+   *
    * @param event - Evento de mudança do input de arquivo
    */
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

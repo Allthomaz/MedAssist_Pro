@@ -85,7 +85,7 @@ const AppointmentItem = React.memo<{
                     <p className="text-sm font-medium text-foreground">
                       {format(
                         appointment.appointmentDate,
-                        "EEEE, dd 'de' MMMM",
+                        'EEEE, dd \'de\' MMMM',
                         { locale: ptBR }
                       )}
                     </p>
@@ -195,7 +195,15 @@ export function AppointmentsList({
    * Componente de item virtualizado para react-window
    */
   const VirtualizedAppointmentItem = useCallback(
-    ({ index, style, data }: { index: number; style: React.CSSProperties; data: Appointment[] }) => {
+    ({
+      index,
+      style,
+      data,
+    }: {
+      index: number;
+      style: React.CSSProperties;
+      data: Appointment[];
+    }) => {
       const appointment = data[index];
       return (
         <AppointmentItem
@@ -210,12 +218,13 @@ export function AppointmentsList({
     },
     [onEdit, onDelete]
   );
-  
+
   /**
    * Determina se deve usar virtualização baseado no número de itens e configuração
    */
   const shouldUseVirtualization = useMemo(
-    () => enableVirtualization && appointments.length >= VIRTUALIZATION_THRESHOLD,
+    () =>
+      enableVirtualization && appointments.length >= VIRTUALIZATION_THRESHOLD,
     [enableVirtualization, appointments.length]
   );
   // Empty State - Enhanced design with better visual hierarchy

@@ -2,10 +2,10 @@ import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Hook customizado para gerenciar perfil do usuário
- * 
+ *
  * Este hook fornece acesso ao perfil do usuário autenticado e utilitários
  * para formatação de informações profissionais.
- * 
+ *
  * @returns {Object} Objeto contendo:
  *   - profile: Perfil completo do usuário (UserProfile | null)
  *   - displayName: Nome de exibição do usuário (string)
@@ -16,19 +16,19 @@ import { useAuth } from '@/hooks/useAuth';
  *   - getProfessionalTitle: Função para obter título profissional baseado no role
  *   - getProfessionName: Função para obter nome da profissão
  *   - getProfessionNamePlural: Função para obter nome da profissão no plural
- * 
+ *
  * @example
  * ```tsx
  * function ProfileCard() {
- *   const { 
- *     profile, 
- *     fullDisplayName, 
+ *   const {
+ *     profile,
+ *     fullDisplayName,
  *     professionName,
  *     professionalTitle
  *   } = useProfile();
- * 
+ *
  *   if (!profile) return <div>Carregando perfil...</div>;
- * 
+ *
  *   return (
  *     <div>
  *       <h2>{fullDisplayName}</h2>
@@ -39,15 +39,15 @@ import { useAuth } from '@/hooks/useAuth';
  *   );
  * }
  * ```
- * 
+ *
  * @example
  * ```tsx
  * // Usando as funções utilitárias
  * function ProfessionSelector() {
  *   const { getProfessionName, getProfessionNamePlural } = useProfile();
- * 
+ *
  *   const roles = ['doctor', 'psychologist', 'therapist'];
- * 
+ *
  *   return (
  *     <div>
  *       {roles.map(role => (
@@ -66,10 +66,10 @@ export const useProfile = () => {
 
   /**
    * Formata o título profissional baseado no role do usuário
-   * 
+   *
    * @param {string} role - Role do usuário (doctor, psychologist, etc.)
    * @returns {string} Título profissional formatado
-   * 
+   *
    * @example
    * ```tsx
    * const title = getProfessionalTitle('doctor'); // Retorna "Dr."
@@ -97,10 +97,10 @@ export const useProfile = () => {
 
   /**
    * Formata o nome da profissão baseado no role do usuário
-   * 
+   *
    * @param {string} role - Role do usuário (doctor, psychologist, etc.)
    * @returns {string} Nome da profissão formatado
-   * 
+   *
    * @example
    * ```tsx
    * const profession = getProfessionName('doctor'); // Retorna "Médico"
@@ -128,10 +128,10 @@ export const useProfile = () => {
 
   /**
    * Formata o nome da profissão no plural baseado no role do usuário
-   * 
+   *
    * @param {string} role - Role do usuário (doctor, psychologist, etc.)
    * @returns {string} Nome da profissão no plural formatado
-   * 
+   *
    * @example
    * ```tsx
    * const professions = getProfessionNamePlural('doctor'); // Retorna "Médicos"

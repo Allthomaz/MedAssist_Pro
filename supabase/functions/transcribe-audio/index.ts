@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from '@supabase/supabase-js';
 
 interface TranscribeRequest {
@@ -12,12 +12,31 @@ interface TranscribeRequest {
   };
 }
 
+interface WhisperSegment {
+  id: number;
+  seek: number;
+  start: number;
+  end: number;
+  text: string;
+  tokens: number[];
+  temperature: number;
+  avg_logprob: number;
+  compression_ratio: number;
+  no_speech_prob: number;
+  words?: {
+    word: string;
+    start: number;
+    end: number;
+    probability: number;
+  }[];
+}
+
 interface TranscribeResponse {
   transcription: string;
   confidence: number;
   language?: string;
   duration?: number;
-  segments?: any[];
+  segments?: WhisperSegment[];
   error?: string;
 }
 
@@ -46,7 +65,7 @@ serve(async req => {
 
     // Inicializar cliente Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
@@ -184,7 +203,7 @@ serve(async req => {
     const transcriptionText = whisperResult.text || '';
     const confidence =
       whisperResult.segments?.reduce(
-        (acc: number, seg: any) => acc + (seg.avg_logprob || 0),
+        (acc: number, seg: WhisperSegment) => acc + (seg.avg_logprob || 0),
         0
       ) / (whisperResult.segments?.length || 1);
     const detectedLanguage = whisperResult.language || recording.language_code;
@@ -236,7 +255,7 @@ serve(async req => {
     // Salvar segmentos detalhados se disponíveis
     if (whisperResult.segments && whisperResult.segments.length > 0) {
       const segments = whisperResult.segments.map(
-        (segment: any, index: number) => ({
+        (segment: WhisperSegment, index: number) => ({
           transcription_id: transcriptionData.id,
           start_time: segment.start,
           end_time: segment.end,

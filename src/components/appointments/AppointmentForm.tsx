@@ -33,15 +33,23 @@ const appointmentSchema = z.object({
     .string()
     .min(2, 'Nome do paciente deve ter pelo menos 2 caracteres')
     .max(100, 'Nome muito longo')
-    .regex(/^[a-zA-ZÀ-ÿ\s.]+$/, 'Nome deve conter apenas letras, espaços e pontos')
+    .regex(
+      /^[a-zA-ZÀ-ÿ\s.]+$/,
+      'Nome deve conter apenas letras, espaços e pontos'
+    )
     .transform(val => val.trim().replace(/\s+/g, ' ')), // Sanitização
-  
+
   patientPhone: z
     .string()
     .min(8, 'Telefone é obrigatório')
-    .regex(/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/, 'Formato de telefone inválido. Use: (11) 99999-9999')
-    .transform(val => val.replace(/\D/g, '').replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')),
-  
+    .regex(
+      /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/,
+      'Formato de telefone inválido. Use: (11) 99999-9999'
+    )
+    .transform(val =>
+      val.replace(/\D/g, '').replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3')
+    ),
+
   patientEmail: z
     .string()
     .optional()
@@ -49,26 +57,26 @@ const appointmentSchema = z.object({
       val => !val || z.string().email().safeParse(val).success,
       'E-mail inválido'
     )
-    .transform(val => val ? val.toLowerCase().trim() : val),
-  
+    .transform(val => (val ? val.toLowerCase().trim() : val)),
+
   appointmentDate: z
     .date({
       required_error: 'Data é obrigatória',
     })
-    .refine(
-      date => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return date >= today;
-      },
-      'Data deve ser hoje ou no futuro'
-    ),
-  
+    .refine(date => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return date >= today;
+    }, 'Data deve ser hoje ou no futuro'),
+
   appointmentTime: z
     .string()
     .min(1, 'Horário é obrigatório')
-    .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de horário inválido (HH:MM)'),
-  
+    .regex(
+      /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+      'Formato de horário inválido (HH:MM)'
+    ),
+
   appointmentDuration: z
     .string()
     .min(1, 'Duração é obrigatória')
@@ -76,21 +84,21 @@ const appointmentSchema = z.object({
       val => ['15', '30', '45', '60', '90', '120'].includes(val),
       'Duração deve ser 15, 30, 45, 60, 90 ou 120 minutos'
     ),
-  
+
   appointmentType: z
     .string()
     .min(1, 'Tipo de consulta é obrigatório')
     .max(50, 'Tipo de consulta muito longo'),
-  
+
   appointmentReason: z
     .string()
     .optional()
-    .transform(val => val ? val.trim() : val)
+    .transform(val => (val ? val.trim() : val))
     .refine(
       val => !val || val.length <= 500,
       'Motivo da consulta deve ter no máximo 500 caracteres'
     ),
-  
+
   appointmentLocation: z
     .string()
     .min(1, 'Local é obrigatório')

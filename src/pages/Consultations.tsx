@@ -23,11 +23,9 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Video,
   Clock,
-  User,
   Calendar,
   Mic,
   FileText,
-  Plus,
   Eye,
   Stethoscope,
   Brain,
@@ -77,26 +75,24 @@ const ConsultationItemComponent: React.FC<ConsultationItemProps> = ({
    * Memoiza as iniciais do paciente para evitar recálculos
    */
   const patientInitials = useMemo(() => {
-    return consultation.patients?.full_name
-      ?.split(' ')
-      .map(n => n[0])
-      .join('')
-      .substring(0, 2) || 'P';
+    return (
+      consultation.patients?.full_name
+        ?.split(' ')
+        .map(n => n[0])
+        .join('')
+        .substring(0, 2) || 'P'
+    );
   }, [consultation.patients?.full_name]);
 
   /**
    * Memoiza o tipo de consulta formatado
    */
   const formattedConsultationType = useMemo(() => {
-    return consultation.consultation_type
-      .replace('_', ' ')
-      .toUpperCase();
+    return consultation.consultation_type.replace('_', ' ').toUpperCase();
   }, [consultation.consultation_type]);
 
   return (
-    <div
-      className="flex items-center justify-between p-5 rounded-xl border border-medical-blue/20 hover:border-medical-blue/40 bg-gradient-to-r from-white to-medical-blue/5 hover:from-medical-blue/5 hover:to-medical-green/5 transition-all duration-300 shadow-sm hover:shadow-md"
-    >
+    <div className="flex items-center justify-between p-5 rounded-xl border border-medical-blue/20 hover:border-medical-blue/40 bg-gradient-to-r from-white to-medical-blue/5 hover:from-medical-blue/5 hover:to-medical-green/5 transition-all duration-300 shadow-sm hover:shadow-md">
       <div className="flex items-center gap-4">
         <Avatar className="w-12 h-12 ring-2 ring-medical-blue/20">
           <AvatarFallback className="bg-gradient-to-r from-medical-blue to-medical-green text-white font-semibold">
@@ -107,12 +103,9 @@ const ConsultationItemComponent: React.FC<ConsultationItemProps> = ({
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <h4 className="font-medium text-foreground">
-              {consultation.patients?.full_name ||
-                'Paciente não encontrado'}
+              {consultation.patients?.full_name || 'Paciente não encontrado'}
             </h4>
-            <Badge variant="outline">
-              {formattedConsultationType}
-            </Badge>
+            <Badge variant="outline">{formattedConsultationType}</Badge>
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
@@ -191,7 +184,7 @@ const Consultations = () => {
 
   useEffect(() => {
     fetchConsultations();
-  }, []);
+  }, [fetchConsultations]);
 
   const fetchConsultations = useCallback(async () => {
     try {

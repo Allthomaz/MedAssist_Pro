@@ -5,6 +5,7 @@ Este módulo é responsável pela geração, formatação e exportação de rela
 ## Visão Geral
 
 O módulo de relatórios oferece:
+
 - Geração automática de relatórios médicos
 - Templates personalizáveis para diferentes tipos de documentos
 - Exportação em múltiplos formatos (PDF, Word, HTML)
@@ -17,6 +18,7 @@ O módulo de relatórios oferece:
 ## Arquitetura de Componentes
 
 ### Estrutura Hierárquica
+
 ```
 Reports
 ├── ReportGenerator (gerador principal)
@@ -39,6 +41,7 @@ Reports
 ## Interfaces de Dados
 
 ### ReportData Interface
+
 ```typescript
 interface ReportData {
   // Identificação
@@ -46,14 +49,14 @@ interface ReportData {
   type: ReportType;
   templateId: string;
   version: string;
-  
+
   // Metadados
   title: string;
   description?: string;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
-  
+
   // Dados do Paciente
   patient: {
     id: string;
@@ -66,7 +69,7 @@ interface ReportData {
     email?: string;
     medicalRecord: string;
   };
-  
+
   // Dados do Médico
   doctor: {
     id: string;
@@ -77,7 +80,7 @@ interface ReportData {
     email: string;
     digitalSignature?: string;
   };
-  
+
   // Dados da Consulta
   consultation?: {
     id: string;
@@ -87,10 +90,10 @@ interface ReportData {
     transcription?: string;
     summary?: string;
   };
-  
+
   // Conteúdo do Relatório
   content: ReportContent;
-  
+
   // Configurações
   settings: {
     format: 'pdf' | 'docx' | 'html';
@@ -101,10 +104,10 @@ interface ReportData {
     pageSize: 'A4' | 'Letter';
     orientation: 'portrait' | 'landscape';
   };
-  
+
   // Status
   status: 'draft' | 'generated' | 'signed' | 'sent';
-  
+
   // Assinatura Digital
   digitalSignature?: {
     hash: string;
@@ -112,7 +115,7 @@ interface ReportData {
     certificate: string;
     isValid: boolean;
   };
-  
+
   // Arquivos Gerados
   files: {
     pdf?: string; // URL do arquivo PDF
@@ -123,6 +126,7 @@ interface ReportData {
 ```
 
 ### ReportType Enum
+
 ```typescript
 enum ReportType {
   MEDICAL_REPORT = 'medical_report',
@@ -134,11 +138,12 @@ enum ReportType {
   PROGRESS_NOTE = 'progress_note',
   CONSULTATION_SUMMARY = 'consultation_summary',
   STATISTICAL_REPORT = 'statistical_report',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 ```
 
 ### ReportContent Interface
+
 ```typescript
 interface ReportContent {
   // Cabeçalho
@@ -149,17 +154,17 @@ interface ReportContent {
     clinicPhone: string;
     clinicEmail: string;
   };
-  
+
   // Seções do Relatório
   sections: ReportSection[];
-  
+
   // Rodapé
   footer?: {
     text: string;
     includePageNumbers: boolean;
     includeGenerationDate: boolean;
   };
-  
+
   // Anexos
   attachments?: {
     id: string;
@@ -181,6 +186,7 @@ interface ReportSection {
 ```
 
 ### Template Interface
+
 ```typescript
 interface ReportTemplate {
   id: string;
@@ -188,14 +194,14 @@ interface ReportTemplate {
   description: string;
   type: ReportType;
   version: string;
-  
+
   // Estrutura do Template
   structure: {
     sections: TemplateSectionDefinition[];
     styles: TemplateStyles;
     layout: TemplateLayout;
   };
-  
+
   // Configurações
   settings: {
     isDefault: boolean;
@@ -203,7 +209,7 @@ interface ReportTemplate {
     allowCustomization: boolean;
     requiredFields: string[];
   };
-  
+
   // Metadados
   createdAt: Date;
   updatedAt: Date;
@@ -269,9 +275,11 @@ interface TemplateLayout {
 ## Componentes Principais
 
 ### ReportGenerator.tsx
+
 **Propósito**: Componente principal para geração de relatórios.
 
 **Funcionalidades**:
+
 - ✅ Seleção de templates
 - ✅ Preenchimento automático de dados
 - ✅ Editor WYSIWYG integrado
@@ -280,30 +288,33 @@ interface TemplateLayout {
 - ✅ Geração em múltiplos formatos
 
 **Implementação**:
+
 ```tsx
 const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   patientId,
   consultationId,
   reportType,
-  onReportGenerated
+  onReportGenerated,
 }) => {
-  const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ReportTemplate | null>(null);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
-  
-  const { templates, loading: templatesLoading } = useReportTemplates(reportType);
+
+  const { templates, loading: templatesLoading } =
+    useReportTemplates(reportType);
   const { patient } = usePatient(patientId);
   const { consultation } = useConsultation(consultationId);
   const { user: doctor } = useAuth();
-  
+
   // Inicialização dos dados do relatório
   useEffect(() => {
     if (patient && doctor && selectedTemplate) {
       initializeReportData();
     }
   }, [patient, doctor, selectedTemplate, consultation]);
-  
+
   const initializeReportData = async () => {
     try {
       const initialData: ReportData = {
@@ -315,7 +326,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         createdAt: new Date(),
         updatedAt: new Date(),
         createdBy: doctor!.id,
-        
+
         patient: {
           id: patient!.id,
           name: patient!.name,
@@ -325,9 +336,9 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           address: patient!.address,
           phone: patient!.phone,
           email: patient!.email,
-          medicalRecord: patient!.medicalRecord
+          medicalRecord: patient!.medicalRecord,
         },
-        
+
         doctor: {
           id: doctor!.id,
           name: doctor!.name,
@@ -335,20 +346,26 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           specialty: doctor!.specialty,
           phone: doctor!.phone,
           email: doctor!.email,
-          digitalSignature: doctor!.digitalSignature
+          digitalSignature: doctor!.digitalSignature,
         },
-        
-        consultation: consultation ? {
-          id: consultation.id,
-          date: consultation.date,
-          duration: consultation.duration,
-          type: consultation.type,
-          transcription: consultation.transcription,
-          summary: consultation.summary
-        } : undefined,
-        
-        content: await generateInitialContent(selectedTemplate!, patient!, consultation),
-        
+
+        consultation: consultation
+          ? {
+              id: consultation.id,
+              date: consultation.date,
+              duration: consultation.duration,
+              type: consultation.type,
+              transcription: consultation.transcription,
+              summary: consultation.summary,
+            }
+          : undefined,
+
+        content: await generateInitialContent(
+          selectedTemplate!,
+          patient!,
+          consultation
+        ),
+
         settings: {
           format: 'pdf',
           template: selectedTemplate!.id,
@@ -356,67 +373,69 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           includeFooter: true,
           includeWatermark: false,
           pageSize: 'A4',
-          orientation: 'portrait'
+          orientation: 'portrait',
         },
-        
+
         status: 'draft',
-        files: {}
+        files: {},
       };
-      
+
       setReportData(initialData);
     } catch (error) {
       console.error('Erro ao inicializar dados do relatório:', error);
       toast.error('Erro ao carregar dados do relatório');
     }
   };
-  
+
   const generateInitialContent = async (
     template: ReportTemplate,
     patient: Patient,
     consultation?: Consultation
   ): Promise<ReportContent> => {
     const sections: ReportSection[] = [];
-    
+
     for (const sectionDef of template.structure.sections) {
       let content = '';
-      
+
       // Preenchimento automático baseado no tipo de seção
       switch (sectionDef.id) {
         case 'patient_identification':
           content = `Nome: ${patient.name}\nCPF: ${patient.cpf}\nData de Nascimento: ${formatDate(patient.birthDate)}\nSexo: ${patient.gender}`;
           break;
-          
+
         case 'consultation_summary':
           if (consultation?.summary) {
             content = consultation.summary;
           } else if (consultation?.transcription) {
             // Usar IA para gerar resumo da transcrição
-            content = await generateSummaryFromTranscription(consultation.transcription);
+            content = await generateSummaryFromTranscription(
+              consultation.transcription
+            );
           }
           break;
-          
+
         case 'medical_history':
           // Buscar histórico médico do paciente
           const history = await getMedicalHistory(patient.id);
           content = formatMedicalHistory(history);
           break;
-          
+
         case 'diagnosis':
           if (consultation?.diagnosis) {
             content = consultation.diagnosis;
           }
           break;
-          
+
         case 'treatment_plan':
           if (consultation?.treatmentPlan) {
             content = consultation.treatmentPlan;
           }
           break;
-          
+
         default:
           content = sectionDef.placeholder;
       }
-      
+
       sections.push({
         id: sectionDef.id,
         title: sectionDef.title,
@@ -424,84 +443,85 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         content,
         order: sectionDef.order,
         required: sectionDef.required,
-        editable: true
+        editable: true,
       });
     }
-    
+
     return {
       header: {
         logo: doctor!.clinicLogo,
         clinicName: doctor!.clinicName,
         clinicAddress: doctor!.clinicAddress,
         clinicPhone: doctor!.clinicPhone,
-        clinicEmail: doctor!.clinicEmail
+        clinicEmail: doctor!.clinicEmail,
       },
       sections: sections.sort((a, b) => a.order - b.order),
       footer: {
         text: `Documento gerado em ${formatDateTime(new Date())} - Doctor Brief AI`,
         includePageNumbers: true,
-        includeGenerationDate: true
-      }
+        includeGenerationDate: true,
+      },
     };
   };
-  
+
   const handleSectionUpdate = (sectionId: string, newContent: any) => {
     if (!reportData) return;
-    
-    const updatedSections = reportData.content.sections.map(section => 
-      section.id === sectionId 
-        ? { ...section, content: newContent }
-        : section
+
+    const updatedSections = reportData.content.sections.map(section =>
+      section.id === sectionId ? { ...section, content: newContent } : section
     );
-    
+
     setReportData({
       ...reportData,
       content: {
         ...reportData.content,
-        sections: updatedSections
+        sections: updatedSections,
       },
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
   };
-  
+
   const generateReport = async (format: 'pdf' | 'docx' | 'html' = 'pdf') => {
     if (!reportData) return;
-    
+
     setIsGenerating(true);
-    
+
     try {
       // Validar campos obrigatórios
       const validation = validateReportData(reportData);
       if (!validation.isValid) {
-        toast.error(`Campos obrigatórios não preenchidos: ${validation.missingFields.join(', ')}`);
+        toast.error(
+          `Campos obrigatórios não preenchidos: ${validation.missingFields.join(', ')}`
+        );
         return;
       }
-      
+
       // Gerar relatório
       const result = await reportService.generateReport(reportData, format);
-      
+
       // Atualizar dados com arquivo gerado
       const updatedReportData = {
         ...reportData,
         status: 'generated' as const,
         files: {
           ...reportData.files,
-          [format]: result.fileUrl
+          [format]: result.fileUrl,
         },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
-      
+
       setReportData(updatedReportData);
-      
+
       // Salvar no banco de dados
       await reportService.saveReport(updatedReportData);
-      
-      toast.success(`Relatório gerado com sucesso em formato ${format.toUpperCase()}`);
-      
+
+      toast.success(
+        `Relatório gerado com sucesso em formato ${format.toUpperCase()}`
+      );
+
       if (onReportGenerated) {
         onReportGenerated(updatedReportData);
       }
-      
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
       toast.error('Erro ao gerar relatório. Tente novamente.');
@@ -509,17 +529,17 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       setIsGenerating(false);
     }
   };
-  
+
   const downloadReport = async (format: 'pdf' | 'docx' | 'html') => {
     if (!reportData?.files[format]) {
       await generateReport(format);
       return;
     }
-    
+
     try {
       const response = await fetch(reportData.files[format]!);
       const blob = await response.blob();
-      
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -528,17 +548,16 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
     } catch (error) {
       console.error('Erro ao baixar relatório:', error);
       toast.error('Erro ao baixar relatório');
     }
   };
-  
+
   if (templatesLoading) {
     return <ReportGeneratorSkeleton />;
   }
-  
+
   return (
     <div className="report-generator">
       <div className="report-header">
@@ -546,7 +565,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           <h2>Gerador de Relatórios</h2>
           <p>Tipo: {getReportTypeLabel(reportType)}</p>
         </div>
-        
+
         <div className="report-actions">
           <div className="view-toggle">
             <Button
@@ -564,7 +583,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               Visualizar
             </Button>
           </div>
-          
+
           <div className="generation-actions">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -595,7 +614,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="report-content">
         {!selectedTemplate ? (
           <TemplateSelector
@@ -608,20 +627,22 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             <div className="editor-sidebar">
               <ReportSettings
                 settings={reportData?.settings}
-                onSettingsChange={(settings) => 
-                  setReportData(prev => prev ? { ...prev, settings } : null)
+                onSettingsChange={settings =>
+                  setReportData(prev => (prev ? { ...prev, settings } : null))
                 }
               />
-              
+
               <SectionNavigator
                 sections={reportData?.content.sections || []}
-                onSectionClick={(sectionId) => {
-                  const element = document.getElementById(`section-${sectionId}`);
+                onSectionClick={sectionId => {
+                  const element = document.getElementById(
+                    `section-${sectionId}`
+                  );
                   element?.scrollIntoView({ behavior: 'smooth' });
                 }}
               />
             </div>
-            
+
             <div className="editor-main">
               {previewMode === 'edit' ? (
                 <ReportEditor
@@ -646,9 +667,11 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 ```
 
 ### ReportEditor.tsx
+
 **Propósito**: Editor WYSIWYG para edição de conteúdo do relatório.
 
 **Funcionalidades**:
+
 - ✅ Editor de texto rico (TinyMCE/Quill)
 - ✅ Inserção de tabelas e listas
 - ✅ Upload de imagens
@@ -661,15 +684,17 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
   reportData,
   template,
   onSectionUpdate,
-  onDataUpdate
+  onDataUpdate,
 }) => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
-  
+  const [autoSaveStatus, setAutoSaveStatus] = useState<
+    'saved' | 'saving' | 'error'
+  >('saved');
+
   // Auto-save a cada 30 segundos
   useEffect(() => {
     if (!reportData) return;
-    
+
     const interval = setInterval(async () => {
       try {
         setAutoSaveStatus('saving');
@@ -680,41 +705,43 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
         console.error('Erro no auto-save:', error);
       }
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, [reportData]);
-  
+
   const handleSectionContentChange = (sectionId: string, content: any) => {
     onSectionUpdate(sectionId, content);
     setAutoSaveStatus('saving');
-    
+
     // Debounce para evitar muitas chamadas
     clearTimeout(window.autoSaveTimeout);
     window.autoSaveTimeout = setTimeout(() => {
       setAutoSaveStatus('saved');
     }, 1000);
   };
-  
-  const insertAIGeneratedContent = async (sectionId: string, prompt: string) => {
+
+  const insertAIGeneratedContent = async (
+    sectionId: string,
+    prompt: string
+  ) => {
     try {
       const aiContent = await reportService.generateContentWithAI({
         prompt,
         context: {
           patientName: reportData!.patient.name,
           consultationSummary: reportData!.consultation?.summary,
-          reportType: reportData!.type
-        }
+          reportType: reportData!.type,
+        },
       });
-      
+
       handleSectionContentChange(sectionId, aiContent);
       toast.success('Conteúdo gerado com IA inserido com sucesso');
-      
     } catch (error) {
       console.error('Erro ao gerar conteúdo com IA:', error);
       toast.error('Erro ao gerar conteúdo com IA');
     }
   };
-  
+
   return (
     <div className="report-editor">
       <div className="editor-header">
@@ -741,7 +768,7 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
             )}
           </div>
         </div>
-        
+
         <div className="editor-tools">
           <Button
             variant="outline"
@@ -753,7 +780,7 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
             <History className="w-4 h-4 mr-2" />
             Histórico
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -766,9 +793,9 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
           </Button>
         </div>
       </div>
-      
+
       <div className="editor-content">
-        {reportData?.content.sections.map((section) => (
+        {reportData?.content.sections.map(section => (
           <div
             key={section.id}
             id={`section-${section.id}`}
@@ -780,7 +807,7 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
               {section.required && (
                 <span className="required-indicator">*</span>
               )}
-              
+
               <div className="section-actions">
                 <Button
                   variant="ghost"
@@ -793,7 +820,7 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
                   <Sparkles className="w-4 h-4 mr-1" />
                   IA
                 </Button>
-                
+
                 {section.type === 'table' && (
                   <Button
                     variant="ghost"
@@ -806,7 +833,7 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
                     Tabela
                   </Button>
                 )}
-                
+
                 {section.type === 'image' && (
                   <Button
                     variant="ghost"
@@ -821,41 +848,62 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
                 )}
               </div>
             </div>
-            
+
             <div className="section-content">
               {section.type === 'text' && (
                 <RichTextEditor
                   value={section.content}
-                  onChange={(content) => handleSectionContentChange(section.id, content)}
+                  onChange={content =>
+                    handleSectionContentChange(section.id, content)
+                  }
                   placeholder={`Digite o conteúdo para ${section.title}...`}
                   toolbar={[
-                    'bold', 'italic', 'underline', 'strikethrough',
-                    '|', 'h1', 'h2', 'h3',
-                    '|', 'bulletlist', 'orderedlist',
-                    '|', 'link', 'image', 'table',
-                    '|', 'undo', 'redo'
+                    'bold',
+                    'italic',
+                    'underline',
+                    'strikethrough',
+                    '|',
+                    'h1',
+                    'h2',
+                    'h3',
+                    '|',
+                    'bulletlist',
+                    'orderedlist',
+                    '|',
+                    'link',
+                    'image',
+                    'table',
+                    '|',
+                    'undo',
+                    'redo',
                   ]}
                 />
               )}
-              
+
               {section.type === 'table' && (
                 <TableEditor
                   data={section.content}
-                  onChange={(content) => handleSectionContentChange(section.id, content)}
+                  onChange={content =>
+                    handleSectionContentChange(section.id, content)
+                  }
                 />
               )}
-              
+
               {section.type === 'list' && (
                 <ListEditor
                   items={section.content}
-                  onChange={(content) => handleSectionContentChange(section.id, content)}
+                  onChange={content =>
+                    handleSectionContentChange(section.id, content)
+                  }
                 />
               )}
-              
+
               {section.type === 'image' && (
                 <ImageUploader
                   images={section.content}
-                  onChange={(content) => handleSectionContentChange(section.id, content)}
+                  onChange={content =>
+                    handleSectionContentChange(section.id, content)
+                  }
                   maxFiles={5}
                   acceptedTypes={['image/jpeg', 'image/png', 'image/gif']}
                 />
@@ -870,9 +918,11 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
 ```
 
 ### PDFFormatter.tsx
+
 **Propósito**: Formatador para geração de documentos PDF.
 
 **Funcionalidades**:
+
 - ✅ Geração de PDF com jsPDF/Puppeteer
 - ✅ Templates responsivos
 - ✅ Cabeçalhos e rodapés personalizados
@@ -883,17 +933,19 @@ const ReportEditor: React.FC<ReportEditorProps> = ({
 ```tsx
 class PDFFormatter {
   private puppeteer: any;
-  
+
   constructor() {
     // Inicializar Puppeteer para renderização server-side
     this.initializePuppeteer();
   }
-  
-  async generatePDF(reportData: ReportData): Promise<{ buffer: Buffer; url: string }> {
+
+  async generatePDF(
+    reportData: ReportData
+  ): Promise<{ buffer: Buffer; url: string }> {
     try {
       // Gerar HTML do relatório
       const html = await this.generateHTML(reportData);
-      
+
       // Configurações do PDF
       const pdfOptions = {
         format: reportData.settings.pageSize,
@@ -902,53 +954,58 @@ class PDFFormatter {
           top: '2cm',
           right: '2cm',
           bottom: '2cm',
-          left: '2cm'
+          left: '2cm',
         },
-        displayHeaderFooter: reportData.settings.includeHeader || reportData.settings.includeFooter,
-        headerTemplate: reportData.settings.includeHeader ? this.generateHeaderHTML(reportData) : '',
-        footerTemplate: reportData.settings.includeFooter ? this.generateFooterHTML(reportData) : '',
-        printBackground: true
+        displayHeaderFooter:
+          reportData.settings.includeHeader ||
+          reportData.settings.includeFooter,
+        headerTemplate: reportData.settings.includeHeader
+          ? this.generateHeaderHTML(reportData)
+          : '',
+        footerTemplate: reportData.settings.includeFooter
+          ? this.generateFooterHTML(reportData)
+          : '',
+        printBackground: true,
       };
-      
+
       // Gerar PDF com Puppeteer
       const browser = await this.puppeteer.launch({ headless: true });
       const page = await browser.newPage();
-      
+
       await page.setContent(html, { waitUntil: 'networkidle0' });
-      
+
       const pdfBuffer = await page.pdf(pdfOptions);
-      
+
       await browser.close();
-      
+
       // Upload para Supabase Storage
       const fileName = `reports/${reportData.id}/${Date.now()}.pdf`;
       const { data, error } = await supabase.storage
         .from('documents')
         .upload(fileName, pdfBuffer, {
           contentType: 'application/pdf',
-          upsert: true
+          upsert: true,
         });
-      
+
       if (error) throw error;
-      
+
       const { data: urlData } = supabase.storage
         .from('documents')
         .getPublicUrl(fileName);
-      
+
       return {
         buffer: pdfBuffer,
-        url: urlData.publicUrl
+        url: urlData.publicUrl,
       };
-      
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       throw new Error('Falha na geração do PDF');
     }
   }
-  
+
   private async generateHTML(reportData: ReportData): Promise<string> {
     const styles = this.generateCSS(reportData);
-    
+
     let html = `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -960,36 +1017,39 @@ class PDFFormatter {
       </head>
       <body>
     `;
-    
+
     // Cabeçalho do documento
     if (reportData.content.header) {
-      html += this.generateDocumentHeader(reportData.content.header, reportData);
+      html += this.generateDocumentHeader(
+        reportData.content.header,
+        reportData
+      );
     }
-    
+
     // Conteúdo principal
     html += '<div class="document-content">';
-    
+
     for (const section of reportData.content.sections) {
       html += this.generateSectionHTML(section);
     }
-    
+
     html += '</div>';
-    
+
     // Rodapé do documento
     if (reportData.content.footer) {
       html += this.generateDocumentFooter(reportData.content.footer);
     }
-    
+
     // Marca d'água
     if (reportData.settings.includeWatermark) {
       html += this.generateWatermark();
     }
-    
+
     html += '</body></html>';
-    
+
     return html;
   }
-  
+
   private generateCSS(reportData: ReportData): string {
     return `
       @page {
@@ -1117,7 +1177,7 @@ class PDFFormatter {
       }
     `;
   }
-  
+
   private generateDocumentHeader(header: any, reportData: ReportData): string {
     return `
       <div class="document-header">
@@ -1150,45 +1210,45 @@ class PDFFormatter {
       </div>
     `;
   }
-  
+
   private generateSectionHTML(section: ReportSection): string {
     let html = `
       <div class="section">
         <h3 class="section-title">${section.title}</h3>
         <div class="section-content">
     `;
-    
+
     switch (section.type) {
       case 'text':
         html += `<div>${section.content}</div>`;
         break;
-        
+
       case 'table':
         html += this.generateTableHTML(section.content);
         break;
-        
+
       case 'list':
         html += this.generateListHTML(section.content);
         break;
-        
+
       case 'image':
         html += this.generateImageHTML(section.content);
         break;
-        
+
       default:
         html += `<div>${section.content}</div>`;
     }
-    
+
     html += '</div></div>';
-    
+
     return html;
   }
-  
+
   private generateTableHTML(tableData: any): string {
     if (!tableData || !tableData.rows) return '';
-    
+
     let html = '<table>';
-    
+
     // Cabeçalho
     if (tableData.headers) {
       html += '<thead><tr>';
@@ -1197,7 +1257,7 @@ class PDFFormatter {
       });
       html += '</tr></thead>';
     }
-    
+
     // Linhas
     html += '<tbody>';
     tableData.rows.forEach((row: any[]) => {
@@ -1208,29 +1268,29 @@ class PDFFormatter {
       html += '</tr>';
     });
     html += '</tbody>';
-    
+
     html += '</table>';
-    
+
     return html;
   }
-  
+
   private generateListHTML(listData: any): string {
     if (!listData || !Array.isArray(listData.items)) return '';
-    
+
     const tag = listData.ordered ? 'ol' : 'ul';
-    
+
     let html = `<${tag}>`;
     listData.items.forEach((item: string) => {
       html += `<li>${item}</li>`;
     });
     html += `</${tag}>`;
-    
+
     return html;
   }
-  
+
   private generateImageHTML(imageData: any): string {
     if (!imageData || !Array.isArray(imageData)) return '';
-    
+
     let html = '<div class="images">';
     imageData.forEach((image: any) => {
       html += `
@@ -1241,10 +1301,10 @@ class PDFFormatter {
       `;
     });
     html += '</div>';
-    
+
     return html;
   }
-  
+
   private generateDocumentFooter(footer: any): string {
     return `
       <div class="document-footer">
@@ -1263,11 +1323,11 @@ class PDFFormatter {
       </div>
     `;
   }
-  
+
   private generateWatermark(): string {
     return '<div class="watermark">CONFIDENCIAL</div>';
   }
-  
+
   private getReportTypeTitle(type: ReportType): string {
     const titles = {
       [ReportType.MEDICAL_REPORT]: 'RELATÓRIO MÉDICO',
@@ -1279,9 +1339,9 @@ class PDFFormatter {
       [ReportType.PROGRESS_NOTE]: 'EVOLUÇÃO MÉDICA',
       [ReportType.CONSULTATION_SUMMARY]: 'RESUMO DE CONSULTA',
       [ReportType.STATISTICAL_REPORT]: 'RELATÓRIO ESTATÍSTICO',
-      [ReportType.CUSTOM]: 'DOCUMENTO PERSONALIZADO'
+      [ReportType.CUSTOM]: 'DOCUMENTO PERSONALIZADO',
     };
-    
+
     return titles[type] || 'DOCUMENTO MÉDICO';
   }
 }
@@ -1292,6 +1352,7 @@ export const pdfFormatter = new PDFFormatter();
 ## Serviços e Integrações
 
 ### ReportService
+
 **Localização**: `src/services/reportService.ts`
 
 **Funcionalidades Principais**:
@@ -1299,14 +1360,17 @@ export const pdfFormatter = new PDFFormatter();
 ```typescript
 class ReportService {
   private cache = new Map<string, any>();
-  
+
   /**
    * Gera um relatório completo
    */
-  async generateReport(reportData: ReportData, format: 'pdf' | 'docx' | 'html'): Promise<{ fileUrl: string; fileName: string }> {
+  async generateReport(
+    reportData: ReportData,
+    format: 'pdf' | 'docx' | 'html'
+  ): Promise<{ fileUrl: string; fileName: string }> {
     try {
       let result;
-      
+
       switch (format) {
         case 'pdf':
           result = await pdfFormatter.generatePDF(reportData);
@@ -1320,36 +1384,33 @@ class ReportService {
         default:
           throw new Error(`Formato não suportado: ${format}`);
       }
-      
+
       // Registrar geração no log de auditoria
       await this.logReportGeneration(reportData, format, result.url);
-      
+
       return {
         fileUrl: result.url,
-        fileName: `${reportData.title}.${format}`
+        fileName: `${reportData.title}.${format}`,
       };
-      
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
       throw error;
     }
   }
-  
+
   /**
    * Salva rascunho do relatório
    */
   async saveReportDraft(reportData: ReportData): Promise<void> {
-    const { error } = await supabase
-      .from('report_drafts')
-      .upsert({
-        id: reportData.id,
-        data: reportData,
-        updated_at: new Date().toISOString()
-      });
-    
+    const { error } = await supabase.from('report_drafts').upsert({
+      id: reportData.id,
+      data: reportData,
+      updated_at: new Date().toISOString(),
+    });
+
     if (error) throw error;
   }
-  
+
   /**
    * Carrega rascunho do relatório
    */
@@ -1359,86 +1420,84 @@ class ReportService {
       .select('data')
       .eq('id', reportId)
       .single();
-    
+
     if (error) {
       if (error.code === 'PGRST116') return null; // Não encontrado
       throw error;
     }
-    
+
     return data.data;
   }
-  
+
   /**
    * Salva relatório finalizado
    */
   async saveReport(reportData: ReportData): Promise<void> {
-    const { error } = await supabase
-      .from('reports')
-      .upsert({
-        id: reportData.id,
-        type: reportData.type,
-        title: reportData.title,
-        patient_id: reportData.patient.id,
-        doctor_id: reportData.doctor.id,
-        consultation_id: reportData.consultation?.id,
-        data: reportData,
-        status: reportData.status,
-        created_at: reportData.createdAt.toISOString(),
-        updated_at: reportData.updatedAt.toISOString()
-      });
-    
+    const { error } = await supabase.from('reports').upsert({
+      id: reportData.id,
+      type: reportData.type,
+      title: reportData.title,
+      patient_id: reportData.patient.id,
+      doctor_id: reportData.doctor.id,
+      consultation_id: reportData.consultation?.id,
+      data: reportData,
+      status: reportData.status,
+      created_at: reportData.createdAt.toISOString(),
+      updated_at: reportData.updatedAt.toISOString(),
+    });
+
     if (error) throw error;
-    
+
     // Remover rascunho após salvar
-    await supabase
-      .from('report_drafts')
-      .delete()
-      .eq('id', reportData.id);
+    await supabase.from('report_drafts').delete().eq('id', reportData.id);
   }
-  
+
   /**
    * Lista relatórios do médico
    */
-  async getReports(doctorId: string, filters?: {
-    type?: ReportType;
-    patientId?: string;
-    dateFrom?: Date;
-    dateTo?: Date;
-    status?: string;
-  }): Promise<ReportData[]> {
+  async getReports(
+    doctorId: string,
+    filters?: {
+      type?: ReportType;
+      patientId?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+      status?: string;
+    }
+  ): Promise<ReportData[]> {
     let query = supabase
       .from('reports')
       .select('*')
       .eq('doctor_id', doctorId)
       .order('created_at', { ascending: false });
-    
+
     if (filters?.type) {
       query = query.eq('type', filters.type);
     }
-    
+
     if (filters?.patientId) {
       query = query.eq('patient_id', filters.patientId);
     }
-    
+
     if (filters?.dateFrom) {
       query = query.gte('created_at', filters.dateFrom.toISOString());
     }
-    
+
     if (filters?.dateTo) {
       query = query.lte('created_at', filters.dateTo.toISOString());
     }
-    
+
     if (filters?.status) {
       query = query.eq('status', filters.status);
     }
-    
+
     const { data, error } = await query;
-    
+
     if (error) throw error;
-    
+
     return data.map(item => item.data);
   }
-  
+
   /**
    * Gera conteúdo com IA
    */
@@ -1455,67 +1514,66 @@ class ReportService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await getAuthToken()}`
+          Authorization: `Bearer ${await getAuthToken()}`,
         },
         body: JSON.stringify({
           prompt: params.prompt,
           context: params.context,
           model: 'gpt-4',
-          maxTokens: 1000
-        })
+          maxTokens: 1000,
+        }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Erro na API de IA');
       }
-      
+
       const result = await response.json();
       return result.content;
-      
     } catch (error) {
       console.error('Erro ao gerar conteúdo com IA:', error);
       throw error;
     }
   }
-  
+
   /**
    * Aplica assinatura digital
    */
-  async applyDigitalSignature(reportId: string, certificateData: any): Promise<void> {
+  async applyDigitalSignature(
+    reportId: string,
+    certificateData: any
+  ): Promise<void> {
     try {
       // Gerar hash do documento
       const reportData = await this.getReport(reportId);
       const documentHash = await this.generateDocumentHash(reportData);
-      
+
       // Aplicar assinatura
       const signature = await this.signDocument(documentHash, certificateData);
-      
+
       // Salvar assinatura
-      const { error } = await supabase
-        .from('report_signatures')
-        .insert({
-          report_id: reportId,
-          hash: documentHash,
-          signature: signature,
-          certificate: certificateData.certificate,
-          timestamp: new Date().toISOString(),
-          is_valid: true
-        });
-      
+      const { error } = await supabase.from('report_signatures').insert({
+        report_id: reportId,
+        hash: documentHash,
+        signature: signature,
+        certificate: certificateData.certificate,
+        timestamp: new Date().toISOString(),
+        is_valid: true,
+      });
+
       if (error) throw error;
-      
+
       // Atualizar status do relatório
       await supabase
         .from('reports')
         .update({ status: 'signed' })
         .eq('id', reportId);
-        
     } catch (error) {
       console.error('Erro ao aplicar assinatura digital:', error);
       throw error;
     }
   }
-  
+
   /**
    * Valida assinatura digital
    */
@@ -1526,28 +1584,29 @@ class ReportService {
         .select('*')
         .eq('report_id', reportId)
         .single();
-      
+
       if (error) return false;
-      
+
       // Verificar integridade do documento
       const reportData = await this.getReport(reportId);
       const currentHash = await this.generateDocumentHash(reportData);
-      
+
       if (currentHash !== data.hash) {
         return false; // Documento foi modificado
       }
-      
+
       // Verificar validade do certificado
-      const isValidCertificate = await this.validateCertificate(data.certificate);
-      
+      const isValidCertificate = await this.validateCertificate(
+        data.certificate
+      );
+
       return isValidCertificate;
-      
     } catch (error) {
       console.error('Erro ao validar assinatura:', error);
       return false;
     }
   }
-  
+
   private async generateDocumentHash(reportData: ReportData): Promise<string> {
     const content = JSON.stringify(reportData.content);
     const encoder = new TextEncoder();
@@ -1556,23 +1615,25 @@ class ReportService {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
-  
-  private async logReportGeneration(reportData: ReportData, format: string, fileUrl: string): Promise<void> {
-    await supabase
-      .from('audit_logs')
-      .insert({
-        action: 'report_generated',
-        entity_type: 'report',
-        entity_id: reportData.id,
-        user_id: reportData.createdBy,
-        metadata: {
-          reportType: reportData.type,
-          format,
-          fileUrl,
-          patientId: reportData.patient.id
-        },
-        timestamp: new Date().toISOString()
-      });
+
+  private async logReportGeneration(
+    reportData: ReportData,
+    format: string,
+    fileUrl: string
+  ): Promise<void> {
+    await supabase.from('audit_logs').insert({
+      action: 'report_generated',
+      entity_type: 'report',
+      entity_id: reportData.id,
+      user_id: reportData.createdBy,
+      metadata: {
+        reportType: reportData.type,
+        format,
+        fileUrl,
+        patientId: reportData.patient.id,
+      },
+      timestamp: new Date().toISOString(),
+    });
   }
 }
 
@@ -1582,6 +1643,7 @@ export const reportService = new ReportService();
 ## Configuração e Deploy
 
 ### Variáveis de Ambiente
+
 ```env
 # Relatórios
 VITE_ENABLE_AI_CONTENT_GENERATION=true
@@ -1604,27 +1666,28 @@ VITE_ENABLE_REPORT_PREVIEW_CACHE=true
 ## Uso Prático
 
 ### Exemplo: Geração de Relatório Médico
+
 ```tsx
 import { ReportGenerator } from './components/reports/ReportGenerator';
 import { ReportType } from './types/report';
 
 function ConsultationReportPage() {
   const { consultationId, patientId } = useParams();
-  
+
   const handleReportGenerated = (reportData: ReportData) => {
     toast.success('Relatório gerado com sucesso!');
-    
+
     // Navegar para visualização ou lista de relatórios
     navigate(`/reports/${reportData.id}`);
   };
-  
+
   return (
     <div className="consultation-report-page">
-      <PageHeader 
+      <PageHeader
         title="Gerar Relatório de Consulta"
         subtitle="Crie um relatório detalhado da consulta realizada"
       />
-      
+
       <ReportGenerator
         patientId={patientId!}
         consultationId={consultationId!}
@@ -1639,31 +1702,32 @@ function ConsultationReportPage() {
 ## Testes
 
 ### Testes de Geração
+
 ```typescript
 describe('Report Generation', () => {
   test('should generate PDF report successfully', async () => {
     const mockReportData: ReportData = {
       // ... dados de teste
     };
-    
+
     const result = await reportService.generateReport(mockReportData, 'pdf');
-    
+
     expect(result.fileUrl).toBeDefined();
     expect(result.fileName).toContain('.pdf');
-    
+
     // Verificar se o arquivo foi criado
     const response = await fetch(result.fileUrl);
     expect(response.ok).toBe(true);
     expect(response.headers.get('content-type')).toBe('application/pdf');
   });
-  
+
   test('should validate required fields', () => {
     const incompleteReportData = {
       // ... dados incompletos
     };
-    
+
     const validation = validateReportData(incompleteReportData);
-    
+
     expect(validation.isValid).toBe(false);
     expect(validation.missingFields).toContain('patient.name');
   });
@@ -1673,6 +1737,7 @@ describe('Report Generation', () => {
 ## Roadmap
 
 ### Próximas Funcionalidades
+
 - [ ] Templates visuais drag & drop
 - [ ] Integração com sistemas de gestão hospitalar
 - [ ] Relatórios colaborativos
@@ -1680,6 +1745,7 @@ describe('Report Generation', () => {
 - [ ] Integração com blockchain para autenticidade
 
 ### Melhorias Planejadas
+
 - [ ] OCR para digitalização de documentos
 - [ ] Reconhecimento de voz para ditado
 - [ ] Templates inteligentes com IA
@@ -1689,6 +1755,7 @@ describe('Report Generation', () => {
 ## Contribuição
 
 Para contribuir com este módulo:
+
 1. **Conformidade**: Sempre seguir padrões médicos (CFM, SBIS)
 2. **Segurança**: Implementar criptografia e assinatura digital
 3. **Performance**: Otimizar geração de documentos grandes
@@ -1698,6 +1765,7 @@ Para contribuir com este módulo:
 ## Suporte
 
 Para problemas relacionados a relatórios:
+
 1. Verificar logs de geração de documentos
 2. Validar templates e estruturas de dados
 3. Testar conectividade com serviços de IA
@@ -1705,6 +1773,7 @@ Para problemas relacionados a relatórios:
 5. Verificar certificados digitais
 
 ### Contatos Especializados
+
 - **Templates**: templates@doctorbriefai.com
 - **Assinatura Digital**: security@doctorbriefai.com
 - **Performance**: performance@doctorbriefai.com
