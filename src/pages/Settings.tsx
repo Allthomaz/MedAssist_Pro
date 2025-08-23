@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { N8nIntegrationSettings } from '@/components/settings/N8nIntegrationSettings';
+import { SentryTest } from '@/components/test/SentryTest';
 import {
   Settings as SettingsIcon,
   User,
@@ -450,7 +451,10 @@ export default function Settings() {
 
           {/* Integrações */}
           <TabsContent value="integrations" className="space-y-6">
-            <N8nIntegrationSettings onSaved={handleSave} />
+            <div className="grid gap-6">
+              <SentryTest />
+              <N8nIntegrationSettings onSaved={handleSave} />
+            </div>
           </TabsContent>
         </Tabs>
 
