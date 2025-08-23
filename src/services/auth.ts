@@ -265,30 +265,12 @@ export const authService = {
       );
     }
 
-    // If signup successful, create profile
+    // Profile creation is handled automatically by database trigger
+    // The trigger 'on_auth_user_created' will create the profile using raw_user_meta_data
     if (data.user && !error) {
       console.log(
-        `AuthService: Criando perfil para o usuário: ${data.user.id}`
+        'AuthService: Usuário cadastrado com sucesso. Perfil será criado automaticamente pelo trigger do banco.'
       );
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        full_name: sanitizedFullName,
-        role: role,
-        email: sanitizedEmail,
-      });
-
-      if (profileError) {
-        console.error('AuthService: Erro ao criar perfil do usuário:', {
-          userId: data.user.id,
-          message: profileError.message,
-          code: profileError.code,
-        });
-        // Opcional: decidir se o erro de perfil deve reverter o cadastro
-      } else {
-        console.log(
-          `AuthService: Perfil criado com sucesso para o usuário: ${data.user.id}`
-        );
-      }
     }
 
     return { user: data.user, session: data.session, error };
