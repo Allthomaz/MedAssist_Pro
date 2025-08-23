@@ -27,20 +27,9 @@ import { useAuth } from '@/hooks/useAuth';
  * }
  * ```
  * 
- * @example
- * ```tsx
- * // Hook é usado automaticamente em componentes que precisam das preferências
- * function App() {
- *   // As preferências são aplicadas automaticamente quando o hook é usado
- *   useThemePreferences();
  * 
- *   return (
- *     <div className="app">
- *       {/* Conteúdo principal da aplicação */}
- *     </div>
- *   );
- * }
- * ```
+ * // O bloco @example com sintaxe JSX foi removido para evitar erros de build.
+
  */
 export const useThemePreferences = () => {
   const { setTheme } = useTheme();
