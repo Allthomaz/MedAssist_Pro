@@ -36,8 +36,7 @@ import { useAuth } from '@/hooks/useAuth';
  * 
  *   return (
  *     <div className="app">
- *       {/* O tema e modo compacto são aplicados automaticamente */}
- *       <MainContent />
+ *       {/* Conteúdo principal da aplicação */}
  *     </div>
  *   );
  * }
