@@ -15,25 +15,21 @@ import {
   Activity,
   BarChart3,
   TrendingUp,
-
   Users,
   Calendar,
   FileText,
   Clock,
   Heart,
-  Stethoscope,
-
+  Activity,
   Target,
   Award,
   AlertCircle,
   CheckCircle,
   Download,
-
   RefreshCw,
   PieChart,
   LineChart,
   BarChart,
-
   UserCheck,
   CalendarCheck,
   FileCheck,
@@ -114,7 +110,7 @@ export default function Analytics() {
       type: 'consultation',
       count: 23,
       label: 'Consultas Hoje',
-      icon: Stethoscope,
+      icon: Activity,
     },
     {
       type: 'documents',

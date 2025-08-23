@@ -21,9 +21,7 @@ import { Alert } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import {
-
-} from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 interface TestUser {
   email: string;
@@ -41,7 +39,7 @@ interface DatabaseTest {
 }
 
 const AuthTest: React.FC = () => {
-  const { user, profile, session, signIn, signUp, signOut } = useAuth();
+  const { user, profile, signIn, signUp, signOut } = useAuth();
   const [testUsers] = useState<TestUser[]>([
     {
       email: 'medico.teste@example.com',
@@ -66,7 +64,6 @@ const AuthTest: React.FC = () => {
     },
   ]);
 
-  const [selectedUser, setSelectedUser] = useState<TestUser | null>(null);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [databaseTests, setDatabaseTests] = useState<DatabaseTest[]>([]);
@@ -411,7 +408,7 @@ const AuthTest: React.FC = () => {
               <Card key={index} className="border-2">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Stethoscope className="h-4 w-4" />
+                    <Activity className="h-4 w-4" />
                     {testUser.fullName}
                   </CardTitle>
                   <Badge

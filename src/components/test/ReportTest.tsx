@@ -6,8 +6,7 @@ import {
   AlertCircle,
   CheckCircle,
   User,
-  Calendar,
-  Stethoscope,
+  Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,8 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ReportService } from '@/services/reportService';
-import { supabase } from '@/integrations/supabase/client';
 
 interface MockPatient {
   id: string;
@@ -481,7 +478,7 @@ const ReportTest: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Stethoscope className="h-5 w-5" />
+              <Activity className="h-5 w-5" />
               Dados da Consulta
             </CardTitle>
             <CardDescription>Informações da consulta médica</CardDescription>

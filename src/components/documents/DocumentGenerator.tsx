@@ -10,7 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { PDFContentItem } from '@/types/common';
 import {
-  Upload,
   FileText,
   Brain,
   Loader2,
@@ -59,67 +58,75 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
           reader.readAsText(file);
         });
       } else if (file.type === 'application/pdf') {
-        return new Promise(async (resolve, reject) => {
-          try {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer })
-              .promise;
-            let text = '';
+        return new Promise((resolve, reject) => {
+          (async () => {
+            try {
+              const arrayBuffer = await file.arrayBuffer();
+              const pdf = await pdfjsLib.getDocument({ data: arrayBuffer })
+                .promise;
+              let text = '';
 
-            for (let i = 1; i <= pdf.numPages; i++) {
-              const page = await pdf.getPage(i);
-              const content = await page.getTextContent();
-              const pageText = content.items
-                .filter(
-                  (item): item is PDFContentItem =>
-                    'str' in item &&
-                    typeof (item as PDFContentItem).str === 'string'
+              for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const pageText = content.items
+                  .filter(
+                    (item): item is PDFContentItem =>
+                      'str' in item &&
+                      typeof (item as PDFContentItem).str === 'string'
+                  )
+                  .map(item => ('str' in item ? item.str : undefined))
+                  .join(' ');
+                text += pageText + '\n';
+              }
+
+              if (!text.trim()) {
+                reject(new Error('Não foi possível extrair texto do PDF'));
+                return;
+              }
+
+              resolve(text);
+            } catch (error) {
+              reject(
+                new Error(
+                  'Erro ao processar PDF: ' +
+                    (error instanceof Error
+                      ? error.message
+                      : 'Erro desconhecido')
                 )
-                .map(item => item.str!)
-                .join(' ');
-              text += pageText + '\n';
+              );
             }
-
-            if (!text.trim()) {
-              reject(new Error('Não foi possível extrair texto do PDF'));
-              return;
-            }
-
-            resolve(text);
-          } catch (error) {
-            reject(
-              new Error(
-                'Erro ao processar PDF: ' +
-                  (error instanceof Error ? error.message : 'Erro desconhecido')
-              )
-            );
-          }
+          })();
         });
       } else if (
         file.type ===
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       ) {
-        return new Promise(async (resolve, reject) => {
-          try {
-            const arrayBuffer = await file.arrayBuffer();
-            const result = await mammoth.extractRawText({ arrayBuffer });
+        return new Promise((resolve, reject) => {
+          (async () => {
+            try {
+              const arrayBuffer = await file.arrayBuffer();
+              const result = await mammoth.extractRawText({ arrayBuffer });
 
-            if (!result.value.trim()) {
+              if (!result.value.trim()) {
+                reject(
+                  new Error('Não foi possível extrair texto do documento DOCX')
+                );
+                return;
+              }
+
+              resolve(result.value);
+            } catch (error) {
               reject(
-                new Error('Não foi possível extrair texto do documento DOCX')
+                new Error(
+                  'Erro ao processar DOCX: ' +
+                    (error instanceof Error
+                      ? error.message
+                      : 'Erro desconhecido')
+                )
               );
-              return;
             }
-
-            resolve(result.value);
-          } catch (error) {
-            reject(
-              new Error(
-                'Erro ao processar DOCX: ' +
-                  (error instanceof Error ? error.message : 'Erro desconhecido')
-              )
-            );
-          }
+          })();
         });
       } else if (file.type === 'application/msword') {
         // DOC files are more complex, fallback to binary reading
@@ -142,7 +149,7 @@ export const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({
                 return;
               }
               resolve(text);
-            } catch (error) {
+            } catch {
               reject(new Error('Erro ao processar arquivo DOC'));
             }
           };

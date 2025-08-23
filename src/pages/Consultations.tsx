@@ -27,7 +27,7 @@ import {
   Mic,
   FileText,
   Eye,
-  Stethoscope,
+  Activity,
   Brain,
 } from 'lucide-react';
 
@@ -306,7 +306,7 @@ const Consultations = () => {
               className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-medical-blue to-medical-green hover:from-medical-blue/90 hover:to-medical-green/90 px-8 py-3 text-lg"
               onClick={() => setShowNewConsultation(true)}
             >
-              <Stethoscope className="w-5 h-5" />
+              <Activity className="w-5 h-5" />
               Nova Consulta
             </Button>
           </div>
@@ -353,7 +353,7 @@ const Consultations = () => {
               <div className="text-center p-12">
                 <div className="relative inline-block mb-6">
                   <div className="absolute inset-0 bg-gradient-to-r from-medical-blue/20 to-medical-green/20 rounded-full blur-xl"></div>
-                  <Stethoscope className="relative w-20 h-20 text-medical-blue mx-auto" />
+                  <Activity className="relative w-20 h-20 text-medical-blue mx-auto" />
                 </div>
                 <h3 className="text-xl font-bold text-foreground mb-3 bg-gradient-to-r from-medical-blue to-medical-green bg-clip-text text-transparent">
                   Bem-vindo ao Sistema de Transcrição

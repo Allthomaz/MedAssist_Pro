@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+
 import AudioProcessor from './AudioProcessor';
 
 // Lazy load heavy components
@@ -26,7 +26,7 @@ import {
   Edit,
   CheckCircle,
   AlertCircle,
-  Stethoscope,
+  Activity,
   Pill,
   ClipboardList,
   Mic,
@@ -83,7 +83,6 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasRecording, setHasRecording] = useState(false);
-  const [transcriptionText, setTranscriptionText] = useState('');
 
   // Estados para os campos editáveis
   const [formData, setFormData] = useState({
@@ -210,34 +209,17 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
     [consultation, consultationId, onStatusChange]
   );
 
-  const handleRecordingComplete = useCallback(
-    (recordingId: string) => {
-      setHasRecording(true);
-      // Atualizar automaticamente o status has_recording na consulta
-      supabase
-        .from('consultations')
-        .update({ has_recording: true })
-        .eq('id', consultationId)
-        .then(() => {
-          console.log('Status de gravação atualizado');
-        });
-    },
-    [consultationId]
-  );
-
-  const handleTranscriptionComplete = useCallback(
-    (transcriptionId: string, text: string) => {
-      setTranscriptionText(text);
-      // Adicionar automaticamente a transcrição às notas clínicas
-      setFormData(prev => ({
-        ...prev,
-        clinical_notes: prev.clinical_notes
-          ? `${prev.clinical_notes}\n\n--- Transcrição Automática ---\n${text}`
-          : `--- Transcrição Automática ---\n${text}`,
-      }));
-    },
-    []
-  );
+  const handleRecordingComplete = useCallback(() => {
+    setHasRecording(true);
+    // Atualizar automaticamente o status has_recording na consulta
+    supabase
+      .from('consultations')
+      .update({ has_recording: true })
+      .eq('id', consultationId)
+      .then(() => {
+        console.log('Status de gravação atualizado');
+      });
+  }, [consultationId]);
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -478,7 +460,7 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Stethoscope className="w-5 h-5 text-green-500" />
+                <Activity className="w-5 h-5 text-green-500" />
                 Diagnóstico
               </CardTitle>
             </CardHeader>

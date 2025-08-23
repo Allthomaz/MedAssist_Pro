@@ -37,7 +37,6 @@ export const TranscriptionTest: React.FC = () => {
     startRecording,
     stopRecording,
     clearRecording,
-    cleanup,
   } = useAudioRecorder({
     onRecordingComplete: blob => {
       console.log('Gravação concluída:', blob);
@@ -144,14 +143,14 @@ export const TranscriptionTest: React.FC = () => {
             <span className="text-sm font-medium">Status do Microfone:</span>
             <span
               className={`text-sm px-2 py-1 rounded ${
-                microphoneStatus === 'granted'
+                microphoneStatus === MicrophoneStatus.Granted
                   ? 'bg-green-100 text-green-800'
                   : microphoneStatus === 'denied'
                     ? 'bg-red-100 text-red-800'
                     : 'bg-yellow-100 text-yellow-800'
               }`}
             >
-              {microphoneStatus === 'granted'
+              {microphoneStatus === MicrophoneStatus.Granted
                 ? 'Permitido'
                 : microphoneStatus === 'denied'
                   ? 'Negado'
@@ -167,7 +166,7 @@ export const TranscriptionTest: React.FC = () => {
               <Button
                 onClick={isRecording ? stopRecording : startRecording}
                 variant={isRecording ? 'destructive' : 'default'}
-                disabled={microphoneStatus !== 'granted'}
+                disabled={microphoneStatus !== MicrophoneStatus.Granted}
               >
                 {isRecording ? (
                   <>
@@ -314,13 +313,13 @@ export const TranscriptionTest: React.FC = () => {
             <CardContent className="text-sm space-y-2">
               <div>
                 <strong>OpenAI API Key:</strong>{' '}
-                {import.meta.env.VITE_OPENAI_API_KEY
-                  ? `Configurada (${import.meta.env.VITE_OPENAI_API_KEY.substring(0, 10)}...)`
+                {import.meta.env['VITE_OPENAI_API_KEY']
+                  ? `Configurada (${import.meta.env['VITE_OPENAI_API_KEY'].substring(0, 10)}...)`
                   : 'Não configurada - Configure VITE_OPENAI_API_KEY no .env'}
               </div>
               <div>
                 <strong>Supabase URL:</strong>{' '}
-                {import.meta.env.VITE_SUPABASE_URL || 'Não configurada'}
+                {import.meta.env['VITE_SUPABASE_URL'] || 'Não configurada'}
               </div>
               <div>
                 <strong>Formatos Suportados:</strong> audio/webm, audio/mp4,

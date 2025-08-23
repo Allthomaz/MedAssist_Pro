@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Stethoscope, Calendar, Clock, User } from 'lucide-react';
+import { X, Activity, Calendar, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AudioProcessor from './AudioProcessor';
@@ -81,7 +81,7 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-medical-blue to-blue-600 shadow-lg">
-                  <Stethoscope className="w-6 h-6 text-white" />
+                  <Activity className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-2xl font-bold text-gray-900">

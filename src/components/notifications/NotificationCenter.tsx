@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Bell,
   X,
   Check,
   CheckCheck,
-  Trash2,
   Clock,
   AlertCircle,
   Info,
@@ -14,10 +13,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { formatDistanceToNow, format } from 'date-fns';
+
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useNotifications, Notification } from '@/hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -37,7 +36,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     refresh,
   } = useNotifications();
 
-  const [showSettings, setShowSettings] = useState(false);
   const hasRefreshedRef = React.useRef(false);
 
   // Excluir notificação (implementação simples - apenas remove do estado)
@@ -57,12 +55,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
       hasRefreshedRef.current = false;
     }
   }, [isOpen, refresh]);
-
-  // Fechar configurações e atualizar notificações
-  const handleCloseSettings = () => {
-    setShowSettings(false);
-    refresh();
-  };
 
   const getNotificationIcon = (type: string, priority: string) => {
     if (priority === 'urgent') {

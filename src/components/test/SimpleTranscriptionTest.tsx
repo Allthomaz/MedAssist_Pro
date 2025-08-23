@@ -35,7 +35,6 @@ export const SimpleTranscriptionTest: React.FC = () => {
     startRecording,
     stopRecording,
     clearRecording,
-    cleanup,
   } = useAudioRecorder({
     onRecordingComplete: blob => {
       console.log('Gravação concluída:', blob);

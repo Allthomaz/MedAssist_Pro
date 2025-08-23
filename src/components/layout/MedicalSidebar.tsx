@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Settings,
   Activity,
-  Stethoscope,
   LogOut,
   Calendar,
 } from 'lucide-react';
@@ -40,7 +39,7 @@ export function MedicalSidebar() {
       {/* Logo Section */}
       <div className="flex items-center gap-3 p-6 border-b border-sidebar-border/50">
         <div className="flex items-center justify-center w-12 h-12 rounded-xl medical-gradient shadow-lg">
-          <Stethoscope className="w-7 h-7 text-white" />
+          <Activity className="w-7 h-7 text-white" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-sidebar-foreground medical-heading">

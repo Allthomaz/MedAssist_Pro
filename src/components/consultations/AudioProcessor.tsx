@@ -101,8 +101,6 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
 
   // Função stopRecording agora é fornecida pelo hook useAudioRecorder
 
-
-
   // Função para formatar tempo de gravação
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -156,7 +154,7 @@ const AudioProcessor: React.FC<AudioProcessorProps> = ({
       }, 200);
 
       // Upload para Supabase Storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('recordings')
         .upload(fileName, recordedBlob, {
           contentType: 'audio/webm',

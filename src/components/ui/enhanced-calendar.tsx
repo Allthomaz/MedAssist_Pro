@@ -7,7 +7,6 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { CalendarClassNames } from '../../types/common';
 import { buttonVariants } from '@/components/ui/button';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -211,8 +210,8 @@ function EnhancedCalendar({
           ...classNames,
         }}
         components={{
-          IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
-          IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+          IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+          IconRight: () => <ChevronRight className="h-4 w-4" />,
         }}
       />
     </div>

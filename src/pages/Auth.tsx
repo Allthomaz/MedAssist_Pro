@@ -31,15 +31,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import {
-  signInSchema,
-  signUpSchema,
-  forgotSchema,
-} from '@/lib/auth-schemas';
+import { signInSchema, signUpSchema, forgotSchema } from '@/lib/auth-schemas';
 
 import { useDebouncedLock } from '@/hooks/use-debounced-lock';
 
 import { useSeo } from '@/hooks/use-seo';
+import {
+  Activity,
+  LogIn,
+  UserPlus,
+  Key,
+  Mail,
+  Shield,
+  Loader2,
+  User,
+  Lock,
+  ArrowLeft,
+} from 'lucide-react';
 
 const AuthPage: React.FC = () => {
   const { signIn, signUp, resendConfirmation, requestPasswordReset, user } =
@@ -158,15 +166,13 @@ const AuthPage: React.FC = () => {
     setTab('signin');
   };
 
-
-
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
       <Card className="w-full max-w-md shadow-lg border-blue-200">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
-              <Stethoscope className="w-6 h-6 text-blue-600" />
+              <Activity className="w-6 h-6 text-blue-600" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-blue-900 flex items-center justify-center gap-2">
@@ -193,7 +199,7 @@ const AuthPage: React.FC = () => {
                 Criar conta
               </TabsTrigger>
               <TabsTrigger value="forgot" className="flex items-center gap-2">
-                <KeyRound className="w-4 h-4" />
+                <Key className="w-4 h-4" />
                 Esqueci
               </TabsTrigger>
             </TabsList>
@@ -211,9 +217,9 @@ const AuthPage: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                           <Mail className="w-4 h-4" />
-                           E-mail
-                         </label>
+                          <Mail className="w-4 h-4" />
+                          E-mail
+                        </label>
                         <FormControl>
                           <Input
                             type="email"
@@ -233,9 +239,9 @@ const AuthPage: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                           <Lock className="w-4 h-4" />
-                           Senha
-                         </label>
+                          <Lock className="w-4 h-4" />
+                          Senha
+                        </label>
                         <FormControl>
                           <Input
                             type="password"
@@ -255,7 +261,7 @@ const AuthPage: React.FC = () => {
                       onClick={() => setTab('forgot')}
                       className="flex items-center gap-2"
                     >
-                      <KeyRound className="w-4 h-4" />
+                      <Key className="w-4 h-4" />
                       Esqueci a senha
                     </Button>
                     <Button
@@ -275,7 +281,9 @@ const AuthPage: React.FC = () => {
                   <div className="text-xs text-muted-foreground text-right">
                     <button
                       type="button"
-                      onClick={() => resendConfirmation(signInForm.getValues('email'))}
+                      onClick={() =>
+                        resendConfirmation(signInForm.getValues('email'))
+                      }
                       className="underline"
                     >
                       Reenviar confirmação
@@ -298,9 +306,9 @@ const AuthPage: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                           <User className="w-4 h-4" />
-                           Nome completo
-                         </label>
+                          <User className="w-4 h-4" />
+                          Nome completo
+                        </label>
                         <FormControl>
                           <Input
                             type="text"
@@ -319,9 +327,9 @@ const AuthPage: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                           <Stethoscope className="w-4 h-4" />
-                           Profissão
-                         </label>
+                          <Activity className="w-4 h-4" />
+                          Profissão
+                        </label>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -348,9 +356,9 @@ const AuthPage: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                           <Mail className="w-4 h-4" />
-                           E-mail
-                         </label>
+                          <Mail className="w-4 h-4" />
+                          E-mail
+                        </label>
                         <FormControl>
                           <Input
                             type="email"
@@ -370,9 +378,9 @@ const AuthPage: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                           <Lock className="w-4 h-4" />
-                           Senha
-                         </label>
+                          <Lock className="w-4 h-4" />
+                          Senha
+                        </label>
                         <FormControl>
                           <Input
                             type="password"
@@ -391,9 +399,9 @@ const AuthPage: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                           <Lock className="w-4 h-4" />
-                           Confirmar senha
-                         </label>
+                          <Lock className="w-4 h-4" />
+                          Confirmar senha
+                        </label>
                         <FormControl>
                           <Input
                             type="password"
@@ -431,7 +439,7 @@ const AuthPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="text-center space-y-2">
                   <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mx-auto">
-                    <KeyRound className="w-6 h-6 text-orange-600" />
+                    <Key className="w-6 h-6 text-orange-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900">
                     Recuperar Senha
@@ -454,9 +462,9 @@ const AuthPage: React.FC = () => {
                       render={({ field }) => (
                         <FormItem>
                           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                             <Mail className="w-4 h-4" />
-                             E-mail cadastrado
-                           </label>
+                            <Mail className="w-4 h-4" />
+                            E-mail cadastrado
+                          </label>
                           <FormControl>
                             <Input
                               type="email"

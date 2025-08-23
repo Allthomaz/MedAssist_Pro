@@ -36,7 +36,7 @@ import {
   Globe,
   Key,
   UserCircle,
-  Stethoscope,
+  Activity,
   Webhook,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -131,7 +131,7 @@ export default function Settings() {
                       htmlFor="specialty"
                       className="flex items-center gap-2"
                     >
-                      <Stethoscope className="w-4 h-4" />
+                      <Activity className="w-4 h-4" />
                       Especialidade
                     </Label>
                     <Select>

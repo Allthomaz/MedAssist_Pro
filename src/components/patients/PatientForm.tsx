@@ -39,20 +39,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
-import { cn } from '@/lib/utils';
 
-type PatientInsert = Database['public']['Tables']['patients']['Insert'];
+import { cn } from '@/lib/utils';
 
 /**
  * Schema de validação robusta para formulário de pacientes
@@ -249,7 +241,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
 
       // Não incluir profile_id para pacientes sem conta no sistema
 
-      const { data: patient, error } = await supabase
+      const { error } = await supabase
         .from('patients')
         .insert(patientData)
         .select()

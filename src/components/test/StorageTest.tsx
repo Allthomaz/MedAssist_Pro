@@ -104,7 +104,7 @@ const StorageTest: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.storage.createBucket(bucketName, {
+      const { error } = await supabase.storage.createBucket(bucketName, {
         public: isPublic,
         allowedMimeTypes: ['audio/*', 'application/pdf', 'text/*'],
         fileSizeLimit: 50 * 1024 * 1024, // 50MB
@@ -172,7 +172,7 @@ const StorageTest: React.FC = () => {
 
       const fileName = `${Date.now()}_${selectedFile.name}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from(selectedBucket)
         .upload(fileName, selectedFile, {
           cacheControl: '3600',

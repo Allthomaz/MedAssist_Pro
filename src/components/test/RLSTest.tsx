@@ -192,7 +192,7 @@ const RLSTest: React.FC = () => {
   ): Promise<{ success: boolean; result: string }> => {
     try {
       switch (test.id) {
-        case 'profiles_select_own':
+        case 'profiles_select_own': {
           const { data: ownProfile, error: ownProfileError } = await supabase
             .from('profiles')
             .select('*')
@@ -206,8 +206,9 @@ const RLSTest: React.FC = () => {
             success: true,
             result: `Perfil encontrado: ${ownProfile?.full_name}`,
           };
+        }
 
-        case 'profiles_select_others':
+        case 'profiles_select_others': {
           const { data: otherProfiles, error: otherProfilesError } =
             await supabase
               .from('profiles')
@@ -223,8 +224,9 @@ const RLSTest: React.FC = () => {
             success: false,
             result: `FALHA DE SEGURANÇA: Conseguiu acessar ${otherProfiles?.length || 0} perfis de outros usuários`,
           };
+        }
 
-        case 'recordings_select':
+        case 'recordings_select': {
           const { data: recordings, error: recordingsError } = await supabase
             .from('recordings')
             .select('count')
@@ -237,8 +239,9 @@ const RLSTest: React.FC = () => {
             success: true,
             result: `Acesso permitido (${recordings?.length || 0} registros)`,
           };
+        }
 
-        case 'transcriptions_select':
+        case 'transcriptions_select': {
           const { data: transcriptions, error: transcriptionsError } =
             await supabase.from('transcriptions').select('count').limit(1);
 
@@ -249,8 +252,9 @@ const RLSTest: React.FC = () => {
             success: true,
             result: `Acesso permitido (${transcriptions?.length || 0} registros)`,
           };
+        }
 
-        case 'patients_select_own':
+        case 'patients_select_own': {
           const { data: ownPatients, error: ownPatientsError } = await supabase
             .from('patients')
             .select('*')
@@ -263,8 +267,9 @@ const RLSTest: React.FC = () => {
             success: true,
             result: `Encontrados ${ownPatients?.length || 0} pacientes próprios`,
           };
+        }
 
-        case 'patients_insert':
+        case 'patients_insert': {
           // Primeiro, criar um perfil de usuário para o paciente
           const { data: newUser, error: userError } =
             await supabase.auth.admin.createUser({
@@ -322,8 +327,9 @@ const RLSTest: React.FC = () => {
             success: true,
             result: `Paciente criado com ID: ${newPatient.id}`,
           };
+        }
 
-        case 'patients_update_own':
+        case 'patients_update_own': {
           if (!createdPatientId) {
             return {
               success: false,
@@ -341,8 +347,9 @@ const RLSTest: React.FC = () => {
             return { success: false, result: updateError.message };
           }
           return { success: true, result: 'Paciente atualizado com sucesso' };
+        }
 
-        case 'patients_select_others':
+        case 'patients_select_others': {
           const { data: otherPatients, error: otherPatientsError } =
             await supabase
               .from('patients')
@@ -358,8 +365,9 @@ const RLSTest: React.FC = () => {
             success: false,
             result: `FALHA DE SEGURANÇA: Conseguiu acessar ${otherPatients?.length || 0} pacientes de outros médicos`,
           };
+        }
 
-        case 'patients_select_own_data':
+        case 'patients_select_own_data': {
           const { data: ownData, error: ownDataError } = await supabase
             .from('patients')
             .select('*')
@@ -372,8 +380,9 @@ const RLSTest: React.FC = () => {
             success: true,
             result: `Dados próprios encontrados: ${ownData?.length || 0} registros`,
           };
+        }
 
-        case 'patients_update_own_data':
+        case 'patients_update_own_data': {
           const { error: updateOwnError } = await supabase
             .from('patients')
             .update({ phone: '(11) 77777-7777' })
@@ -386,8 +395,9 @@ const RLSTest: React.FC = () => {
             success: true,
             result: 'Dados próprios atualizados com sucesso',
           };
+        }
 
-        case 'patients_insert_forbidden':
+        case 'patients_insert_forbidden': {
           const { error: insertForbiddenError } = await supabase
             .from('patients')
             .insert({
@@ -407,6 +417,7 @@ const RLSTest: React.FC = () => {
             result:
               'FALHA DE SEGURANÇA: Paciente conseguiu inserir registro na tabela patients',
           };
+        }
 
         default:
           return { success: false, result: 'Teste não implementado' };

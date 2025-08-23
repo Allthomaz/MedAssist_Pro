@@ -10,9 +10,7 @@ import {
   Calendar,
   TrendingUp,
   Heart,
-  Stethoscope,
   FileText,
-  Settings,
   Bell,
   Search,
 } from 'lucide-react';
@@ -78,7 +76,7 @@ export function DesignShowcase() {
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-medical-blue/10">
-                    <Stethoscope className="w-6 h-6 text-medical-blue" />
+                    <Activity className="w-6 h-6 text-medical-blue" />
                   </div>
                   <div>
                     <CardTitle className="medical-heading">
