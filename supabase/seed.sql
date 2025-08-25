@@ -1,6 +1,72 @@
 -- Seeds para popular o banco de dados com dados de exemplo
 -- Este arquivo contém dados de teste para desenvolvimento
 
+-- Criar usuário de teste com email confirmado
+DO $$
+DECLARE
+    test_user_id UUID := gen_random_uuid();
+BEGIN
+    -- Inserir usuário de teste no auth.users
+    INSERT INTO auth.users (
+        instance_id,
+        id,
+        aud,
+        role,
+        email,
+        encrypted_password,
+        email_confirmed_at,
+        created_at,
+        updated_at,
+        raw_app_meta_data,
+        raw_user_meta_data,
+        is_super_admin,
+        confirmation_token,
+        email_change,
+        email_change_token_new,
+        recovery_token
+    ) VALUES (
+        '00000000-0000-0000-0000-000000000000',
+        test_user_id,
+        'authenticated',
+        'authenticated',
+        'teste@medassist.com',
+        crypt('Teste123!@#', gen_salt('bf')),
+        now(),
+        now(),
+        now(),
+        '{"provider": "email", "providers": ["email"]}',
+        '{"full_name": "Dr. João Silva", "profession": "medico"}',
+        false,
+        '',
+        '',
+        '',
+        ''
+    );
+    
+    -- Inserir perfil correspondente
+    INSERT INTO public.profiles (
+        id,
+        full_name,
+        email,
+        role,
+        created_at,
+        updated_at
+    ) VALUES (
+        test_user_id,
+        'Dr. João Silva',
+        'teste@medassist.com',
+        'doctor',
+        now(),
+        now()
+    ) ON CONFLICT (id) DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        email = EXCLUDED.email,
+        role = EXCLUDED.role,
+        updated_at = now();
+    
+    RAISE NOTICE '✅ Usuário de teste criado: teste@medassist.com / Teste123!@#';
+END $$;
+
 -- Nota: Os perfis são criados automaticamente pelo trigger quando usuários se registram
 -- através do sistema de autenticação. Para testes, você pode criar usuários através da interface
 -- do Supabase Studio ou através do sistema de registro da aplicação.
@@ -18,11 +84,10 @@ BEGIN
     SELECT id INTO user_id_var FROM auth.users LIMIT 1;
     
     IF user_id_var IS NOT NULL THEN
-        INSERT INTO public.patients (profile_id, full_name, birth_date, gender, cpf, phone, email, address, city, state, zip_code, emergency_contact_name, emergency_contact_phone, blood_type, allergies, current_medications, insurance_company, insurance_number, status) VALUES
-            (user_id_var, 'Ana Costa Silva', '1985-03-15', 'female', '123.456.789-01', '(11) 98888-1111', 'ana.costa@email.com', 'Rua das Flores, 100', 'São Paulo', 'SP', '01234-567', 'Carlos Costa', '(11) 97777-1111', 'A+', ARRAY['Penicilina', 'Frutos do mar'], ARRAY['Losartana 50mg'], 'Unimed', '123456789', 'active'),
-            (user_id_var, 'Roberto Lima Santos', '1978-07-22', 'male', '987.654.321-02', '(11) 98888-2222', 'roberto.lima@email.com', 'Av. Paulista, 200', 'São Paulo', 'SP', '02345-678', 'Lucia Lima', '(11) 97777-2222', 'O-', ARRAY['Dipirona'], ARRAY['Metformina 850mg', 'Sinvastatina 20mg'], 'Bradesco Saúde', '987654321', 'active'),
-            (user_id_var, 'Maria Oliveira', '1990-12-10', 'female', '456.789.123-03', '(11) 98888-3333', 'maria.oliveira@email.com', 'Rua Augusta, 300', 'São Paulo', 'SP', '03456-789', 'João Oliveira', '(11) 97777-3333', 'B+', ARRAY['Lactose'], ARRAY['Anticoncepcional'], 'SulAmérica', '456789123', 'active')
-        ON CONFLICT (profile_id, cpf) DO NOTHING;
+        INSERT INTO public.patients (doctor_id, full_name, birth_date, gender, cpf, phone, email) VALUES
+            (user_id_var, 'Ana Costa Silva', '1985-03-15', 'female', '123.456.789-01', '(11) 98888-1111', 'ana.costa@email.com'),
+            (user_id_var, 'Roberto Lima Santos', '1978-07-22', 'male', '987.654.321-02', '(11) 98888-2222', 'roberto.lima@email.com'),
+            (user_id_var, 'Maria Oliveira', '1990-12-10', 'female', '456.789.123-03', '(11) 98888-3333', 'maria.oliveira@email.com');
     END IF;
 END $$;
 
@@ -243,7 +308,7 @@ BEGIN
     FOR user_record IN SELECT id FROM auth.users LOOP
         INSERT INTO public.notifications (user_id, type, title, message, status, priority) VALUES
             (user_record.id, 'appointment_reminder', 'Lembrete de Consulta', 'Você tem uma consulta agendada para amanhã às 14:00', 'unread', 'high'),
-            (user_record.id, 'system', 'Bem-vindo ao Sistema', 'Bem-vindo ao sistema de prontuários médicos!', 'unread', 'medium'),
+            (user_record.id, 'system_update', 'Bem-vindo ao Sistema', 'Bem-vindo ao sistema de prontuários médicos!', 'unread', 'normal'),
             (user_record.id, 'document_ready', 'Documento Pronto', 'Seu relatório médico está disponível para download', 'unread', 'low')
         ON CONFLICT DO NOTHING;
     END LOOP;
