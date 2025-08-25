@@ -659,3 +659,6 @@ export const PatientForm: React.FC<PatientFormProps> = ({
     </div>
   );
 };
+
+// Exportação default para compatibilidade com lazy loading
+export default PatientForm;

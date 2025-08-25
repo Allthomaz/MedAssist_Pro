@@ -16,11 +16,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VirtualizedList } from '@/components/ui/VirtualizedList';
 
 // Lazy load heavy components
-const PatientForm = lazy(() =>
-  import('@/components/patients/PatientForm').then(module => ({
-    default: module.PatientForm,
-  }))
-);
+const PatientForm = lazy(() => import('@/components/patients/PatientForm'));
 const PatientProfile = lazy(() =>
   import('@/components/patients/PatientProfile').then(module => ({
     default: module.PatientProfile,

@@ -262,6 +262,43 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     transform: scale(0.98);
   }
 
+  /* Premium Button Variants */
+  .premium-button-primary {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-blue)) 0%,
+      hsl(var(--medical-blue) / 0.9) 100%
+    );
+    color: hsl(var(--medical-blue-foreground));
+    border: none;
+    box-shadow: 0 4px 12px hsl(var(--medical-blue) / 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .premium-button-primary:hover {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--medical-blue) / 0.9) 0%,
+      hsl(var(--medical-blue) / 0.8) 100%
+    );
+    box-shadow: 0 6px 16px hsl(var(--medical-blue) / 0.4);
+    transform: translateY(-2px);
+  }
+
+  .premium-button-outline {
+    background: transparent;
+    color: hsl(var(--medical-blue));
+    border: 2px solid hsl(var(--medical-blue) / 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .premium-button-outline:hover {
+    background: hsl(var(--medical-blue) / 0.1);
+    border-color: hsl(var(--medical-blue));
+    color: hsl(var(--medical-blue));
+    transform: translateY(-1px);
+  }
+
   /* Elegant Animations */
   @keyframes fadeInUp {
     from {

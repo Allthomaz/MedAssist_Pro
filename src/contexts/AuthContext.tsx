@@ -1,14 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/auth';
-
 
 interface UserProfile {
   id: string;
@@ -31,12 +24,15 @@ interface SupabaseError {
   status: number;
 }
 
-interface AuthContextValue {
+type AuthContextValue = {
   user: User | null;
   session: Session | null;
   profile: UserProfile | null;
   initializing: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: SupabaseError | null }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ error: SupabaseError | null }>;
   signUp: (
     email: string,
     password: string,
@@ -44,16 +40,20 @@ interface AuthContextValue {
     profession: 'medico' | 'psicologo' | 'terapeuta'
   ) => Promise<{ error: SupabaseError | null }>;
   signOut: () => Promise<void>;
-  resendConfirmation: (email: string) => Promise<{ error: SupabaseError | null }>;
-  requestPasswordReset: (email: string) => Promise<{ error: SupabaseError | null }>;
-  updatePassword: (newPassword: string) => Promise<{ error: SupabaseError | null }>;
-}
+  resendConfirmation: (
+    email: string
+  ) => Promise<{ error: SupabaseError | null }>;
+  requestPasswordReset: (
+    email: string
+  ) => Promise<{ error: SupabaseError | null }>;
+  updatePassword: (
+    newPassword: string
+  ) => Promise<{ error: SupabaseError | null }>;
+};
 
-export const AuthContext = createContext<AuthContextValue | undefined>(
-  undefined
-);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -315,10 +315,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
+
+export default AuthContext;
+export { AuthProvider, useAuth };

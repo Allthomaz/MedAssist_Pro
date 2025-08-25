@@ -201,10 +201,7 @@ export const authService = {
       profession,
     });
 
-    // Sanitizar e validar inputs
-    const sanitizedEmail = sanitizeUtils.sanitizeEmail(email);
-    const sanitizedFullName = sanitizeUtils.sanitizeFullName(fullName);
-    const validatedProfession = sanitizeUtils.validateProfession(profession);
+    // 1. Sanitizar e validar inputs
 
     // Validações de segurança
     if (!sanitizedEmail || !sanitizedFullName || !validatedProfession) {
@@ -351,7 +348,6 @@ export const authService = {
    *   console.error('Erro no logout:', result.error.message);
    * } else {
    *   // Redirecionar para página de login
-   *   window.location.href = '/auth';
    * }
    * ```
    */
