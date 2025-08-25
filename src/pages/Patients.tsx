@@ -24,7 +24,7 @@ const PatientProfile = lazy(() =>
 );
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/types/database.types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Search,
   Plus,
