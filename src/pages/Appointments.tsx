@@ -168,11 +168,6 @@ const Appointments = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    document.title = 'Agendamentos | MedAssist Pro';
-    fetchAppointments();
-  }, [fetchAppointments]);
-
   // Função para filtrar agendamentos
   const filterAppointments = useCallback(() => {
     let filtered = appointments;
@@ -199,6 +194,11 @@ const Appointments = () => {
 
     setFilteredAppointments(filtered);
   }, [appointments, searchTerm, statusFilter, typeFilter]);
+
+  useEffect(() => {
+    document.title = 'Agendamentos | MedAssist Pro';
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   useEffect(() => {
     filterAppointments();
