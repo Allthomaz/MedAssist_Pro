@@ -20,7 +20,6 @@ import {
   FileText,
   Clock,
   Heart,
-  Activity,
   Target,
   Award,
   AlertCircle,
