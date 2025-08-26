@@ -60,6 +60,7 @@ import { AppointmentFormValues } from '@/components/appointments/AppointmentForm
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationService } from '@/services/notificationService';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 // Interface para dados do banco
 interface DatabaseAppointment {
@@ -95,6 +96,7 @@ interface Appointment {
 
 const Appointments = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<
     Appointment[]
@@ -142,15 +144,14 @@ const Appointments = () => {
           patientName: apt.patient_name || 'Nome não informado',
           patientPhone: apt.patient_phone || '',
           patientEmail: apt.patient_email || '',
-          appointmentDate: apt.appointment_date,
+          appointmentDate: new Date(apt.appointment_date),
           appointmentTime: apt.appointment_time,
-          duration: apt.duration,
+          appointmentDuration: `${apt.duration} min`,
           appointmentType: apt.appointment_type,
           appointmentReason: apt.appointment_reason || '',
+          appointmentLocation: apt.location || '',
           status: apt.status,
-          notes: apt.notes || '',
-          createdAt: apt.created_at,
-          updatedAt: apt.updated_at,
+          consultationMode: apt.consultation_mode,
         })
       );
 
