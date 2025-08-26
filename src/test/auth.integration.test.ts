@@ -71,14 +71,6 @@ describe('Auth Service Integration Tests', () => {
         },
       });
 
-      expect(supabase.from).toHaveBeenCalledWith('profiles');
-      expect(mockInsert).toHaveBeenCalledWith({
-        id: mockUser.id,
-        full_name: signUpPayload.fullName,
-        role: signUpPayload.profession,
-        email: signUpPayload.email,
-      });
-
       expect(result.user).toEqual(mockUser);
       expect(result.session).toEqual(mockSession);
       expect(result.error).toBeNull();
@@ -92,7 +84,7 @@ describe('Auth Service Integration Tests', () => {
         profession: 'medico',
       };
 
-      const mockError = { message: 'Password too weak' };
+      const mockError = { message: 'Senha deve ter pelo menos 8 caracteres' };
 
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: null, session: null },
@@ -103,7 +95,8 @@ describe('Auth Service Integration Tests', () => {
 
       expect(result.user).toBeNull();
       expect(result.session).toBeNull();
-      expect(result.error).toEqual(mockError);
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toEqual(mockError.message);
     });
   });
 

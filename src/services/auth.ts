@@ -203,6 +203,10 @@ export const authService = {
 
     // 1. Sanitizar e validar inputs
 
+    const sanitizedEmail = sanitizeUtils.sanitizeEmail(email);
+    const sanitizedFullName = sanitizeUtils.sanitizeFullName(fullName);
+    const validatedProfession = sanitizeUtils.validateProfession(profession);
+
     // Validações de segurança
     if (!sanitizedEmail || !sanitizedFullName || !validatedProfession) {
       console.error('AuthService: Falha na validação dos dados de cadastro.', {
