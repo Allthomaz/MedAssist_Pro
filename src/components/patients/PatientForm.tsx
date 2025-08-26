@@ -41,6 +41,13 @@ import {
 } from '@/components/ui/popover';
 
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -258,14 +265,14 @@ export const PatientForm: React.FC<PatientFormProps> = ({
       });
 
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao cadastrar paciente:', error);
 
       let errorMessage = 'Falha ao cadastrar paciente. Tente novamente.';
 
-      if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.details) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      } else if (error && typeof error === 'object' && 'details' in error) {
         errorMessage = error.details;
       }
 

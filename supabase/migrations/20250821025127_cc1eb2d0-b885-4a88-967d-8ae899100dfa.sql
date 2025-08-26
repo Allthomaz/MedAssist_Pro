@@ -620,8 +620,7 @@ BEGIN
     user_role,
     patient_id,
     action,
-    accessed_fields,
-    timestamp
+    accessed_fields
   ) 
   SELECT 
     (select auth.uid()),

@@ -107,6 +107,7 @@ const Appointments = () => {
     useState<Appointment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  // const [dateFilter, setDateFilter] = useState<string>('all'); // Removido temporariamente - não utilizado
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'calendar' | 'week' | 'list'>(
@@ -116,11 +117,38 @@ const Appointments = () => {
   useEffect(() => {
     document.title = 'Agendamentos | MedAssist Pro';
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
+
+  // Função para filtrar agendamentos
+  const filterAppointments = useCallback(() => {
+    let filtered = appointments;
+
+    // Filtro por termo de busca
+    if (searchTerm) {
+      filtered = filtered.filter(
+        apt =>
+          apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          apt.patientPhone.includes(searchTerm) ||
+          apt.appointmentReason.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro por status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(apt => apt.status === statusFilter);
+    }
+
+    // Filtro por tipo
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(apt => apt.appointmentType === typeFilter);
+    }
+
+    setFilteredAppointments(filtered);
+  }, [appointments, searchTerm, statusFilter, typeFilter]);
 
   useEffect(() => {
     filterAppointments();
-  }, [appointments, searchTerm, statusFilter, typeFilter]);
+  }, [filterAppointments]);
 
   // Função para buscar agendamentos do banco de dados
   const fetchAppointments = useCallback(async () => {
@@ -166,33 +194,6 @@ const Appointments = () => {
       setLoading(false);
     }
   }, [user]);
-
-  // Função para filtrar agendamentos
-  const filterAppointments = useCallback(() => {
-    let filtered = appointments;
-
-    // Filtro por termo de busca
-    if (searchTerm) {
-      filtered = filtered.filter(
-        apt =>
-          apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          apt.patientPhone.includes(searchTerm) ||
-          apt.appointmentReason.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filtro por status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(apt => apt.status === statusFilter);
-    }
-
-    // Filtro por tipo
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(apt => apt.appointmentType === typeFilter);
-    }
-
-    setFilteredAppointments(filtered);
-  }, [appointments, searchTerm, statusFilter, typeFilter]);
 
   // Função para formatar tipo de agendamento
   const formatAppointmentType = (type: string): string => {

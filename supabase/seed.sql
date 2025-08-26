@@ -117,7 +117,7 @@ BEGIN
             (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '1 day', '09:00', 30, 'retorno', 'agendado', 'Ana Costa Silva', '(11) 98888-1111', 'ana.costa@email.com', 'Consulta de retorno cardiológica', 'presencial'),
             (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '2 days', '10:00', 30, 'consulta_geral', 'confirmado', 'Roberto Lima Santos', '(11) 98888-2222', 'roberto.lima@email.com', 'Avaliação cardiológica de rotina', 'presencial'),
             (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '3 days', '15:30', 45, 'primeira_consulta', 'agendado', 'Maria Oliveira', '(11) 98888-3333', 'maria.oliveira@email.com', 'Primeira consulta clínica geral', 'presencial'),
-            (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '7 days', '14:00', 30, 'rotina', 'agendado', 'Ana Costa Silva', '(11) 98888-1111', 'ana.costa@email.com', 'Consulta de rotina', 'telemedicina')
+            (user_id_var, patient_id_var, CURRENT_DATE + INTERVAL '7 days', '14:00', 30, 'consulta_geral', 'agendado', 'Ana Costa Silva', '(11) 98888-1111', 'ana.costa@email.com', 'Consulta de rotina', 'telemedicina')
         ON CONFLICT DO NOTHING;
     END IF;
 END $$;
@@ -306,10 +306,10 @@ DECLARE
 BEGIN
     -- Para cada usuário existente, criar notificações de teste
     FOR user_record IN SELECT id FROM auth.users LOOP
-        INSERT INTO public.notifications (user_id, type, title, message, status, priority) VALUES
-            (user_record.id, 'appointment_reminder', 'Lembrete de Consulta', 'Você tem uma consulta agendada para amanhã às 14:00', 'unread', 'high'),
-            (user_record.id, 'system_update', 'Bem-vindo ao Sistema', 'Bem-vindo ao sistema de prontuários médicos!', 'unread', 'normal'),
-            (user_record.id, 'document_ready', 'Documento Pronto', 'Seu relatório médico está disponível para download', 'unread', 'low')
+        INSERT INTO public.notifications (user_id, type, title, message, status, priority, channel) VALUES
+            (user_record.id, 'appointment_reminder', 'Lembrete de Consulta', 'Você tem uma consulta agendada para amanhã às 14:00', 'unread', 'high', 'in_app'),
+            (user_record.id, 'system_update', 'Bem-vindo ao Sistema', 'Bem-vindo ao sistema de prontuários médicos!', 'unread', 'normal', 'in_app'),
+            (user_record.id, 'document_ready', 'Documento Pronto', 'Seu relatório médico está disponível para download', 'unread', 'low', 'in_app')
         ON CONFLICT DO NOTHING;
     END LOOP;
 END $$;

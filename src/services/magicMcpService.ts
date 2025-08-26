@@ -13,19 +13,29 @@ async function loadMcpModules(): Promise<void> {
       const mcpModule = await import('@modelcontextprotocol/sdk/server/mcp.js');
       McpServer = mcpModule.McpServer;
 
-      const stdioModule = await import('@modelcontextprotocol/sdk/server/stdio.js');
+      const stdioModule = await import(
+        '@modelcontextprotocol/sdk/server/stdio.js'
+      );
       StdioServerTransport = stdioModule.StdioServerTransport;
 
-      const createUiModule = await import('../../magic-mcp/src/tools/create-ui.js');
+      const createUiModule = await import(
+        '../../magic-mcp/src/tools/create-ui.js'
+      );
       CreateUiTool = createUiModule.CreateUiTool;
 
-      const fetchUiModule = await import('../../magic-mcp/src/tools/fetch-ui.js');
+      const fetchUiModule = await import(
+        '../../magic-mcp/src/tools/fetch-ui.js'
+      );
       FetchUiTool = fetchUiModule.FetchUiTool;
 
-      const refineUiModule = await import('../../magic-mcp/src/tools/refine-ui.js');
+      const refineUiModule = await import(
+        '../../magic-mcp/src/tools/refine-ui.js'
+      );
       RefineUiTool = refineUiModule.RefineUiTool;
 
-      const logoSearchModule = await import('../../magic-mcp/src/tools/logo-search.js');
+      const logoSearchModule = await import(
+        '../../magic-mcp/src/tools/logo-search.js'
+      );
       LogoSearchTool = logoSearchModule.LogoSearchTool;
     } catch (error) {
       console.warn(
@@ -145,7 +155,7 @@ export class MagicMcpService {
   async initialize(): Promise<void> {
     // Carrega os módulos MCP dinamicamente
     await loadMcpModules();
-    
+
     if (!this.isAvailable) {
       console.info('Magic MCP inicializado em modo de demonstração');
       return;
@@ -469,7 +479,7 @@ export function ${componentName}() {
       card: `import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Activity } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export function ${componentName}() {
   return (

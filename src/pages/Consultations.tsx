@@ -182,10 +182,6 @@ const Consultations = () => {
   >(null);
   const [showNewConsultation, setShowNewConsultation] = useState(false);
 
-  useEffect(() => {
-    fetchConsultations();
-  }, [fetchConsultations]);
-
   const fetchConsultations = useCallback(async () => {
     try {
       setLoading(true);
@@ -206,13 +202,23 @@ const Consultations = () => {
         .limit(20);
 
       if (error) throw error;
-      setConsultations(data || []);
+      setConsultations(
+        (data || []).map(consultation => ({
+          ...consultation,
+          has_recording: consultation.has_recording || false,
+          document_generated: consultation.document_generated || false,
+        }))
+      );
     } catch (error) {
       console.error('Erro ao carregar consultas:', error);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchConsultations();
+  }, [fetchConsultations]);
 
   const statusMap = useMemo(
     () => ({
@@ -238,14 +244,17 @@ const Consultations = () => {
 
   const getStatusLabel = useCallback(
     (status: string) => {
-      return statusMap[status] || status;
+      return statusMap[status as keyof typeof statusMap] || status;
     },
     [statusMap]
   );
 
   const getStatusColor = useCallback(
     (status: string) => {
-      return colorMap[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+      return (
+        colorMap[status as keyof typeof colorMap] ||
+        'bg-gray-100 text-gray-700 border-gray-200'
+      );
     },
     [colorMap]
   );

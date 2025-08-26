@@ -167,7 +167,14 @@ export const useProfile = () => {
   const professionNamePlural = profile?.role
     ? getProfessionNamePlural(profile.role)
     : 'Profissionais da Saúde';
-  const fullDisplayName = `${professionalTitle} ${displayName}`;
+
+  // Verifica se o displayName já contém um título profissional para evitar duplicação
+  const hasTitle = displayName.match(
+    /^(Dr\.|Dra\.|Psic\.|Ter\.|Nutr\.|Prof\.)\s/
+  );
+  const fullDisplayName = hasTitle
+    ? displayName
+    : `${professionalTitle} ${displayName}`;
 
   return {
     profile,

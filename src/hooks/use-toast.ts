@@ -13,8 +13,6 @@ type ToasterToast = ToastProps & {
   type?: 'default' | 'success' | 'error' | 'warning';
 };
 
-
-
 let count = 0;
 
 function genId() {
@@ -116,8 +114,6 @@ function dispatch(action: Action) {
   });
 }
 
-
-
 function toast({ ...props }: Omit<ToasterToast, 'id'>) {
   const id = genId();
 
@@ -158,7 +154,7 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, [setState]);
 
   return {
     ...state,
