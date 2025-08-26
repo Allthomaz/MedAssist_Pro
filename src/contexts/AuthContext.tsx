@@ -93,7 +93,23 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return null;
       }
 
-      return data as UserProfile;
+      // Validação robusta dos dados antes da conversão
+      const userProfile: UserProfile = {
+        id: data.id,
+        full_name: data.full_name || '',
+        role: data.role as 'doctor' | 'admin',
+        email: data.email || '',
+        crm: data.crm || '',
+        specialty: data.specialty || '',
+        clinic_name: data.clinic_name || '',
+        custom_title: data.custom_title || '',
+        phone: data.phone || '',
+        theme_preference: data.theme_preference || 'light',
+        compact_mode: data.compact_mode || false,
+        first_login_at: data.first_login_at || null,
+      };
+
+      return userProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       return null;
