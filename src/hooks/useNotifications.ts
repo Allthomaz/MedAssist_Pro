@@ -91,7 +91,7 @@ export const useNotifications = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Iniciar como false para evitar loading desnecessário
   const [error, setError] = useState<string | null>(null);
   const isLoadingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -103,6 +103,9 @@ export const useNotifications = () => {
         'useNotifications: Usuário não encontrado, definindo loading como false'
       );
       setLoading(false);
+      setNotifications([]);
+      setUnreadCount(0);
+      setError(null);
       return;
     }
 
@@ -340,6 +343,7 @@ export const useNotifications = () => {
     console.log('useNotifications useEffect: user?.id =', user?.id);
     if (user?.id) {
       console.log('useNotifications useEffect: Chamando fetchNotifications');
+      setLoading(true); // Só definir loading como true quando há usuário
       fetchNotifications();
     } else {
       console.log(
@@ -348,6 +352,7 @@ export const useNotifications = () => {
       setNotifications([]);
       setUnreadCount(0);
       setLoading(false);
+      setError(null);
     }
 
     // Cleanup: cancelar requisições pendentes
