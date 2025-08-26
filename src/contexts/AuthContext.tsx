@@ -2,6 +2,7 @@ import { createContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/auth';
+import { setSentryUser, clearSentryUser, addBreadcrumb } from '@/sentry';
 
 interface UserProfile {
   id: string;
@@ -214,6 +215,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           if (mounted) {
             setProfile(userProfile);
 
+            // Configurar usuário no Sentry
+            if (userProfile) {
+              setSentryUser({
+                id: userProfile.id,
+                email: userProfile.email,
+                username: userProfile.full_name,
+                role: userProfile.role,
+                crm: userProfile.crm,
+                specialty: userProfile.specialty,
+                clinic_name: userProfile.clinic_name,
+              });
+            }
+
             // Verificar se é o primeiro login e criar notificação de boas-vindas
             if (
               userProfile &&
@@ -233,6 +247,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
           if (mounted) {
             setProfile(null);
+            clearSentryUser();
           }
         }
 
@@ -268,6 +283,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             const userProfile = await fetchUserProfile(session.user.id);
             if (mounted) {
               setProfile(userProfile);
+
+              // Configurar usuário no Sentry na inicialização
+              if (userProfile) {
+                setSentryUser({
+                  id: userProfile.id,
+                  email: userProfile.email,
+                  username: userProfile.full_name,
+                  role: userProfile.role,
+                  crm: userProfile.crm,
+                  specialty: userProfile.specialty,
+                  clinic_name: userProfile.clinic_name,
+                });
+              }
 
               // Verificar se é o primeiro login na inicialização
               if (userProfile && !userProfile.first_login_at) {
@@ -319,7 +347,31 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         email: string,
         password: string
       ): Promise<{ error: SupabaseError | null }> {
+        addBreadcrumb({
+          message: 'Tentativa de login',
+          category: 'auth',
+          level: 'info',
+          data: { email },
+        });
+
         const { error } = await authService.signIn(email, password);
+
+        if (error) {
+          addBreadcrumb({
+            message: 'Falha no login',
+            category: 'auth',
+            level: 'error',
+            data: { email, error: error.message },
+          });
+        } else {
+          addBreadcrumb({
+            message: 'Login realizado com sucesso',
+            category: 'auth',
+            level: 'info',
+            data: { email },
+          });
+        }
+
         return {
           error: error
             ? {
@@ -359,7 +411,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       },
       async signOut() {
+        addBreadcrumb({
+          message: 'Logout realizado',
+          category: 'auth',
+          level: 'info',
+        });
+
         await authService.signOut();
+        clearSentryUser();
         setProfile(null);
       },
       async resendConfirmation(

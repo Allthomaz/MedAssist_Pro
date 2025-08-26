@@ -12,12 +12,14 @@ import {
   Loader2,
   Download,
   FileText,
+  Eye,
 } from 'lucide-react';
 
 // Importar o cliente Supabase do arquivo de integração
 import { supabase } from '../../integrations/supabase/client';
 import AudioProcessor from '../consultations/AudioProcessor';
 import { transcribeAudio } from '../../services/transcriptionService';
+import AudioErrorBoundary from './AudioErrorBoundary';
 
 // Usar a variável de ambiente para a URL da API da OpenAI
 // const OPENAI_API_URL = import.meta.env.VITE_OPENAI_API_URL || 'https://api.openai.com/v1/audio/transcriptions';
@@ -68,7 +70,7 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
 
   useEffect(() => {
     loadAudioFiles();
-  }, [consultationId]);
+  }, [consultationId, loadAudioFiles]);
 
   // Cleanup de recursos de áudio na desmontagem do componente
   useEffect(() => {
@@ -596,191 +598,203 @@ export const AudioManager: React.FC<AudioManagerProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <FileAudio className="w-5 h-5 text-blue-600" />
-            Gerenciamento de Áudios
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">Paciente: {patientName}</p>
-        </div>
+    <AudioErrorBoundary>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <FileAudio className="w-5 h-5 text-blue-600" />
+              Gerenciamento de Áudios
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Paciente: {patientName}
+            </p>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowRecorder(!showRecorder)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Mic className="w-4 h-4" />
-            {showRecorder ? 'Fechar Gravador' : 'Gravar Áudio'}
-          </button>
-
-          <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors">
-            <Upload className="w-4 h-4" />
-            {uploadingFile ? 'Enviando...' : 'Upload Áudio'}
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={handleFileUpload}
-              disabled={uploadingFile}
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
-
-      {/* Processador de Áudio */}
-      {showRecorder && (
-        <div className="mb-6">
-          <AudioProcessor
-            onProcessingComplete={(audioUrl, intention) => {
-              console.log('Processamento completo:', { audioUrl, intention });
-              loadAudioFiles();
-            }}
-          />
-        </div>
-      )}
-
-      {/* Mensagens de Erro */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-          <AlertCircle className="w-4 h-4" />
-          {error}
-        </div>
-      )}
-
-      {/* Lista de Arquivos de Áudio */}
-      {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-          <span className="ml-2 text-gray-600">Carregando áudios...</span>
-        </div>
-      ) : audioFiles.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <FileAudio className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p>Nenhum áudio encontrado</p>
-          <p className="text-sm">Grave um áudio ou faça upload de um arquivo</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {audioFiles.map(audioFile => (
-            <div
-              key={audioFile.id}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowRecorder(!showRecorder)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <div className="flex items-center gap-4">
-                <FileAudio className="w-8 h-8 text-blue-600" />
+              <Mic className="w-4 h-4" />
+              {showRecorder ? 'Fechar Gravador' : 'Gravar Áudio'}
+            </button>
 
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-gray-900">
-                      {audioFile.audio_file_name}
-                    </h4>
-                    <div className="flex items-center gap-1">
-                      {getStatusIcon(audioFile.recording_status)}
-                      <span className="text-xs text-gray-600">
-                        {getStatusText(audioFile.recording_status)}
-                      </span>
-                    </div>
-                  </div>
+            <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer transition-colors">
+              <Upload className="w-4 h-4" />
+              {uploadingFile ? 'Enviando...' : 'Upload Áudio'}
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={handleFileUpload}
+                disabled={uploadingFile}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span>
-                      Duração: {formatDuration(audioFile.duration_seconds)}
-                    </span>
-                    <span>Tamanho: {formatFileSize(audioFile.file_size)}</span>
-                    <span>Criado: {formatDate(audioFile.created_at)}</span>
-                  </div>
+        {/* Processador de Áudio */}
+        {showRecorder && (
+          <div className="mb-6">
+            <AudioProcessor
+              onProcessingComplete={(audioUrl, intention) => {
+                console.log('Processamento completo:', { audioUrl, intention });
+                loadAudioFiles();
+              }}
+            />
+          </div>
+        )}
 
-                  {audioFile.transcription && (
-                    <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Eye className="w-3 h-3 text-green-600" />
-                        <span className="text-xs font-medium text-green-700">
-                          Transcrição (Confiança:{' '}
-                          {(
-                            audioFile.transcription.confidence_score * 100
-                          ).toFixed(1)}
-                          %)
+        {/* Mensagens de Erro */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+            <AlertCircle className="w-4 h-4" />
+            {error}
+          </div>
+        )}
+
+        {/* Lista de Arquivos de Áudio */}
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            <span className="ml-2 text-gray-600">Carregando áudios...</span>
+          </div>
+        ) : audioFiles.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <FileAudio className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p>Nenhum áudio encontrado</p>
+            <p className="text-sm">
+              Grave um áudio ou faça upload de um arquivo
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {audioFiles.map(audioFile => (
+              <div
+                key={audioFile.id}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+              >
+                <div className="flex items-center gap-4">
+                  <FileAudio className="w-8 h-8 text-blue-600" />
+
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-gray-900">
+                        {audioFile.audio_file_name}
+                      </h4>
+                      <div className="flex items-center gap-1">
+                        {getStatusIcon(audioFile.recording_status)}
+                        <span className="text-xs text-gray-600">
+                          {getStatusText(audioFile.recording_status)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-700 line-clamp-2">
-                        {audioFile.transcription.transcript_text}
-                      </p>
                     </div>
-                  )}
+
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span>
+                        Duração: {formatDuration(audioFile.duration_seconds)}
+                      </span>
+                      <span>
+                        Tamanho: {formatFileSize(audioFile.file_size)}
+                      </span>
+                      <span>Criado: {formatDate(audioFile.created_at)}</span>
+                    </div>
+
+                    {audioFile.transcription && (
+                      <div className="mt-2 p-2 bg-white rounded border border-gray-200">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Eye className="w-3 h-3 text-green-600" />
+                          <span className="text-xs font-medium text-green-700">
+                            Transcrição (Confiança:{' '}
+                            {(
+                              audioFile.transcription.confidence_score * 100
+                            ).toFixed(1)}
+                            %)
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-700 line-clamp-2">
+                          {audioFile.transcription.transcript_text}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (playingAudio === audioFile.id) {
+                        stopAudio();
+                      } else {
+                        playAudio(audioFile);
+                      }
+                    }}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title={
+                      playingAudio === audioFile.id ? 'Parar' : 'Reproduzir'
+                    }
+                  >
+                    {playingAudio === audioFile.id ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {!audioFile.transcription &&
+                    audioFile.recording_status === 'completed' && (
+                      <button
+                        onClick={() => startTranscription(audioFile.id)}
+                        disabled={transcribingAudio === audioFile.id}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Transcrever"
+                      >
+                        {transcribingAudio === audioFile.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <FileText className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
+
+                  <button
+                    onClick={() => downloadAudio(audioFile)}
+                    className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                    title="Baixar"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => deleteAudio(audioFile)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Excluir"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    if (playingAudio === audioFile.id) {
-                      stopAudio();
-                    } else {
-                      playAudio(audioFile);
-                    }
-                  }}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  title={playingAudio === audioFile.id ? 'Parar' : 'Reproduzir'}
-                >
-                  {playingAudio === audioFile.id ? (
-                    <Pause className="w-4 h-4" />
-                  ) : (
-                    <Play className="w-4 h-4" />
-                  )}
-                </button>
-
-                {!audioFile.transcription &&
-                  audioFile.recording_status === 'completed' && (
-                    <button
-                      onClick={() => startTranscription(audioFile.id)}
-                      disabled={transcribingAudio === audioFile.id}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                      title="Transcrever"
-                    >
-                      {transcribingAudio === audioFile.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <FileText className="w-4 h-4" />
-                      )}
-                    </button>
-                  )}
-
-                <button
-                  onClick={() => downloadAudio(audioFile)}
-                  className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                  title="Baixar"
-                >
-                  <Download className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={() => deleteAudio(audioFile)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Excluir"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+        {/* Informações sobre Formatos Suportados */}
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h5 className="font-medium text-blue-900 mb-2">
+            Formatos suportados:
+          </h5>
+          <p className="text-sm text-blue-800 mb-2">
+            <strong>Áudio:</strong> WAV, MP3, WebM, OGG, FLAC, AAC, M4A, MP4
+          </p>
+          <p className="text-sm text-blue-800">
+            <strong>Tamanho:</strong> 1KB - 50MB • <strong>Validação:</strong>{' '}
+            Tipo MIME, extensão e assinatura de arquivo •{' '}
+            <strong>Transcrição:</strong> OpenAI Whisper
+          </p>
         </div>
-      )}
-
-      {/* Informações sobre Formatos Suportados */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h5 className="font-medium text-blue-900 mb-2">Formatos suportados:</h5>
-        <p className="text-sm text-blue-800 mb-2">
-          <strong>Áudio:</strong> WAV, MP3, WebM, OGG, FLAC, AAC, M4A, MP4
-        </p>
-        <p className="text-sm text-blue-800">
-          <strong>Tamanho:</strong> 1KB - 50MB • <strong>Validação:</strong>{' '}
-          Tipo MIME, extensão e assinatura de arquivo •{' '}
-          <strong>Transcrição:</strong> OpenAI Whisper
-        </p>
       </div>
-    </div>
+    </AudioErrorBoundary>
   );
 };
 

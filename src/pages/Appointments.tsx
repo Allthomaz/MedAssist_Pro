@@ -166,7 +166,7 @@ const Appointments = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, toast]);
 
   // Função para filtrar agendamentos
   const filterAppointments = useCallback(() => {

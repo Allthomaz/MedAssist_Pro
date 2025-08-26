@@ -333,8 +333,7 @@ describe('Consultations and Reports Integration Tests', () => {
       // Arrange
       const mockChain = {
         delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        eq: vi.fn().mockResolvedValue({ data: null, error: null }),
       };
 
       mockSupabase.from.mockReturnValue(mockChain);
