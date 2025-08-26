@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Bell,
   X,
@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNotifications } from '@/hooks/useNotifications';
+import { NotificationSettings } from './NotificationSettings';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   isOpen,
   onClose,
 }) => {
+  const [showSettings, setShowSettings] = useState(false);
   const {
     notifications,
     unreadCount,
@@ -133,90 +135,97 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="max-h-96 overflow-y-auto">
-            {loading ? (
-              <div className="p-4 text-center text-muted-foreground">
-                Carregando notificações...
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground">
-                Nenhuma notificação encontrada
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {notifications.map(notification => (
-                  <div
-                    key={notification.id}
-                    className={`p-3 border-b hover:bg-gray-50 transition-colors ${
-                      notification.status === 'unread' ? 'bg-blue-50' : ''
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {getNotificationIcon(
-                          notification.type,
-                          notification.priority
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
-                            {notification.title}
-                          </h4>
-                          <div className="flex items-center gap-1">
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${getPriorityColor(notification.priority)}`}
-                            >
-                              {notification.priority}
-                            </Badge>
-                          </div>
+          {showSettings ? (
+            <NotificationSettings
+              isOpen={showSettings}
+              onClose={() => setShowSettings(false)}
+            />
+          ) : (
+            <div className="max-h-96 overflow-y-auto">
+              {loading ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  Carregando notificações...
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  Nenhuma notificação encontrada
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {notifications.map(notification => (
+                    <div
+                      key={notification.id}
+                      className={`p-3 border-b hover:bg-gray-50 transition-colors ${
+                        notification.status === 'unread' ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(
+                            notification.type,
+                            notification.priority
+                          )}
                         </div>
 
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {notification.message}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="text-sm font-medium text-gray-900 truncate">
+                              {notification.title}
+                            </h4>
+                            <div className="flex items-center gap-1">
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${getPriorityColor(notification.priority)}`}
+                              >
+                                {notification.priority}
+                              </Badge>
+                            </div>
+                          </div>
 
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-500">
-                            {format(
-                              new Date(notification.created_at),
-                              'dd/MM/yyyy HH:mm',
-                              { locale: ptBR }
-                            )}
-                          </span>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            {notification.message}
+                          </p>
 
-                          <div className="flex items-center gap-1">
-                            {notification.status === 'unread' && (
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500">
+                              {format(
+                                new Date(notification.created_at),
+                                'dd/MM/yyyy HH:mm',
+                                { locale: ptBR }
+                              )}
+                            </span>
+
+                            <div className="flex items-center gap-1">
+                              {notification.status === 'unread' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => markAsRead(notification.id)}
+                                  className="h-6 px-2 text-xs"
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => markAsRead(notification.id)}
-                                className="h-6 px-2 text-xs"
+                                onClick={() =>
+                                  deleteNotification(notification.id)
+                                }
+                                className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
                               >
-                                <Check className="h-3 w-3" />
+                                <X className="h-3 w-3" />
                               </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                deleteNotification(notification.id)
-                              }
-                              className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
