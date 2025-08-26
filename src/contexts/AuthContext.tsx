@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/auth';
@@ -93,7 +93,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return null;
       }
 
-      return data;
+      return data as UserProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       return null;
@@ -103,7 +103,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Função para criar notificação de boas-vindas
   const createWelcomeNotification = async (userProfile: UserProfile) => {
     try {
-      const welcomeTitle = 'Bem-vindo ao Doctor Brief AI!';
+      const welcomeTitle: string = 'Bem-vindo ao Doctor Brief AI!';
       let welcomeMessage = '';
 
       if (userProfile.role === 'doctor') {
@@ -279,34 +279,92 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       session,
       profile,
       initializing,
-      async signIn(email, password) {
+      async signIn(
+        email: string,
+        password: string
+      ): Promise<{ error: SupabaseError | null }> {
         const { error } = await authService.signIn(email, password);
         return { error };
       },
-      async signUp(email, password, fullName, profession) {
+      async signUp(
+        email: string,
+        password: string,
+        fullName: string,
+        profession: 'medico' | 'psicologo' | 'terapeuta'
+      ): Promise<{ error: SupabaseError | null }> {
         const { error } = await authService.signUp({
           email,
           password,
           fullName,
           profession,
         });
-        return { error };
+        return {
+          error: error
+            ? {
+                name: error.name,
+                message: error.message,
+                status:
+                  error instanceof Error
+                    ? 500
+                    : ((error as { status?: number }).status ?? 500),
+              }
+            : null,
+        };
       },
       async signOut() {
         await authService.signOut();
         setProfile(null);
       },
-      async resendConfirmation(email) {
+      async resendConfirmation(
+        email: string
+      ): Promise<{ error: SupabaseError | null }> {
         const { error } = await authService.resendConfirmation(email);
-        return { error };
+        return {
+          error: error
+            ? {
+                name: error.name,
+                message: error.message,
+                status:
+                  error instanceof Error
+                    ? 500
+                    : ((error as { status?: number }).status ?? 500),
+              }
+            : null,
+        };
       },
-      async requestPasswordReset(email) {
+      async requestPasswordReset(
+        email: string
+      ): Promise<{ error: SupabaseError | null }> {
         const { error } = await authService.requestPasswordReset(email);
-        return { error };
+        return {
+          error: error
+            ? {
+                name: error.name,
+                message: error.message,
+                status:
+                  error instanceof Error
+                    ? 500
+                    : ((error as { status?: number }).status ?? 500),
+              }
+            : null,
+        };
       },
-      async updatePassword(newPassword) {
+      async updatePassword(
+        newPassword: string
+      ): Promise<{ error: SupabaseError | null }> {
         const { error } = await authService.updatePassword(newPassword);
-        return { error };
+        return {
+          error: error
+            ? {
+                name: error.name,
+                message: error.message,
+                status:
+                  error instanceof Error
+                    ? 500
+                    : ((error as { status?: number }).status ?? 500),
+              }
+            : null,
+        };
       },
     }),
     [user, session, profile, initializing]
@@ -315,13 +373,5 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
 export default AuthContext;
-export { AuthProvider, useAuth };
+export { AuthProvider };
