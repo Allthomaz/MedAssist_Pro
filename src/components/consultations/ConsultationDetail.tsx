@@ -75,6 +75,8 @@ interface ConsultationDetailProps {
  */
 const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
   consultationId,
+  onSave,
+  onStatusChange,
 }) => {
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [patient, setPatient] = useState<Patient | null>(null);
