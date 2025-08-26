@@ -111,7 +111,7 @@ export type AppointmentFormValues = z.infer<typeof appointmentSchema>;
 interface AppointmentFormProps {
   onSubmit: (data: AppointmentFormValues) => void;
   onCancel?: () => void;
-  defaultValues?: Partial<AppointmentFormValues>;
+  defaultValues?: Partial<AppointmentFormValues> | undefined;
 }
 
 export function AppointmentForm({
