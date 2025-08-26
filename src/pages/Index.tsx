@@ -149,6 +149,7 @@ const Index = () => {
             )}
           </div>
           <Button
+            onClick={() => navigate('/consultations')}
             className={`medical-gradient medical-glow text-white shadow-lg hover:shadow-xl transition-all duration-200 w-fit ${compactMode ? 'medical-button' : ''}`}
           >
             Nova Consulta

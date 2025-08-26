@@ -182,6 +182,7 @@ const Consultations = () => {
   >(null);
   const [showNewConsultation, setShowNewConsultation] = useState(false);
 
+  // Função para buscar consultas - declarada antes do useEffect
   const fetchConsultations = useCallback(async () => {
     try {
       setLoading(true);
@@ -216,6 +217,7 @@ const Consultations = () => {
     }
   }, []);
 
+  // Effect para carregar consultas na inicialização
   useEffect(() => {
     fetchConsultations();
   }, [fetchConsultations]);
