@@ -1,12 +1,11 @@
 import { useState, useEffect, Suspense, useCallback } from 'react';
 import {
   format,
-  addDays,
   startOfWeek,
   endOfWeek,
   eachDayOfInterval,
   isSameDay,
-  parseISO,
+  addDays,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -114,6 +113,60 @@ const Appointments = () => {
     'calendar'
   );
 
+  // Função para buscar agendamentos do banco de dados
+  const fetchAppointments = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('doctor_id', user.id)
+        .order('appointment_date', { ascending: true })
+        .order('appointment_time', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        toast({
+          title: 'Erro',
+          description: 'Falha ao carregar agendamentos.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const formattedAppointments: Appointment[] = (data || []).map(
+        (apt: DatabaseAppointment) => ({
+          id: apt.id,
+          patientName: apt.patient_name || 'Nome não informado',
+          patientPhone: apt.patient_phone || '',
+          patientEmail: apt.patient_email || '',
+          appointmentDate: apt.appointment_date,
+          appointmentTime: apt.appointment_time,
+          duration: apt.duration,
+          appointmentType: apt.appointment_type,
+          appointmentReason: apt.appointment_reason || '',
+          status: apt.status,
+          notes: apt.notes || '',
+          createdAt: apt.created_at,
+          updatedAt: apt.updated_at,
+        })
+      );
+
+      setAppointments(formattedAppointments);
+    } catch (error) {
+      console.error('Erro inesperado ao buscar agendamentos:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro inesperado ao carregar agendamentos.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     document.title = 'Agendamentos | MedAssist Pro';
     fetchAppointments();
@@ -149,76 +202,6 @@ const Appointments = () => {
   useEffect(() => {
     filterAppointments();
   }, [filterAppointments]);
-
-  // Função para buscar agendamentos do banco de dados
-  const fetchAppointments = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('doctor_id', user.id)
-        .order('appointment_date', { ascending: true })
-        .order('appointment_time', { ascending: true });
-
-      if (error) {
-        console.error('Erro ao buscar agendamentos:', error);
-        return;
-      }
-
-      // Converter dados do banco para o formato esperado pelo componente
-      const formattedAppointments: Appointment[] = data.map(
-        (apt: DatabaseAppointment) => ({
-          id: apt.id,
-          patientName: apt.patient_name || 'Paciente não informado',
-          patientPhone: apt.patient_phone || '',
-          patientEmail: apt.patient_email || '',
-          appointmentDate: parseISO(apt.appointment_date),
-          appointmentTime: apt.appointment_time,
-          appointmentDuration: `${apt.duration} min`,
-          appointmentType: formatAppointmentType(apt.appointment_type),
-          appointmentReason: apt.appointment_reason || '',
-          appointmentLocation:
-            apt.location || formatConsultationMode(apt.consultation_mode),
-          status: apt.status,
-          consultationMode: apt.consultation_mode,
-        })
-      );
-
-      setAppointments(formattedAppointments);
-    } catch (error) {
-      console.error('Erro ao buscar agendamentos:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  // Função para formatar tipo de agendamento
-  const formatAppointmentType = (type: string): string => {
-    const types: Record<string, string> = {
-      consulta_geral: 'Consulta Geral',
-      primeira_consulta: 'Primeira Consulta',
-      retorno: 'Retorno',
-      urgencia: 'Urgência',
-      exame: 'Exame',
-      procedimento: 'Procedimento',
-      teleconsulta: 'Teleconsulta',
-      avaliacao: 'Avaliação',
-    };
-    return types[type] || type;
-  };
-
-  // Função para formatar modo de consulta
-  const formatConsultationMode = (mode: string): string => {
-    const modes: Record<string, string> = {
-      presencial: 'Consultório Principal',
-      telemedicina: 'Atendimento Online',
-      hibrida: 'Híbrida',
-    };
-    return modes[mode] || mode;
-  };
 
   // Converter tipo de agendamento para o banco
   const convertAppointmentType = (type: string): string => {
