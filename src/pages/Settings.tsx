@@ -39,6 +39,8 @@ import {
   UserCircle,
   Activity,
   Webhook,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
