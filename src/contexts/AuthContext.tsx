@@ -69,7 +69,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'id, full_name, role, email, crm, specialty, custom_title, phone, theme_preference, compact_mode, first_login_at'
+          'id, full_name, role, email, crm, specialty, clinic_name, custom_title, phone, theme_preference, compact_mode, first_login_at'
         )
         .eq('id', userId)
         .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 rows gracefully
@@ -284,7 +284,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         password: string
       ): Promise<{ error: SupabaseError | null }> {
         const { error } = await authService.signIn(email, password);
-        return { error };
+        return {
+          error: error
+            ? {
+                name: error.name,
+                message: error.message,
+                status:
+                  error instanceof Error
+                    ? 500
+                    : ((error as { status?: number }).status ?? 500),
+              }
+            : null,
+        };
       },
       async signUp(
         email: string,
