@@ -66,13 +66,32 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     userId: string
   ): Promise<UserProfile | null> => {
     try {
-      const { data, error } = await supabase
+      // Tipagem explícita para evitar erros de inferência do TypeScript
+      type ProfileQueryResult = {
+        id: string;
+        full_name: string;
+        role: string;
+        email: string;
+        crm: string | null;
+        specialty: string | null;
+        clinic_name: string | null;
+        custom_title: string | null;
+        phone: string | null;
+        theme_preference: string | null;
+        compact_mode: boolean | null;
+        first_login_at: string | null;
+      };
+
+      const { data, error } = (await supabase
         .from('profiles')
         .select(
           'id, full_name, role, email, crm, specialty, clinic_name, custom_title, phone, theme_preference, compact_mode, first_login_at'
         )
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 rows gracefully
+        .maybeSingle()) as {
+        data: ProfileQueryResult | null;
+        error: Error | null;
+      };
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -104,7 +123,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         clinic_name: data.clinic_name || '',
         custom_title: data.custom_title || '',
         phone: data.phone || '',
-        theme_preference: data.theme_preference || 'light',
+        theme_preference:
+          (data.theme_preference as 'light' | 'dark' | 'system') || 'light',
         compact_mode: data.compact_mode || false,
         first_login_at: data.first_login_at || null,
       };
