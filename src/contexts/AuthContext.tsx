@@ -96,20 +96,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        // Se o usuário não existe no banco, limpar a sessão
-        if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
-          console.warn('Usuário não encontrado no banco, limpando sessão');
-          await supabase.auth.signOut();
-        }
+        console.warn(
+          '🔄 [DEBUG] Erro ao buscar perfil, mas não fazendo signOut para evitar loop'
+        );
         return null;
       }
 
       // If no profile found, return null without error
       if (!data) {
         console.warn(`No profile found for user ID: ${userId}`);
-        // Se não há perfil, limpar a sessão
-        console.warn('Perfil não encontrado, limpando sessão');
-        await supabase.auth.signOut();
+        console.warn(
+          '🔄 [DEBUG] Perfil não encontrado, mas não fazendo signOut para evitar loop'
+        );
         return null;
       }
 
@@ -261,10 +259,25 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Then check existing session
     const initializeAuth = async () => {
       try {
+        console.log('🔄 [DEBUG] Iniciando inicialização da autenticação...');
+        const startTime = Date.now();
+
+        console.log('🔄 [DEBUG] Chamando supabase.auth.getSession()...');
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession();
+
+        console.log(
+          '🔄 [DEBUG] getSession() completado em',
+          Date.now() - startTime,
+          'ms'
+        );
+        console.log(
+          '🔄 [DEBUG] Session:',
+          session ? 'Encontrada' : 'Não encontrada'
+        );
+        console.log('🔄 [DEBUG] Error:', error ? error.message : 'Nenhum erro');
 
         if (!mounted) return;
 
@@ -276,12 +289,24 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setUser(null);
           setProfile(null);
         } else {
+          console.log(
+            '🔄 [DEBUG] Usuário encontrado na sessão, configurando estados...'
+          );
           setSession(session);
           setUser(session?.user ?? null);
 
           if (session?.user) {
+            console.log('🔄 [DEBUG] Buscando perfil do usuário...');
+            const profileStartTime = Date.now();
             const userProfile = await fetchUserProfile(session.user.id);
+            console.log(
+              '🔄 [DEBUG] fetchUserProfile() completado em',
+              Date.now() - profileStartTime,
+              'ms'
+            );
+
             if (mounted) {
+              console.log('🔄 [DEBUG] Configurando perfil do usuário...');
               setProfile(userProfile);
 
               // Configurar usuário no Sentry na inicialização
@@ -313,8 +338,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         if (mounted) {
+          console.log(
+            '🔄 [DEBUG] Finalizando inicialização - setInitializing(false)'
+          );
           setInitializing(false);
           initialized = true;
+          console.log('🔄 [DEBUG] Inicialização completa!');
         }
       } catch (error) {
         console.error('Erro na inicialização da autenticação:', error);
@@ -479,5 +508,4 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export default AuthContext;
-export { AuthProvider };
+export { AuthContext, AuthProvider };
