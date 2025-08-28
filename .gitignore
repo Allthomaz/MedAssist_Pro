@@ -57,3 +57,5 @@ supabase/migrations/20250822120000_remove_dr_thomaz_blocking_triggers.sql
 
 # Bun lock file
 bun.lockb
+*storybook.log
+storybook-static
