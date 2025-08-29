@@ -48,6 +48,11 @@ build/
 
 # Test files
 test-signup.js
+
+# Cypress
+cypress/downloads/
+cypress/screenshots/
+cypress/videos/
 test-signup-mock.js
 test-auth-service.mjs
 

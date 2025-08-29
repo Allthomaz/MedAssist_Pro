@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import './fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -44,7 +46,7 @@ All colors MUST be HSL. Based on specified color palette for medical SaaS.
     --secondary-foreground: 210 22% 22%;
 
     --muted: 0 0% 92%; /* Muted background */
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 20% 30%; /* Adjusted for better contrast */
 
     --accent: 204 76% 95%; /* Light medical blue */
     --accent-foreground: 210 22% 22%;

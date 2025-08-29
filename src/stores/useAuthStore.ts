@@ -450,5 +450,7 @@ export const useAuth = () => {
     resendConfirmation: store.resendConfirmation,
     requestPasswordReset: store.requestPasswordReset,
     updatePassword: store.updatePassword,
+    setProfile: store.setProfile,
+    fetchUserProfile: store.fetchUserProfile,
   };
 };

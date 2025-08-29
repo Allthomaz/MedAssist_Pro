@@ -25,7 +25,6 @@ import {
   Palette,
   Save,
   X,
-  ArrowRight,
   Briefcase,
   Phone,
   Sparkles,
@@ -44,9 +43,13 @@ interface ProfileConfigModalProps {
 
 const PROFESSIONAL_SPECIALTIES = [
   { specialty: 'Medicina Geral', title: 'Dr.' },
+  { specialty: 'Clínica Geral', title: 'Dr.' },
+  { specialty: 'Psiquiatria', title: 'Dr.' },
   { specialty: 'Psicologia', title: 'Psic.' },
   { specialty: 'Terapia', title: 'Ter.' },
+  { specialty: 'Terapeuta', title: 'Ter.' },
   { specialty: 'Nutrição', title: 'Nutr.' },
+  { specialty: 'Nutricionista', title: 'Nutr.' },
   { specialty: 'Enfermagem', title: 'Enf.' },
   { specialty: 'Fisioterapia', title: 'Ft.' },
   { specialty: 'Odontologia', title: 'Dr.' },
@@ -60,7 +63,7 @@ const USER_ROLES = [
 
 export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   const { profile } = useProfile();
-  const { user } = useAuth();
+  const { user, setProfile } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -123,7 +126,10 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   const navigate = useNavigate();
 
   const handleSave = async (redirectToDashboard = false) => {
+    console.log('🔄 Iniciando handleSave...', { redirectToDashboard, userId: user?.id });
+    
     if (!user?.id) {
+      console.error('❌ Usuário não encontrado');
       toast({
         title: 'Erro',
         description: 'Usuário não encontrado',
@@ -134,6 +140,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
 
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
+      console.error('❌ Erros de validação:', validationErrors);
       toast({
         title: 'Erro de Validação',
         description: validationErrors.join(', '),
@@ -142,6 +149,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
       return;
     }
 
+    console.log('✅ Validação passou, iniciando salvamento...');
     setLoading(true);
 
     try {
@@ -158,20 +166,47 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
         updated_at: new Date().toISOString(),
       };
 
+      console.log('📤 Enviando dados para Supabase:', updateData);
+      
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro no Supabase:', error);
+        throw error;
+      }
 
+      console.log('✅ Dados salvos no Supabase com sucesso');
+
+      // Mensagem de confirmação mais visível e informativa
       toast({
-        title: 'Sucesso',
+        title: '✅ Configurações Salvas!',
         description: redirectToDashboard
-          ? 'Configurações salvas! Redirecionando para o dashboard...'
-          : 'Configurações salvas com sucesso!',
+          ? '🎉 Suas configurações foram atualizadas com sucesso! Redirecionando para o dashboard...'
+          : '🎉 Todas as suas configurações foram salvas e aplicadas com sucesso!',
+        duration: 4000, // Exibe por 4 segundos para melhor visibilidade
       });
 
+      // Atualizar o perfil no contexto local para refletir as mudanças imediatamente
+        console.log('🔄 Atualizando perfil no contexto...');
+        const updatedProfileData = {
+          full_name: fullName,
+          custom_title: useCustomTitle ? customTitle : null,
+          crm,
+          specialty,
+          phone,
+          theme_preference: theme,
+          compact_mode: compactMode,
+        };
+        if (profile) {
+          const mergedProfile = { ...profile, ...updatedProfileData };
+          setProfile(mergedProfile);
+        }
+        console.log('✅ Perfil atualizado no contexto:', updatedProfileData);
+
+      console.log('🚪 Fechando modal...');
       setOpen(false);
 
       if (redirectToDashboard) {
@@ -179,12 +214,9 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
         setTimeout(() => {
           navigate('/', { replace: true });
         }, 1000);
-      } else {
-        // Refresh the page to update the profile data
-        window.location.reload();
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('❌ Erro durante o salvamento:', error);
       toast({
         title: 'Erro',
         description:
@@ -194,6 +226,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
         variant: 'destructive',
       });
     } finally {
+      console.log('🔄 Finalizando processo de salvamento...');
       setLoading(false);
     }
   };
@@ -456,33 +489,36 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
+        <div className="flex flex-col-reverse sm:flex-row justify-between sm:justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          {/* Botão Cancelar - Sempre à esquerda no desktop, embaixo no mobile */}
           <Button
             variant="outline"
             onClick={handleCancel}
             disabled={loading}
-            className="order-3 sm:order-1"
+            className="w-full sm:w-auto min-w-[120px] border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 transition-all duration-200"
           >
             <X className="w-4 h-4 mr-2" />
             Cancelar
           </Button>
+          
+          {/* Botão de salvar */}
           <Button
             onClick={() => handleSave(false)}
-            disabled={loading || !fullName.trim()}
-            variant="outline"
-            className="order-2 sm:order-2 border-medical-600 text-medical-600 hover:bg-medical-50"
+            disabled={loading}
+            className="w-full sm:w-auto min-w-[140px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-3 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            type="button"
           >
-            <Save className="w-4 h-4 mr-2" />
-            {loading ? 'Salvando...' : 'Salvar Apenas'}
-          </Button>
-          <Button
-            onClick={() => handleSave(true)}
-            disabled={loading || !fullName.trim()}
-            className="order-1 sm:order-3 bg-medical-gradient hover:opacity-90 shadow-lg"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            <ArrowRight className="w-4 h-4 ml-1" />
-            {loading ? 'Salvando...' : 'Salvar e Ir para Dashboard'}
+            {loading ? (
+              <>
+                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Salvar Configurações
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

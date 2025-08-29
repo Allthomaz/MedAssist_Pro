@@ -49,6 +49,7 @@ type AuthContextValue = {
   updatePassword: (
     newPassword: string
   ) => Promise<{ error: SupabaseError | null }>;
+  updateProfile: (profileData: Partial<UserProfile>) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -412,6 +413,11 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               }
             : null,
         };
+      },
+      updateProfile(profileData: Partial<UserProfile>) {
+        if (profile) {
+          setProfile({ ...profile, ...profileData });
+        }
       },
     }),
     [user, session, profile, initializing]

@@ -207,8 +207,14 @@ export function AppointmentsList({
       const appointment = data[index];
       return (
         <AppointmentItem
-          key={appointment.id}
-          appointment={appointment}
+          key={appointment?.id}
+          appointment={appointment!}
+          index={index}
+          onEdit={onEdit || undefined}
+          onDelete={onDelete || undefined}
+          style={style}
+          key={appointment?.id}
+          appointment={appointment!}
           index={index}
           onEdit={onEdit}
           onDelete={onDelete}

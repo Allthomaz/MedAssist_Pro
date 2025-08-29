@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react';
 import {
   Drawer,
   DrawerClose,
@@ -97,12 +97,14 @@ const meta: Meta<typeof Drawer> = {
     },
   },
   tags: ['autodocs'],
+  args: {},
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof Drawer>;
 
 export const Default: Story = {
+  args: {},
   render: () => (
     <Drawer>
       <DrawerTrigger asChild>
@@ -145,6 +147,7 @@ export const Default: Story = {
 };
 
 export const PatientDetails: Story = {
+  args: {},
   render: () => {
     const [notes, setNotes] = useState('');
 
@@ -350,6 +353,7 @@ export const PatientDetails: Story = {
 };
 
 export const VitalSignsMonitor: Story = {
+  args: {},
   render: () => {
     const [heartRate, setHeartRate] = useState(72);
     const [bloodPressure, setBloodPressure] = useState({
@@ -568,6 +572,7 @@ export const VitalSignsMonitor: Story = {
 };
 
 export const QuickActions: Story = {
+  args: {},
   render: () => (
     <Drawer>
       <DrawerTrigger asChild>
@@ -624,6 +629,7 @@ export const QuickActions: Story = {
 };
 
 export const AppointmentForm: Story = {
+  args: {},
   render: () => {
     const [patientName, setPatientName] = useState('');
     const [appointmentDate, setAppointmentDate] = useState('');
@@ -722,6 +728,7 @@ export const AppointmentForm: Story = {
 };
 
 export const MedicalHistory: Story = {
+  args: {},
   render: () => (
     <Drawer>
       <DrawerTrigger asChild>

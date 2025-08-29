@@ -325,6 +325,7 @@ export const authService = {
           message: error.message,
           status: error.status,
           name: error.name,
+          originalError: error, // Adiciona o erro original para mais detalhes
         });
       } else {
         console.log('AuthService: Login bem-sucedido para:', sanitizedEmail);
