@@ -3,15 +3,22 @@ if (import.meta.env.PROD && import.meta.env['VITE_SENTRY_DSN']) {
   import('./sentry');
 }
 
+// Import axe-core for accessibility auditing in development
+if (import.meta.env.DEV) {
+  import('@axe-core/react').then(axe => {
+    axe.default(React, ReactDOM, 1000);
+  });
+}
+
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import './index.css';
 import { ThemeProvider } from 'next-themes';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import App from './App';
 
-createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <ThemeProvider
     attribute="class"
     defaultTheme="light"

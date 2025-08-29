@@ -32,8 +32,8 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// Mock do contexto de autenticação
-vi.mock('../contexts/AuthContext', () => ({
+// Mock do store de autenticação
+vi.mock('../stores/useAuthStore', () => ({
   useAuth: () => ({
     user: null,
     loading: false,
@@ -41,5 +41,12 @@ vi.mock('../contexts/AuthContext', () => ({
     signUp: vi.fn(),
     signOut: vi.fn(),
   }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAuthStore: () => ({
+    user: null,
+    loading: false,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+    initialize: vi.fn(),
+  }),
 }));

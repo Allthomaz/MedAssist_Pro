@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LazyNotificationCenter } from './LazyNotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/stores/useAuthStore';
 
 export function NotificationButton() {
   const [isOpen, setIsOpen] = useState(false);

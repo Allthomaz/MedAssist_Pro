@@ -59,7 +59,7 @@ import { LazyAppointmentForm } from '@/components/appointments/LazyAppointmentFo
 import { AppointmentFormValues } from '@/components/appointments/AppointmentForm';
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationService } from '@/services/notificationService';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/stores/useAuthStore';
 import { useToast } from '@/hooks/use-toast';
 
 // Interface para dados do banco
@@ -650,7 +650,7 @@ const Appointments = () => {
                   {selectedDate && (
                     <div className="p-4 rounded-lg bg-accent/50 border border-accent text-center space-y-2">
                       <p className="font-semibold text-lg">
-                        {format(selectedDate, "EEEE, dd 'de' MMMM", {
+                        {format(selectedDate, 'EEEE, dd \'de\' MMMM', {
                           locale: ptBR,
                         })}
                       </p>
@@ -675,7 +675,7 @@ const Appointments = () => {
                   <CardHeader>
                     <CardTitle>
                       Agendamentos para{' '}
-                      {format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
+                      {format(selectedDate, 'dd \'de\' MMMM \'de\' yyyy', {
                         locale: ptBR,
                       })}
                     </CardTitle>

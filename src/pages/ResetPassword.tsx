@@ -12,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/stores/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 

@@ -47,7 +47,9 @@ declare module '@supabase/supabase-js' {
 
   export interface QueryBuilder {
     select(columns?: string): QueryBuilder;
-    insert(values: Record<string, unknown> | Record<string, unknown>[]): QueryBuilder;
+    insert(
+      values: Record<string, unknown> | Record<string, unknown>[]
+    ): QueryBuilder;
     update(values: Record<string, unknown>): QueryBuilder;
     delete(): QueryBuilder;
     eq(column: string, value: unknown): QueryBuilder;
@@ -55,8 +57,14 @@ declare module '@supabase/supabase-js' {
   }
 
   export interface AuthClient {
-    signUp(credentials: { email: string; password: string }): Promise<{ data: unknown; error: unknown }>;
-    signIn(credentials: { email: string; password: string }): Promise<{ data: unknown; error: unknown }>;
+    signUp(credentials: {
+      email: string;
+      password: string;
+    }): Promise<{ data: unknown; error: unknown }>;
+    signIn(credentials: {
+      email: string;
+      password: string;
+    }): Promise<{ data: unknown; error: unknown }>;
     signOut(): Promise<{ error: unknown }>;
     getUser(): Promise<{ data: unknown; error: unknown }>;
   }
@@ -66,13 +74,20 @@ declare module '@supabase/supabase-js' {
   }
 
   export interface StorageBucket {
-    upload(path: string, file: File | Blob, options?: Record<string, unknown>): Promise<{ data: unknown; error: unknown }>;
+    upload(
+      path: string,
+      file: File | Blob,
+      options?: Record<string, unknown>
+    ): Promise<{ data: unknown; error: unknown }>;
     download(path: string): Promise<{ data: Blob | null; error: unknown }>;
     remove(paths: string[]): Promise<{ data: unknown; error: unknown }>;
   }
 
   export interface FunctionsClient {
-    invoke(functionName: string, options?: { body?: unknown; headers?: Record<string, string> }): Promise<{ data: unknown; error: unknown }>;
+    invoke(
+      functionName: string,
+      options?: { body?: unknown; headers?: Record<string, string> }
+    ): Promise<{ data: unknown; error: unknown }>;
   }
 
   export function createClient(

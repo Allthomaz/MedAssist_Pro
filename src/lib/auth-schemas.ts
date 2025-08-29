@@ -19,7 +19,7 @@ export const passwordSchema = z
   .regex(/^(?=.*[A-Z])/, 'Deve conter pelo menos uma letra maiúscula')
   .regex(/^(?=.*\d)/, 'Deve conter pelo menos um número')
   .regex(
-    /^(?=.*[!@#$%^&*(),.?":{}|<>])/, 
+    /^(?=.*[!@#$%^&*(),.?":{}|<>])/,
     'Deve conter pelo menos um caractere especial'
   )
   .refine(

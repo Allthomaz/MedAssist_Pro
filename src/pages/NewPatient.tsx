@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/stores/useAuthStore';
 
 // Interface para dados do paciente
 interface PatientData {

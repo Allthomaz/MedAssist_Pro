@@ -1,42 +1,158 @@
-# Doctor Brief AI - Sistema Médico Premium
+# MedAssist Pro
 
-## Sobre o Projeto
+Sistema de gestão médica moderno e intuitivo com foco em qualidade, performance e acessibilidade.
 
-Sistema médico premium com IA para geração de relatórios e gestão de consultas, implementado com Design System sofisticado.
+## 🚀 Tecnologias
 
-**Repositório**: https://github.com/Allthomaz/doctor-brief-ai-premium
-**Demo**: http://localhost:8081/showcase
+- **Frontend**: React 18 + TypeScript 5
+- **Build**: Vite 4+
+- **UI**: shadcn/ui + Tailwind CSS
+- **Backend**: Supabase (Auth + Database + Storage)
+- **Estado**: Zustand
+- **Testes**: Jest + React Testing Library + Storybook
+- **Deploy**: Vercel
 
-## Funcionalidades Premium
+## 📦 Instalação
 
-- 🎨 **Design System Médico Premium** - Interface sofisticada com glassmorphism
-- 🏥 **Gestão Completa de Pacientes** - CRUD completo com validações
-- 📋 **Consultas Médicas** - Sistema completo de agendamento e histórico
-- 🤖 **IA para Relatórios** - Geração automática de relatórios médicos
-- 📊 **Dashboard Analytics** - Estatísticas e métricas em tempo real
-- 🔐 **Autenticação Segura** - Sistema completo com Supabase Auth
-- 📱 **Design Responsivo** - Interface otimizada para todos os dispositivos
-- ♿ **Acessibilidade** - Componentes acessíveis seguindo padrões WCAG
+```bash
+# Instalar dependências
+npm install
 
-## Design System Premium
+# Configurar variáveis de ambiente
+cp .env.example .env.local
+# Edite .env.local com suas credenciais do Supabase
+```
 
-### Paleta de Cores Médica
+## 🛠️ Desenvolvimento
 
-- **Primary**: Azul médico profissional (#2563eb)
-- **Secondary**: Verde saúde (#16a34a)
-- **Accent**: Laranja energia (#ea580c)
-- **Medical**: Tons específicos para ambiente médico
+```bash
+# Servidor de desenvolvimento
+npm run dev
 
-### Componentes Premium
+# Storybook (design system)
+npm run storybook
 
-- **StatsCard**: Cards com glassmorphism e micro-interações
-- **MedicalSidebar**: Navegação com efeitos visuais sofisticados
-- **Premium Buttons**: Botões com animações fluidas
-- **Medical Forms**: Campos otimizados para dados médicos
+# Verificação de tipos
+npm run type-check
 
-### Showcase Interativo
+# Linting
+npm run lint
+npm run lint:fix
+```
 
-Visite `/showcase` para ver todas as melhorias visuais implementadas.
+## 🧪 Testes
+
+```bash
+# Testes unitários
+npm test
+npm run test:watch
+npm run test:ci
+
+# Testes do Storybook
+npm run test:storybook
+npm run test:storybook:smoke
+
+# Testes de acessibilidade
+npm run test:a11y
+```
+
+## 🏗️ Build e Deploy
+
+```bash
+# Build de produção
+npm run build
+
+# Preview local
+npm run preview
+
+# Build do Storybook
+npm run build-storybook
+```
+
+## 📊 Qualidade e Performance
+
+```bash
+# Análise do bundle
+npm run analyze:bundle
+
+# Auditoria de performance
+npm run performance:audit
+
+# Verificação de tamanho do bundle
+npm run performance:bundle-size
+```
+
+## 🔧 Estrutura do Projeto
+
+```
+src/
+├── components/          # Componentes React
+│   ├── ui/             # Componentes base (shadcn/ui)
+│   └── features/       # Componentes específicos
+├── stores/             # Estados globais (Zustand)
+├── lib/                # Utilitários e configurações
+├── types/              # Definições TypeScript
+├── stories/            # Stories do Storybook
+└── __tests__/          # Testes unitários
+```
+
+## 🚦 CI/CD
+
+O projeto utiliza GitHub Actions para:
+
+- ✅ Verificação de tipos TypeScript
+- ✅ Linting com ESLint
+- ✅ Testes unitários e de integração
+- ✅ Testes de acessibilidade
+- ✅ Build e deploy automático
+
+## 📋 Scripts Disponíveis
+
+| Script       | Descrição                   |
+| ------------ | --------------------------- |
+| `dev`        | Servidor de desenvolvimento |
+| `build`      | Build de produção           |
+| `test`       | Testes unitários            |
+| `test:ci`    | Testes para CI com coverage |
+| `storybook`  | Interface do Storybook      |
+| `lint`       | Verificação de código       |
+| `type-check` | Verificação TypeScript      |
+
+## 🔒 Segurança
+
+- ✅ Variáveis de ambiente seguras
+- ✅ Validação de dados de entrada
+- ✅ Autenticação via Supabase
+- ✅ Sanitização de dados
+
+## 🎯 Qualidade de Código
+
+- **ESLint**: Detecção de problemas e anti-patterns
+- **Prettier**: Formatação automática
+- **TypeScript**: Tipagem estática
+- **Jest**: Testes unitários com coverage
+- **Storybook**: Documentação de componentes
+- **axe-core**: Testes de acessibilidade
+
+## 📈 Performance
+
+- ⚡ Vite para build rápido
+- 🎯 Code splitting automático
+- 📦 Bundle otimizado
+- 🖼️ Lazy loading de imagens
+- 💾 Cache inteligente
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'feat: adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ## How can I edit this code?
 

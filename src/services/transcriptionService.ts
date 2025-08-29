@@ -1,7 +1,5 @@
 import { supabase } from '../integrations/supabase/client';
-import {
-  WhisperSegment,
-} from '../types/common';
+import { WhisperSegment } from '../types/common';
 
 // Usar as variáveis de ambiente corretas para o Vite
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
