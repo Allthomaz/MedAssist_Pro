@@ -29,8 +29,6 @@ import {
   Calendar,
   User,
   Phone,
-  Mail,
-  MapPin,
   Pill,
   Stethoscope,
   FileText,

@@ -1,8 +1,4 @@
 // Mock do cliente Supabase para testes
-// Simula as variáveis de ambiente do Vite
-const SUPABASE_URL = 'http://127.0.0.1:54321';
-const SUPABASE_ANON_KEY = 'mock-anon-key';
-
 const mockSupabaseClient = {
   auth: {
     getSession: jest

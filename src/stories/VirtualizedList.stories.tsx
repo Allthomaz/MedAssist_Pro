@@ -3,34 +3,20 @@ import {
   VirtualizedList,
   AutoHeightVirtualizedList,
 } from '@/components/ui/VirtualizedList';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  User,
   Calendar,
   Clock,
   Phone,
-  Mail,
-  MapPin,
-  Heart,
-  Activity,
   Stethoscope,
-  Pill,
-  FileText,
   TestTube,
   Eye,
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Info,
 } from 'lucide-react';
 import { useRef } from 'react';
 

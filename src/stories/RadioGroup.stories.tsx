@@ -11,17 +11,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  User,
   Activity,
   Heart,
-  Thermometer,
   Droplets,
   Clock,
-  Calendar,
   AlertCircle,
   CheckCircle,
   Star,
-  MapPin,
   CreditCard,
   Shield,
 } from 'lucide-react';
