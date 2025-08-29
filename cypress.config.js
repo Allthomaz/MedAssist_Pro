@@ -1,12 +1,13 @@
 // cypress.config.js
-const { defineConfig } = require("cypress");
+const { defineConfig } = require('cypress');
 const { installPlugin } = require('@chromatic-com/cypress');
 
 module.exports = defineConfig({
   e2e: {
+    baseUrl: 'http://localhost:8083',
     setupNodeEvents(on, config) {
-      // Plugin configuration will be added later
-      installPlugin(on);
+      installPlugin(on, config);
+      return config;
     },
   },
 });

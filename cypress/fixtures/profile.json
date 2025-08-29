@@ -1,0 +1,13 @@
+{
+  "id": "mock-user-id",
+  "full_name": "Dr. João Silva",
+  "role": "doctor",
+  "specialty": "Medicina Geral",
+  "crm": "12345-SP",
+  "phone": "(11) 99999-9999",
+  "theme_preference": "light",
+  "compact_mode": false,
+  "custom_title": null,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z"
+}

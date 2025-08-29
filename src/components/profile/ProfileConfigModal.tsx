@@ -49,7 +49,6 @@ const PROFESSIONAL_SPECIALTIES = [
   { specialty: 'Terapia', title: 'Ter.' },
   { specialty: 'Terapeuta', title: 'Ter.' },
   { specialty: 'Nutrição', title: 'Nutr.' },
-  { specialty: 'Nutricionista', title: 'Nutr.' },
   { specialty: 'Enfermagem', title: 'Enf.' },
   { specialty: 'Fisioterapia', title: 'Ft.' },
   { specialty: 'Odontologia', title: 'Dr.' },
@@ -126,8 +125,11 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
   const navigate = useNavigate();
 
   const handleSave = async (redirectToDashboard = false) => {
-    console.log('🔄 Iniciando handleSave...', { redirectToDashboard, userId: user?.id });
-    
+    console.log('🔄 Iniciando handleSave...', {
+      redirectToDashboard,
+      userId: user?.id,
+    });
+
     if (!user?.id) {
       console.error('❌ Usuário não encontrado');
       toast({
@@ -167,7 +169,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
       };
 
       console.log('📤 Enviando dados para Supabase:', updateData);
-      
+
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
@@ -190,21 +192,21 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
       });
 
       // Atualizar o perfil no contexto local para refletir as mudanças imediatamente
-        console.log('🔄 Atualizando perfil no contexto...');
-        const updatedProfileData = {
-          full_name: fullName,
-          custom_title: useCustomTitle ? customTitle : null,
-          crm,
-          specialty,
-          phone,
-          theme_preference: theme,
-          compact_mode: compactMode,
-        };
-        if (profile) {
-          const mergedProfile = { ...profile, ...updatedProfileData };
-          setProfile(mergedProfile);
-        }
-        console.log('✅ Perfil atualizado no contexto:', updatedProfileData);
+      console.log('🔄 Atualizando perfil no contexto...');
+      const updatedProfileData = {
+        full_name: fullName,
+        custom_title: useCustomTitle ? customTitle : null,
+        crm,
+        specialty,
+        phone,
+        theme_preference: theme,
+        compact_mode: compactMode,
+      };
+      if (profile) {
+        const mergedProfile = { ...profile, ...updatedProfileData };
+        setProfile(mergedProfile);
+      }
+      console.log('✅ Perfil atualizado no contexto:', updatedProfileData);
 
       console.log('🚪 Fechando modal...');
       setOpen(false);
@@ -500,7 +502,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
             <X className="w-4 h-4 mr-2" />
             Cancelar
           </Button>
-          
+
           {/* Botão de salvar */}
           <Button
             onClick={() => handleSave(false)}
