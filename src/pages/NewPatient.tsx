@@ -257,6 +257,22 @@ const NewPatient = () => {
     setLoading(true);
 
     try {
+      // Mapear gênero da UI para os valores aceitos no banco
+      const mapGenderToDb = (value: string): 'male' | 'female' | 'other' => {
+        switch (value) {
+          case 'masculino':
+            return 'male';
+          case 'feminino':
+            return 'female';
+          case 'outro':
+            return 'other';
+          case 'nao_informar':
+            return 'other';
+          default:
+            return 'other';
+        }
+      };
+
       const patientRecord = {
         doctor_id: user.id,
         full_name: patientData.fullName,
@@ -265,14 +281,14 @@ const NewPatient = () => {
         birth_date: patientData.birthDate
           ? format(patientData.birthDate, 'yyyy-MM-dd')
           : null,
-        gender: patientData.gender,
+        gender: mapGenderToDb(patientData.gender),
         cpf: patientData.cpf || null,
         rg: patientData.rg || null,
 
         // Endereço
         address: patientData.address || null,
         address_number: patientData.addressNumber || null,
-        complement: patientData.complement || null,
+        address_complement: patientData.complement || null,
         neighborhood: patientData.neighborhood || null,
         city: patientData.city || null,
         state: patientData.state || null,
@@ -281,21 +297,19 @@ const NewPatient = () => {
         // Contato de emergência
         emergency_contact_name: patientData.emergencyContactName || null,
         emergency_contact_phone: patientData.emergencyContactPhone || null,
-        emergency_contact_relation:
+        emergency_contact_relationship:
           patientData.emergencyContactRelation || null,
 
         // Informações médicas
         blood_type: patientData.bloodType || null,
         allergies:
           patientData.allergies.length > 0 ? patientData.allergies : null,
-        medications:
+        current_medications:
           patientData.medications.length > 0 ? patientData.medications : null,
-        medical_history: patientData.medicalHistory || null,
         family_history: patientData.familyHistory || null,
 
         // Plano de saúde
-        has_insurance: patientData.hasInsurance,
-        insurance_name: patientData.hasInsurance
+        insurance_company: patientData.hasInsurance
           ? patientData.insuranceName
           : null,
         insurance_number: patientData.hasInsurance
@@ -303,11 +317,7 @@ const NewPatient = () => {
           : null,
 
         // Observações
-        observations: patientData.observations || null,
-
-        // Metadados
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        notes: patientData.observations || null,
       };
 
       const { error } = await supabase
