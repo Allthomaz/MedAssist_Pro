@@ -111,12 +111,18 @@ const PatientItem = React.memo<{
                   <Badge
                     variant="outline"
                     className={
-                      patient.status === 'ativo'
+                      patient.status === 'active'
                         ? 'bg-medical-success/10 text-medical-success border-medical-success/20'
-                        : 'bg-orange-100 text-orange-700 border-orange-200'
+                        : patient.status === 'inactive'
+                          ? 'bg-orange-100 text-orange-700 border-orange-200'
+                          : 'bg-gray-100 text-gray-700 border-gray-200'
                     }
                   >
-                    {patient.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                    {patient.status === 'active'
+                      ? 'Ativo'
+                      : patient.status === 'inactive'
+                        ? 'Inativo'
+                        : 'Arquivado'}
                   </Badge>
                   {patient.patient_number && (
                     <span className="text-sm text-muted-foreground">
