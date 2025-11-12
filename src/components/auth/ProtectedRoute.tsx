@@ -12,7 +12,7 @@ const Loader = () => (
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user, initializing } = useAuth();
+  const { user, initializing, profile } = useAuth();
   const location = useLocation();
 
   // Aplicar preferências de tema quando o usuário estiver autenticado
@@ -20,5 +20,18 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 
   if (initializing) return <Loader />;
   if (!user) return <Navigate to="/auth" replace state={{ from: location }} />;
+
+  // Se o usuário está autenticado mas sem perfil (usuário órfão),
+  // redireciona para Configurações, evitando loop ao já estar em /settings
+  if (!profile && location.pathname !== '/settings') {
+    return (
+      <Navigate
+        to="/settings"
+        replace
+        state={{ from: location, missingProfile: true }}
+      />
+    );
+  }
+
   return <>{children}</>;
 };

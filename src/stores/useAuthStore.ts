@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { Session, User } from '@supabase/supabase-js';
@@ -120,22 +119,22 @@ export const useAuthStore = create<AuthState>()(
             if (error) {
               console.error('Error fetching user profile:', error);
               const supabaseError = error as SupabaseError;
+              // Não desloga aqui: trata estado de perfil ausente
               if (
                 supabaseError.code === 'PGRST116' ||
                 error.message?.includes('0 rows')
               ) {
                 console.warn(
-                  'Usuário não encontrado no banco, limpando sessão'
+                  'Perfil não encontrado para o usuário autenticado (possível usuário órfão)'
                 );
-                await supabase.auth.signOut();
+                return null;
               }
               return null;
             }
 
             if (!data) {
               console.warn(`No profile found for user ID: ${userId}`);
-              console.warn('Perfil não encontrado, limpando sessão');
-              await supabase.auth.signOut();
+              // Não força logout: deixa o caller decidir redirecionar
               return null;
             }
 
@@ -316,8 +315,6 @@ export const useAuthStore = create<AuthState>()(
             setProfile,
             setInitializing,
             fetchUserProfile,
-            markFirstLogin,
-            createWelcomeNotification,
           } = get();
 
           try {
@@ -339,16 +336,6 @@ export const useAuthStore = create<AuthState>()(
               if (session?.user) {
                 const userProfile = await fetchUserProfile(session.user.id);
                 setProfile(userProfile);
-
-                if (userProfile && !userProfile.first_login_at) {
-                  await markFirstLogin(userProfile.id);
-                  await createWelcomeNotification(userProfile);
-
-                  setProfile({
-                    ...userProfile,
-                    first_login_at: new Date().toISOString(),
-                  });
-                }
               }
             }
 
