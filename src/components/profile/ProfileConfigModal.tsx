@@ -155,6 +155,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
     setLoading(true);
 
     try {
+      // Monta payload incluindo compact_mode inicialmente
       const updateData = {
         full_name: fullName.trim(),
         role: role,
@@ -170,10 +171,44 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
 
       console.log('📤 Enviando dados para Supabase:', updateData);
 
-      const { error } = await supabase
+      let { error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', user.id);
+
+      // Fallback: se a coluna compact_mode não existir no schema cache (PGRST204), tenta novamente sem ela
+      if (
+        error &&
+        (error as any)?.code === 'PGRST204' &&
+        String((error as any)?.message || '').includes("'compact_mode'")
+      ) {
+        console.warn(
+          '⚠️ Coluna compact_mode ausente no schema; tentando salvar sem esse campo.'
+        );
+        const updateDataWithoutCompact = {
+          full_name: updateData.full_name,
+          role: updateData.role,
+          custom_title: updateData.custom_title,
+          crm: updateData.crm,
+          specialty: updateData.specialty,
+          phone: updateData.phone,
+          theme_preference: updateData.theme_preference,
+          updated_at: updateData.updated_at,
+        };
+
+        ({ error } = await supabase
+          .from('profiles')
+          .update(updateDataWithoutCompact)
+          .eq('id', user.id));
+
+        if (!error) {
+          toast({
+            title: 'Configurações salvas (parcialmente)',
+            description:
+              'Preferência de modo compacto não foi aplicada porque a coluna ainda não existe no banco. As demais alterações foram salvas.',
+          });
+        }
+      }
 
       if (error) {
         console.error('❌ Erro no Supabase:', error);
