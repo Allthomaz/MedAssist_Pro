@@ -229,62 +229,94 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         throw new Error('Usuário não autenticado');
       }
 
-      const patientData: any = {
+      console.log('🚀 Iniciando cadastro em duas etapas...');
+
+      // ETAPA 1: Insert Mínimo (Apenas campos TEXT/DATE obrigatórios e simples)
+      // Removemos arrays e campos opcionais para garantir que o registro seja criado.
+      const minimalData = {
         doctor_id: user.user.id,
         full_name: data.full_name,
         birth_date: format(data.birth_date, 'yyyy-MM-dd'),
         gender: data.gender,
         status: 'active',
+        // NOTA: Não enviamos phone, email, notes ou arrays aqui.
       };
 
-      if (data.phone) patientData.phone = data.phone;
-      if (data.email) patientData.email = data.email;
-      if (data.family_history) patientData.family_history = data.family_history;
-      if (data.chief_complaint) patientData.notes = data.chief_complaint;
-      if (data.current_medications) {
-        patientData.current_medications = [data.current_medications];
-      }
+      console.log('📤 Etapa 1: Criando registro básico...', minimalData);
 
-      console.log('📤 Enviando dados limpos:', patientData);
-
-      let { error } = await supabase
+      const { data: newPatient, error: insertError } = await supabase
         .from('patients')
-        .insert([patientData])
-        .select()
+        .insert(minimalData)
+        .select('id') // Só precisamos do ID
         .single();
 
-      if (error && (error as any)?.code === '42601') {
-        const minimalData: any = {
-          doctor_id: user.user.id,
-          full_name: data.full_name,
-          birth_date: format(data.birth_date, 'yyyy-MM-dd'),
-          gender: data.gender,
-        };
-        const retry = await supabase
-          .from('patients')
-          .insert([minimalData])
-          .select()
-          .single();
-        error = retry.error;
+      if (insertError) {
+        console.error('❌ Erro na Etapa 1 (Insert):', insertError);
+        throw insertError;
       }
 
-      if (error) {
-        console.error('❌ Erro Supabase:', error);
-        throw error;
+      const patientId = newPatient.id;
+      console.log('✅ Paciente criado com ID:', patientId);
+
+      // ETAPA 2: Update com os Opcionais e Arrays
+      // Agora que o paciente existe, atualizamos com o resto dos dados.
+      const updateData: any = {};
+
+      if (data.phone) updateData.phone = data.phone;
+      if (data.email) updateData.email = data.email;
+      if (data.family_history) updateData.family_history = data.family_history;
+
+      // Mapeamento de chief_complaint para notes
+      if (data.chief_complaint) updateData.notes = data.chief_complaint;
+
+      // Arrays (geralmente os culpados do erro 42601 em inserts)
+      if (data.current_medications) {
+        // Formata como array de strings para o Postgres
+        updateData.current_medications = [data.current_medications];
+      }
+
+      // Só fazemos o update se tiver algo para salvar
+      if (Object.keys(updateData).length > 0) {
+        console.log('🔄 Etapa 2: Salvando dados adicionais...', updateData);
+
+        const { error: updateError } = await supabase
+          .from('patients')
+          .update(updateData)
+          .eq('id', patientId);
+
+        if (updateError) {
+          console.error(
+            '⚠️ Aviso: Dados básicos salvos, mas falha nos opcionais:',
+            updateError
+          );
+          // Não lançamos erro aqui para não assustar o usuário, já que o paciente foi criado
+          toast({
+            title: 'Paciente criado (Parcial)',
+            description:
+              'Os dados básicos foram salvos, mas detalhes adicionais podem ter falhado.',
+            variant: 'default',
+          });
+        }
       }
 
       toast({
-        title: '✅ Paciente Salvo!',
-        description: `${data.full_name} foi cadastrado com sucesso.`,
+        title: '✅ Sucesso!',
+        description: `Paciente ${data.full_name} cadastrado com sucesso.`,
       });
 
       onSuccess();
     } catch (error: any) {
-      console.error('❌ Erro no catch:', error);
+      console.error('❌ Erro Fatal:', error);
+
+      // Tratamento amigável do erro
+      let msg = 'Falha ao salvar paciente.';
+      if (error.code === '42601')
+        msg = 'Erro de configuração no banco (42601). Contate o suporte.';
+      else if (error.message) msg = error.message;
+
       toast({
-        title: 'Erro ao salvar',
-        description:
-          error?.message || error?.details || 'Falha ao conectar com o banco.',
+        title: 'Erro',
+        description: msg,
         variant: 'destructive',
       });
     } finally {
