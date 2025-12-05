@@ -273,56 +273,89 @@ const NewPatient = () => {
         }
       };
 
-      const patientRecord = {
+      const patientRecord: any = {
         doctor_id: user.id,
         full_name: patientData.fullName,
-        email: patientData.email || null,
-        phone: patientData.phone,
-        birth_date: patientData.birthDate
-          ? format(patientData.birthDate, 'yyyy-MM-dd')
-          : null,
         gender: mapGenderToDb(patientData.gender),
-        cpf: patientData.cpf || null,
-        rg: patientData.rg || null,
-
-        // Endereço
-        address: patientData.address || null,
-        address_number: patientData.addressNumber || null,
-        address_complement: patientData.complement || null,
-        neighborhood: patientData.neighborhood || null,
-        city: patientData.city || null,
-        state: patientData.state || null,
-        zip_code: patientData.zipCode || null,
-
-        // Contato de emergência
-        emergency_contact_name: patientData.emergencyContactName || null,
-        emergency_contact_phone: patientData.emergencyContactPhone || null,
-        emergency_contact_relationship:
-          patientData.emergencyContactRelation || null,
-
-        // Informações médicas
-        blood_type: patientData.bloodType || null,
-        allergies:
-          patientData.allergies.length > 0 ? patientData.allergies : null,
-        current_medications:
-          patientData.medications.length > 0 ? patientData.medications : null,
-        family_history: patientData.familyHistory || null,
-
-        // Plano de saúde
-        insurance_company: patientData.hasInsurance
-          ? patientData.insuranceName
-          : null,
-        insurance_number: patientData.hasInsurance
-          ? patientData.insuranceNumber
-          : null,
-
-        // Observações
-        notes: patientData.observations || null,
       };
+
+      if (patientData.birthDate) {
+        patientRecord.birth_date = format(patientData.birthDate, 'yyyy-MM-dd');
+      }
+      if (patientData.phone) {
+        patientRecord.phone = patientData.phone;
+      }
+      if (patientData.email) {
+        patientRecord.email = patientData.email;
+      }
+      if (patientData.cpf) {
+        patientRecord.cpf = patientData.cpf;
+      }
+      if (patientData.rg) {
+        patientRecord.rg = patientData.rg;
+      }
+
+      if (patientData.address) {
+        patientRecord.address = patientData.address;
+      }
+      if (patientData.addressNumber) {
+        patientRecord.address_number = patientData.addressNumber;
+      }
+      if (patientData.complement) {
+        patientRecord.address_complement = patientData.complement;
+      }
+      if (patientData.neighborhood) {
+        patientRecord.neighborhood = patientData.neighborhood;
+      }
+      if (patientData.city) {
+        patientRecord.city = patientData.city;
+      }
+      if (patientData.state) {
+        patientRecord.state = patientData.state;
+      }
+      if (patientData.zipCode) {
+        patientRecord.zip_code = patientData.zipCode;
+      }
+
+      if (patientData.emergencyContactName) {
+        patientRecord.emergency_contact_name = patientData.emergencyContactName;
+      }
+      if (patientData.emergencyContactPhone) {
+        patientRecord.emergency_contact_phone =
+          patientData.emergencyContactPhone;
+      }
+      if (patientData.emergencyContactRelation) {
+        patientRecord.emergency_contact_relationship =
+          patientData.emergencyContactRelation;
+      }
+
+      if (patientData.bloodType) {
+        patientRecord.blood_type = patientData.bloodType;
+      }
+      if (patientData.allergies && patientData.allergies.length > 0) {
+        patientRecord.allergies = patientData.allergies;
+      }
+      if (patientData.medications && patientData.medications.length > 0) {
+        patientRecord.current_medications = patientData.medications;
+      }
+      if (patientData.familyHistory) {
+        patientRecord.family_history = patientData.familyHistory;
+      }
+
+      if (patientData.hasInsurance && patientData.insuranceName) {
+        patientRecord.insurance_company = patientData.insuranceName;
+      }
+      if (patientData.hasInsurance && patientData.insuranceNumber) {
+        patientRecord.insurance_number = patientData.insuranceNumber;
+      }
+
+      if (patientData.observations) {
+        patientRecord.notes = patientData.observations;
+      }
 
       const { error } = await supabase
         .from('patients')
-        .insert([patientRecord])
+        .insert(patientRecord)
         .select()
         .single();
 
