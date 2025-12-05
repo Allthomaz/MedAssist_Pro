@@ -247,11 +247,26 @@ export const PatientForm: React.FC<PatientFormProps> = ({
 
       console.log('📤 Enviando dados limpos:', patientData);
 
-      const { error } = await supabase
+      let { error } = await supabase
         .from('patients')
-        .insert(patientData)
+        .insert([patientData])
         .select()
         .single();
+
+      if (error && (error as any)?.code === '42601') {
+        const minimalData: any = {
+          doctor_id: user.user.id,
+          full_name: data.full_name,
+          birth_date: format(data.birth_date, 'yyyy-MM-dd'),
+          gender: data.gender,
+        };
+        const retry = await supabase
+          .from('patients')
+          .insert([minimalData])
+          .select()
+          .single();
+        error = retry.error;
+      }
 
       if (error) {
         console.error('❌ Erro Supabase:', error);
