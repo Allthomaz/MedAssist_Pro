@@ -153,6 +153,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
 
     console.log('✅ Validação passou, iniciando salvamento...');
     setLoading(true);
+    toast({ title: 'Salvando alterações...' });
 
     try {
       // Monta payload incluindo compact_mode inicialmente
@@ -173,14 +174,13 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
 
       let { error } = await supabase
         .from('profiles')
-        .update(updateData)
-        .eq('id', user.id);
+        .upsert({ id: user.id, ...updateData });
 
       // Fallback: se a coluna compact_mode não existir no schema cache (PGRST204), tenta novamente sem ela
       if (
         error &&
         (error as any)?.code === 'PGRST204' &&
-        String((error as any)?.message || '').includes("'compact_mode'")
+        String((error as any)?.message || '').includes('compact_mode')
       ) {
         console.warn(
           '⚠️ Coluna compact_mode ausente no schema; tentando salvar sem esse campo.'
@@ -198,8 +198,7 @@ export function ProfileConfigModal({ children }: ProfileConfigModalProps) {
 
         ({ error } = await supabase
           .from('profiles')
-          .update(updateDataWithoutCompact)
-          .eq('id', user.id));
+          .upsert({ id: user.id, ...updateDataWithoutCompact }));
 
         if (!error) {
           toast({

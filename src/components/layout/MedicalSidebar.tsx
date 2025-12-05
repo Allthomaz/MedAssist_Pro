@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -10,6 +10,7 @@ import {
   Activity,
   LogOut,
   Calendar,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,8 +32,24 @@ const secondaryNavigation = [
 
 export function MedicalSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+    } catch (err) {
+      String(err);
+    } finally {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } finally {
+        window.location.href = '/auth';
+      }
+    }
+  };
 
   return (
     <div className="premium-sidebar h-full flex flex-col">
@@ -135,16 +152,20 @@ export function MedicalSidebar() {
           variant="ghost"
           className="w-full justify-start text-sidebar-foreground/60 hover:text-medical-alert hover:bg-medical-alert/10 transition-all duration-300 mt-4 premium-button"
           size="sm"
-          onClick={async () => {
-            await signOut();
-            navigate('/auth', { replace: true });
-          }}
+          onClick={handleLogout}
+          disabled={isLoggingOut}
           aria-label="Sair da conta"
         >
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-accent/50 mr-3 transition-all duration-300 group-hover:bg-medical-alert/20">
-            <LogOut className="w-4 h-4" />
+            {isLoggingOut ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <LogOut className="w-4 h-4" />
+            )}
           </div>
-          <span className="font-medium">Sair</span>
+          <span className="font-medium">
+            {isLoggingOut ? 'Saindo...' : 'Sair'}
+          </span>
         </Button>
       </div>
     </div>
