@@ -50,7 +50,6 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
 
 import { cn } from '@/lib/utils';
 
@@ -230,7 +229,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         throw new Error('Usuário não autenticado');
       }
 
-      const patientData: Database['public']['Tables']['patients']['Insert'] = {
+      const patientData: any = {
         doctor_id: user.user.id,
         full_name: data.full_name,
         birth_date: format(data.birth_date, 'yyyy-MM-dd'),
@@ -238,21 +237,15 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         status: 'active',
       };
 
-      if (data.phone) {
-        patientData.phone = data.phone;
-      }
-      if (data.email) {
-        patientData.email = data.email;
-      }
-      if (data.family_history) {
-        patientData.family_history = data.family_history;
-      }
+      if (data.phone) patientData.phone = data.phone;
+      if (data.email) patientData.email = data.email;
+      if (data.family_history) patientData.family_history = data.family_history;
+      if (data.chief_complaint) patientData.notes = data.chief_complaint;
       if (data.current_medications) {
         patientData.current_medications = [data.current_medications];
       }
-      if (data.chief_complaint) {
-        patientData.notes = data.chief_complaint;
-      }
+
+      console.log('📤 Enviando dados limpos:', patientData);
 
       const { error } = await supabase
         .from('patients')
@@ -261,30 +254,22 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         .single();
 
       if (error) {
-        console.error('Erro detalhado:', error);
+        console.error('❌ Erro Supabase:', error);
         throw error;
       }
 
       toast({
-        title: 'Sucesso!',
-        description: `Paciente ${data.full_name} cadastrado com sucesso.`,
+        title: '✅ Paciente Salvo!',
+        description: `${data.full_name} foi cadastrado com sucesso.`,
       });
 
       onSuccess();
-    } catch (error: unknown) {
-      console.error('Erro ao cadastrar paciente:', error);
-
-      let errorMessage = 'Falha ao cadastrar paciente. Tente novamente.';
-
-      if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = String(error.message);
-      } else if (error && typeof error === 'object' && 'details' in error) {
-        errorMessage = error.details;
-      }
-
+    } catch (error: any) {
+      console.error('❌ Erro no catch:', error);
       toast({
-        title: 'Erro',
-        description: errorMessage,
+        title: 'Erro ao salvar',
+        description:
+          error?.message || error?.details || 'Falha ao conectar com o banco.',
         variant: 'destructive',
       });
     } finally {
