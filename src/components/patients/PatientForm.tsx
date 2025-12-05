@@ -50,6 +50,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 import { cn } from '@/lib/utils';
 
@@ -229,24 +230,29 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         throw new Error('Usuário não autenticado');
       }
 
-      // Criar registro do paciente sem profile_id (paciente sem conta no sistema)
-      const patientData = {
+      const patientData: Database['public']['Tables']['patients']['Insert'] = {
         doctor_id: user.user.id,
-        profile_id: null,
         full_name: data.full_name,
         birth_date: format(data.birth_date, 'yyyy-MM-dd'),
         gender: data.gender,
-        phone: data.phone || null,
-        email: data.email || null,
-        family_history: data.family_history || null,
-        current_medications: data.current_medications
-          ? [data.current_medications]
-          : null,
-        notes: data.chief_complaint || null,
-        status: 'active' as const,
+        status: 'active',
       };
 
-      // Não incluir profile_id para pacientes sem conta no sistema
+      if (data.phone) {
+        patientData.phone = data.phone;
+      }
+      if (data.email) {
+        patientData.email = data.email;
+      }
+      if (data.family_history) {
+        patientData.family_history = data.family_history;
+      }
+      if (data.current_medications) {
+        patientData.current_medications = [data.current_medications];
+      }
+      if (data.chief_complaint) {
+        patientData.notes = data.chief_complaint;
+      }
 
       const { error } = await supabase
         .from('patients')
