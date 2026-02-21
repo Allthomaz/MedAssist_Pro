@@ -1,5 +1,8 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  createClient,
+  SupabaseClient,
+} from 'https://esm.sh/@supabase/supabase-js@2';
 import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0';
 
 interface Consultation {
@@ -8,7 +11,10 @@ interface Consultation {
 }
 
 // Function to process the transcription and update the database
-async function processTranscription(supabaseClient: SupabaseClient, consultation: Consultation) {
+async function processTranscription(
+  supabaseClient: SupabaseClient,
+  consultation: Consultation
+) {
   try {
     console.log(`[${consultation.id}] Starting processing.`);
 
@@ -21,12 +27,13 @@ async function processTranscription(supabaseClient: SupabaseClient, consultation
       throw new Error('Invalid audio_url format');
     }
 
-    const { data: audioFile, error: downloadError } = await supabaseClient.storage
-      .from(bucketName)
-      .download(filePath);
+    const { data: audioFile, error: downloadError } =
+      await supabaseClient.storage.from(bucketName).download(filePath);
 
     if (downloadError || !audioFile) {
-      throw new Error(`Failed to download audio file: ${downloadError?.message}`);
+      throw new Error(
+        `Failed to download audio file: ${downloadError?.message}`
+      );
     }
     console.log(`[${consultation.id}] Audio file downloaded.`);
 
@@ -36,22 +43,17 @@ async function processTranscription(supabaseClient: SupabaseClient, consultation
       throw new Error('OpenAI API key not configured');
     }
 
-    const formData = new FormData();
-    formData.append('file', audioFile, filePath);
-    formData.append('model', 'whisper-1');
-    formData.append('response_format', 'verbose_json');
-    formData.append('language', 'pt');
-    formData.append(
-      'prompt',
-      'Esta é uma transcrição de consulta médica. Inclua termos médicos precisos, nomes de medicamentos, procedimentos, sintomas e diagnósticos.'
-    );
-
     const config = new Configuration({ apiKey: openaiApiKey });
     const openai = new OpenAIApi(config);
-    
-    // The library expects the `file` to be a specific type, but Deno's fetch handles FormData correctly.
-    // We cast to `any` to bypass the type checking limitation here.
-    const response = await openai.createTranscription(formData as any);
+
+    const response = await openai.createTranscription(
+      audioFile as File, // The Deno runtime can handle the Blob as a File-like object
+      'whisper-1', // model
+      'Esta é uma transcrição de consulta médica. Inclua termos médicos precisos, nomes de medicamentos, procedimentos, sintomas e diagnósticos.', // prompt
+      'verbose_json', // response_format
+      0.1, // temperature
+      'pt' // language
+    );
 
     if (response.status !== 200) {
       const errorText = await response.text();
@@ -65,22 +67,33 @@ async function processTranscription(supabaseClient: SupabaseClient, consultation
     // 3. (Optional) Generate Summary with GPT
     let summaryText = '';
     try {
-        const summaryResponse = await openai.createChatCompletion({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: 'Você é um assistente médico especializado em criar resumos estruturados de consultas médicas no formato SOAP.' },
-                { role: 'user', content: `Analise a seguinte transcrição de consulta médica e crie um resumo estruturado no formato SOAP (Subjetivo, Objetivo, Avaliação, Plano):\n\n**Transcrição:**\n${transcriptionText}` }
-            ],
-            temperature: 0.3,
-            max_tokens: 1000,
-        });
-        summaryText = summaryResponse.data.choices[0]?.message?.content || 'Não foi possível gerar o resumo.';
-        console.log(`[${consultation.id}] Summary generated.`);
-    } catch(summaryError) {
-        console.error(`[${consultation.id}] Error generating summary:`, summaryError);
-        summaryText = 'Erro ao gerar resumo.';
+      const summaryResponse = await openai.createChatCompletion({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Você é um assistente médico especializado em criar resumos estruturados de consultas médicas no formato SOAP.',
+          },
+          {
+            role: 'user',
+            content: `Analise a seguinte transcrição de consulta médica e crie um resumo estruturado no formato SOAP (Subjetivo, Objetivo, Avaliação, Plano):\n\n**Transcrição:**\n${transcriptionText}`,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+      });
+      summaryText =
+        summaryResponse.data.choices[0]?.message?.content ||
+        'Não foi possível gerar o resumo.';
+      console.log(`[${consultation.id}] Summary generated.`);
+    } catch (summaryError) {
+      console.error(
+        `[${consultation.id}] Error generating summary:`,
+        summaryError
+      );
+      summaryText = 'Erro ao gerar resumo.';
     }
-
 
     // 4. Update the consultation record
     const { error: updateError } = await supabaseClient
@@ -94,14 +107,21 @@ async function processTranscription(supabaseClient: SupabaseClient, consultation
       .eq('id', consultation.id);
 
     if (updateError) {
-      throw new Error(`Failed to update consultation record: ${updateError.message}`);
+      throw new Error(
+        `Failed to update consultation record: ${updateError.message}`
+      );
     }
     console.log(`[${consultation.id}] Consultation record updated.`);
 
-    return { status: 200, message: `Consultation ${consultation.id} processed successfully.` };
-
+    return {
+      status: 200,
+      message: `Consultation ${consultation.id} processed successfully.`,
+    };
   } catch (error) {
-    console.error(`[${consultation.id}] Error in transcription pipeline:`, error.message);
+    console.error(
+      `[${consultation.id}] Error in transcription pipeline:`,
+      error.message
+    );
     // Update the consultation to reflect the error
     await supabaseClient
       .from('consultations')
@@ -114,8 +134,7 @@ async function processTranscription(supabaseClient: SupabaseClient, consultation
   }
 }
 
-
-serve(async (req) => {
+serve(async req => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -127,10 +146,10 @@ serve(async (req) => {
     const { record: consultation } = await req.json();
 
     if (!consultation || !consultation.id) {
-        return new Response(JSON.stringify({ error: 'Invalid payload' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-        });
+      return new Response(JSON.stringify({ error: 'Invalid payload' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Initialize Supabase client
@@ -138,7 +157,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
-    
+
     // We don't wait for the processing to finish.
     // The trigger invokes the function, and we return a success response immediately.
     // The actual processing happens in the background.
@@ -148,7 +167,6 @@ serve(async (req) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), {
       status: 500,

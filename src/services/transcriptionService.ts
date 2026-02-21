@@ -236,31 +236,56 @@ class TranscriptionService {
    * Salva transcrição no banco de dados
    */
   async saveTranscription(
-    recordingId: string,
-    consultationId: string,
-    transcriptionResult: TranscriptionResult,
-    processingTime?: number
+    recording_id: string,
+    consultation_id: string,
+    transcriptionResult: TranscriptionResult
   ) {
     try {
       const { data, error } = await supabase
         .from('transcriptions')
         .insert({
-          recording_id: recordingId,
-          consultation_id: consultationId,
+          recording_id,
+          consultation_id,
           transcript_text: transcriptionResult.text,
           confidence_score: transcriptionResult.confidence,
-          language: transcriptionResult.language || 'pt',
-          duration: transcriptionResult.duration,
-          segments: transcriptionResult.segments,
-          processing_time: processingTime,
-          status: 'completed',
-          created_at: new Date().toISOString(),
+          language_detected: transcriptionResult.language || 'pt',
+          transcription_status: 'completed',
+          transcription_completed_at: new Date().toISOString(),
         })
         .select()
         .single();
 
       if (error) {
         throw new Error(`Erro ao salvar transcrição: ${error.message}`);
+      }
+
+      // Salvar segmentos se existirem
+      if (
+        transcriptionResult.segments &&
+        transcriptionResult.segments.length > 0
+      ) {
+        const segmentsToInsert = transcriptionResult.segments.map(
+          (segment, index) => ({
+            transcription_id: data.id,
+            start_time: segment.start,
+            end_time: segment.end,
+            text: segment.text,
+            confidence: segment.confidence,
+            segment_order: index,
+          })
+        );
+
+        const { error: segmentsError } = await supabase
+          .from('transcription_segments')
+          .insert(segmentsToInsert);
+
+        if (segmentsError) {
+          console.error(
+            'Erro ao salvar segmentos de transcrição:',
+            segmentsError
+          );
+          // Não lançamos erro aqui para não invalidar a transcrição principal que já foi salva
+        }
       }
 
       return data;
@@ -298,9 +323,6 @@ class TranscriptionService {
   ): Promise<{ transcriptionId: string; text: string; confidence: number }> {
     // Verificar se pelo menos uma API está disponível antes de prosseguir
     this.ensureApiAvailability();
-
-    // Marcar início do processamento para métricas de performance
-    const startTime = Date.now();
 
     try {
       // Configurações otimizadas para contexto médico
@@ -340,15 +362,11 @@ class TranscriptionService {
         );
       }
 
-      // Calcular tempo total de processamento para métricas
-      const processingTime = Date.now() - startTime;
-
       // Persistir transcrição no banco de dados com metadados
       const savedTranscription = await this.saveTranscription(
         recordingId,
         consultationId,
-        transcriptionResult,
-        processingTime
+        transcriptionResult
       );
 
       return {

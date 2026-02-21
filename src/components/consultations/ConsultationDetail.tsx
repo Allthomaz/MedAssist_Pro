@@ -90,7 +90,7 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
   const [isSaving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Estados para os campos editáveis
   const [formData, setFormData] = useState({
     chief_complaint: '',
@@ -101,48 +101,42 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
     follow_up_date: '',
   });
 
-  const fetchConsultationData = useCallback(async () => {
-    try {
-      // Don't set loading to true on polls
-      // setLoading(true); 
-      setError(null);
-
-      // Buscar dados da consulta
-      const { data: consultationData, error: consultationError } =
-        await supabase
-          .from('consultations')
-          .select('*')
-          .eq('id', consultationId)
-          .single();
-
-      if (consultationError) throw consultationError;
-      setConsultation(consultationData);
-
-      // Only fetch patient if not already loaded
-      if (!patient) {
-        // Buscar dados do paciente
-        const { data: patientData, error: patientError } = await supabase
-          .from('patients')
-          .select('id, patient_number, full_name, birth_date, gender')
-          .eq('id', consultationData.patient_id)
-          .single();
-
-        if (patientError) throw patientError;
-        setPatient(patientData);
-      }
-
-    } catch (err) {
-      console.error('Erro ao carregar dados da consulta:', err);
-      setError('Erro ao carregar dados da consulta');
-    } finally {
-      setLoading(false);
-    }
-  }, [consultationId, patient]);
-
-
   useEffect(() => {
+    const fetchConsultationData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data: consultationData, error: consultationError } =
+          await supabase
+            .from('consultations')
+            .select('*')
+            .eq('id', consultationId)
+            .single();
+
+        if (consultationError) throw consultationError;
+        setConsultation(consultationData);
+
+        if (!patient) {
+          const { data: patientData, error: patientError } = await supabase
+            .from('patients')
+            .select('id, patient_number, full_name, birth_date, gender')
+            .eq('id', consultationData.patient_id)
+            .single();
+
+          if (patientError) throw patientError;
+          setPatient(patientData);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar dados da consulta:', err);
+        setError('Erro ao carregar dados da consulta');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchConsultationData();
-  }, [consultationId]);
+  }, [consultationId, patient]);
 
   // Polling effect for processing status
   useEffect(() => {
@@ -155,7 +149,6 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
       return () => clearInterval(interval);
     }
   }, [consultation?.status, fetchConsultationData]);
-
 
   useEffect(() => {
     if (consultation) {
@@ -265,7 +258,7 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
         return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'em_processamento':
         return 'bg-purple-100 text-purple-700 border-purple-200';
-       case 'falha_processamento':
+      case 'falha_processamento':
         return 'bg-red-100 text-red-700 border-red-200';
       case 'em_andamento':
         return 'bg-yellow-100 text-yellow-700 border-yellow-200';
@@ -280,12 +273,12 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
 
   const getStatusLabel = useCallback((status: string) => {
     const statusMap: { [key: string]: string } = {
-        agendada: 'Agendada',
-        em_andamento: 'Em Andamento',
-        finalizada: 'Finalizada',
-        cancelada: 'Cancelada',
-        em_processamento: 'Processando Áudio...',
-        falha_processamento: 'Falha no Processamento',
+      agendada: 'Agendada',
+      em_andamento: 'Em Andamento',
+      finalizada: 'Finalizada',
+      cancelada: 'Cancelada',
+      em_processamento: 'Processando Áudio...',
+      falha_processamento: 'Falha no Processamento',
     };
     return statusMap[status] || status;
   }, []);
@@ -331,7 +324,9 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
                     .toUpperCase()}
                 </h1>
                 <Badge className={getStatusColor(consultation.status)}>
-                  {consultation.status === 'em_processamento' && <Loader2 className="w-3 h-3 mr-1 animate-spin"/>}
+                  {consultation.status === 'em_processamento' && (
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  )}
                   {getStatusLabel(consultation.status)}
                 </Badge>
                 {consultation.has_recording && (
@@ -340,7 +335,7 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
                     Com Gravação
                   </Badge>
                 )}
-                 {consultation.has_transcription && (
+                {consultation.has_transcription && (
                   <Badge className="bg-green-100 text-green-700 border-green-200">
                     <BrainCircuit className="w-3 h-3 mr-1" />
                     Processado por IA
@@ -418,18 +413,19 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Coluna Esquerda - Dados da Consulta */}
         <div className="space-y-6">
-           {consultation.status === 'em_processamento' && (
+          {consultation.status === 'em_processamento' && (
             <Card>
               <CardContent className="p-8 flex flex-col items-center justify-center text-center">
                 <Loader2 className="h-12 w-12 text-medical-blue animate-spin mb-4" />
                 <h3 className="text-lg font-semibold">Processando Áudio</h3>
                 <p className="text-muted-foreground text-sm">
-                  Nossa IA está transcrevendo e resumindo a consulta. Isso pode levar alguns instantes.
-                  <br/>A página será atualizada automaticamente.
+                  Nossa IA está transcrevendo e resumindo a consulta. Isso pode
+                  levar alguns instantes.
+                  <br />A página será atualizada automaticamente.
                 </p>
               </CardContent>
             </Card>
-           )}
+          )}
 
           {consultation.summary_text && (
             <Card>
@@ -440,7 +436,7 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                 <div className="text-sm whitespace-pre-wrap bg-blue-50/50 p-4 rounded-md border border-blue-100">
+                <div className="text-sm whitespace-pre-wrap bg-blue-50/50 p-4 rounded-md border border-blue-100">
                   {consultation.summary_text}
                 </div>
               </CardContent>
@@ -522,7 +518,6 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
               )}
             </CardContent>
           </Card>
-
         </div>
 
         {/* Coluna Direita - Tratamento e Gravação */}
@@ -555,7 +550,7 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
               )}
             </CardContent>
           </Card>
-          
+
           {/* Plano de Tratamento */}
           <Card>
             <CardHeader>
@@ -646,39 +641,41 @@ const ConsultationDetailComponent: React.FC<ConsultationDetailProps> = ({
         </div>
       </div>
 
-      {consultation.status === 'em_andamento' && !consultation.has_recording && (
-        <AudioProcessor
-          onProcessingComplete={(audioUrl, intention) => {
-            console.log('Processamento completo:', { audioUrl, intention });
-            // This logic is now handled server-side via triggers
-          }}
-        />
-      )}
-
-      {/* Gerador de Relatórios */}
-      {consultation.status === 'finalizada' && consultation.has_transcription && (
-        <Suspense
-          fallback={
-            <Card>
-              <CardContent className="flex items-center justify-center p-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
-                <span className="text-muted-foreground">
-                  Carregando gerador de relatórios...
-                </span>
-              </CardContent>
-            </Card>
-          }
-        >
-          <ReportGenerator
-            consultationId={consultation.id}
-            patientName={patient.full_name}
-            consultationDate={consultation.consultation_date}
-            onReportGenerated={filePath => {
-              console.log('Relatório gerado:', filePath);
+      {consultation.status === 'em_andamento' &&
+        !consultation.has_recording && (
+          <AudioProcessor
+            onProcessingComplete={(audioUrl, intention) => {
+              console.log('Processamento completo:', { audioUrl, intention });
+              // This logic is now handled server-side via triggers
             }}
           />
-        </Suspense>
-      )}
+        )}
+
+      {/* Gerador de Relatórios */}
+      {consultation.status === 'finalizada' &&
+        consultation.has_transcription && (
+          <Suspense
+            fallback={
+              <Card>
+                <CardContent className="flex items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mr-2"></div>
+                  <span className="text-muted-foreground">
+                    Carregando gerador de relatórios...
+                  </span>
+                </CardContent>
+              </Card>
+            }
+          >
+            <ReportGenerator
+              consultationId={consultation.id}
+              patientName={patient.full_name}
+              consultationDate={consultation.consultation_date}
+              onReportGenerated={filePath => {
+                console.log('Relatório gerado:', filePath);
+              }}
+            />
+          </Suspense>
+        )}
 
       {/* Botões de Ação */}
       {isEditing && (

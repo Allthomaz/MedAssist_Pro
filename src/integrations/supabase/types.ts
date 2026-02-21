@@ -163,12 +163,14 @@ export type Database = {
           location: string | null;
           patient_id: string;
           prescriptions: string | null;
+          processing_error: string | null;
           recommendations: string | null;
           recording_duration: number | null;
           recording_url: string | null;
           scheduled_duration: number | null;
           started_at: string | null;
           status: string;
+          summary_text: string | null;
           transcription_confidence: number | null;
           transcription_text: string | null;
           treatment_plan: string | null;
@@ -199,12 +201,14 @@ export type Database = {
           location?: string | null;
           patient_id: string;
           prescriptions?: string | null;
+          processing_error?: string | null;
           recommendations?: string | null;
           recording_duration?: number | null;
           recording_url?: string | null;
           scheduled_duration?: number | null;
           started_at?: string | null;
           status?: string;
+          summary_text?: string | null;
           transcription_confidence?: number | null;
           transcription_text?: string | null;
           treatment_plan?: string | null;
@@ -235,12 +239,14 @@ export type Database = {
           location?: string | null;
           patient_id?: string;
           prescriptions?: string | null;
+          processing_error?: string | null;
           recommendations?: string | null;
           recording_duration?: number | null;
           recording_url?: string | null;
           scheduled_duration?: number | null;
           started_at?: string | null;
           status?: string;
+          summary_text?: string | null;
           transcription_confidence?: number | null;
           transcription_text?: string | null;
           treatment_plan?: string | null;
@@ -985,6 +991,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      patient_access_log: {
+        Row: {
+          accessed_fields: string[] | null;
+          action: string;
+          id: string;
+          ip_address: unknown;
+          patient_id: string;
+          timestamp: string | null;
+          user_agent: string | null;
+          user_id: string;
+          user_role: string;
+        };
+        Insert: {
+          accessed_fields?: string[] | null;
+          action: string;
+          id?: string;
+          ip_address?: unknown;
+          patient_id: string;
+          timestamp?: string | null;
+          user_agent?: string | null;
+          user_id: string;
+          user_role: string;
+        };
+        Update: {
+          accessed_fields?: string[] | null;
+          action?: string;
+          id?: string;
+          ip_address?: unknown;
+          patient_id?: string;
+          timestamp?: string | null;
+          user_agent?: string | null;
+          user_id?: string;
+          user_role?: string;
+        };
+        Relationships: [];
+      };
       patients: {
         Row: {
           address: string | null;
@@ -1114,6 +1156,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: 'patients_doctor_id_fkey';
+            columns: ['doctor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'patients_profile_id_fkey';
             columns: ['profile_id'];
             isOneToOne: false;
@@ -1124,36 +1173,51 @@ export type Database = {
       };
       profiles: {
         Row: {
+          clinic_name: string | null;
+          compact_mode: boolean | null;
           created_at: string;
           crm: string | null;
+          custom_title: string | null;
           email: string | null;
+          first_login_at: string | null;
           full_name: string | null;
           id: string;
           phone: string | null;
           role: string;
           specialty: string | null;
+          theme_preference: string | null;
           updated_at: string;
         };
         Insert: {
+          clinic_name?: string | null;
+          compact_mode?: boolean | null;
           created_at?: string;
           crm?: string | null;
+          custom_title?: string | null;
           email?: string | null;
+          first_login_at?: string | null;
           full_name?: string | null;
           id: string;
           phone?: string | null;
           role: string;
           specialty?: string | null;
+          theme_preference?: string | null;
           updated_at?: string;
         };
         Update: {
+          clinic_name?: string | null;
+          compact_mode?: boolean | null;
           created_at?: string;
           crm?: string | null;
+          custom_title?: string | null;
           email?: string | null;
+          first_login_at?: string | null;
           full_name?: string | null;
           id?: string;
           phone?: string | null;
           role?: string;
           specialty?: string | null;
+          theme_preference?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -1303,7 +1367,7 @@ export type Database = {
         Row: {
           error_message: string | null;
           id: string;
-          ip_address: unknown | null;
+          ip_address: unknown;
           operation: string;
           sensitive_fields_accessed: string[] | null;
           success: boolean | null;
@@ -1316,7 +1380,7 @@ export type Database = {
         Insert: {
           error_message?: string | null;
           id?: string;
-          ip_address?: unknown | null;
+          ip_address?: unknown;
           operation: string;
           sensitive_fields_accessed?: string[] | null;
           success?: boolean | null;
@@ -1329,7 +1393,7 @@ export type Database = {
         Update: {
           error_message?: string | null;
           id?: string;
-          ip_address?: unknown | null;
+          ip_address?: unknown;
           operation?: string;
           sensitive_fields_accessed?: string[] | null;
           success?: boolean | null;
@@ -1753,7 +1817,37 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      consultation_stats: {
+        Row: {
+          avg_duration: number | null;
+          consultation_mode: string | null;
+          consultation_type: string | null;
+          doctor_id: string | null;
+          documents_generated: number | null;
+          month: string | null;
+          recordings_made: number | null;
+          status: string | null;
+          total_consultations: number | null;
+        };
+        Relationships: [];
+      };
+      dashboard_stats: {
+        Row: {
+          active_patients: number | null;
+          doctor_id: string | null;
+          new_patients_month: number | null;
+          total_patients: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'patients_doctor_id_fkey';
+            columns: ['doctor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       calculate_recording_duration: {
@@ -1773,14 +1867,8 @@ export type Database = {
         };
         Returns: boolean;
       };
-      cleanup_old_notifications: {
-        Args: Record<PropertyKey, never>;
-        Returns: number;
-      };
-      cleanup_old_recordings: {
-        Args: Record<PropertyKey, never>;
-        Returns: number;
-      };
+      cleanup_old_notifications: { Args: never; Returns: number };
+      cleanup_old_recordings: { Args: never; Returns: number };
       create_notification: {
         Args: {
           p_appointment_id?: string;
@@ -1798,6 +1886,10 @@ export type Database = {
         };
         Returns: string;
       };
+      create_welcome_notification: {
+        Args: { user_id_param: string; user_name: string; user_role: string };
+        Returns: undefined;
+      };
       duplicate_template: {
         Args: {
           p_doctor_id: string;
@@ -1806,10 +1898,7 @@ export type Database = {
         };
         Returns: string;
       };
-      generate_consultation_number: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
+      generate_consultation_number: { Args: never; Returns: string };
       generate_document_number: {
         Args: { p_doctor_id: string; p_document_type: string };
         Returns: string;
@@ -1818,22 +1907,37 @@ export type Database = {
         Args: { doctor_uuid: string };
         Returns: string;
       };
+      get_consultations_by_type: {
+        Args: { doctor_uuid: string; end_date: string; start_date: string };
+        Returns: {
+          avg_duration: number;
+          consultation_type: string;
+          total_count: number;
+        }[];
+      };
+      get_dashboard_stats: {
+        Args: { doctor_uuid: string };
+        Returns: {
+          active_patients: number;
+          completed_consultations_month: number;
+          new_patients_month: number;
+          pending_appointments: number;
+          total_consultations_month: number;
+          total_patients: number;
+        }[];
+      };
       increment_template_usage: {
         Args: { p_template_id: string };
         Returns: undefined;
       };
-      is_active_doctor: {
-        Args: { user_id: string };
-        Returns: boolean;
-      };
-      is_active_patient: {
-        Args: { user_id: string };
-        Returns: boolean;
-      };
+      is_active_doctor: { Args: { user_id: string }; Returns: boolean };
+      is_active_patient: { Args: { user_id: string }; Returns: boolean };
       mark_notification_as_read: {
-        Args: { notification_uuid: string };
-        Returns: boolean;
+        Args: { notification_id: string };
+        Returns: undefined;
       };
+      refresh_consultation_stats: { Args: never; Returns: undefined };
+      refresh_dashboard_stats: { Args: never; Returns: undefined };
       validate_password_strength: {
         Args: { password: string };
         Returns: boolean;

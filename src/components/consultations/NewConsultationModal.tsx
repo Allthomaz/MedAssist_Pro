@@ -23,7 +23,9 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null
+  );
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuthStore();
 
@@ -56,13 +58,17 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
     }, 300);
   };
 
-  const handleSaveConsultation = async (audioUrl: string, intention: string) => {
+  const handleSaveConsultation = async (audioUrl: string) => {
     if (!selectedPatientId) {
-      toast.error('Erro ao salvar', { description: 'Nenhum paciente foi selecionado.' });
+      toast.error('Erro ao salvar', {
+        description: 'Nenhum paciente foi selecionado.',
+      });
       return;
     }
     if (!user) {
-      toast.error('Erro ao salvar', { description: 'Usuário não autenticado.' });
+      toast.error('Erro ao salvar', {
+        description: 'Usuário não autenticado.',
+      });
       return;
     }
 
@@ -72,15 +78,19 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
         patient_id: selectedPatientId,
         user_id: user.id,
         consultation_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-        consultation_time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        consultation_time: new Date().toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
         consultation_type: 'gravada',
         status: 'em_processamento', // Status indicating transcription is in progress
         has_recording: true,
         audio_url: audioUrl,
-        // The 'intention' could be stored in a metadata field if one exists
       };
 
-      const { error } = await supabase.from('consultations').insert(newConsultation);
+      const { error } = await supabase
+        .from('consultations')
+        .insert(newConsultation);
 
       if (error) {
         throw error;
@@ -94,20 +104,22 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
         onConsultationCreated();
       }
       handleClose();
-
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving consultation:', error);
       toast.error('Falha ao salvar a consulta', {
-        description: error.message || 'Ocorreu um erro inesperado.',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Ocorreu um erro inesperado.',
       });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleProcessingComplete = (audioUrl: string, intention: string) => {
-    console.log('Processamento completo:', { audioUrl, intention });
-    handleSaveConsultation(audioUrl, intention);
+  const handleProcessingComplete = (audioUrl: string) => {
+    console.log('Processamento completo:', { audioUrl });
+    handleSaveConsultation(audioUrl);
   };
 
   if (!isVisible) return null;
@@ -167,10 +179,13 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
           <CardContent className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
             {/* Patient Search */}
             <div className="mb-6 space-y-2">
-              <Label htmlFor="patient-search" className="text-lg font-semibold text-gray-800">
+              <Label
+                htmlFor="patient-search"
+                className="text-lg font-semibold text-gray-800"
+              >
                 1. Selecione o Paciente
               </Label>
-              <PatientSearch 
+              <PatientSearch
                 onPatientSelect={setSelectedPatientId}
                 selectedPatientId={selectedPatientId || undefined}
               />
@@ -218,7 +233,7 @@ export const NewConsultationModal: React.FC<NewConsultationModalProps> = ({
 
             {/* Audio Processor */}
             <div className="bg-gradient-to-br from-gray-50/50 to-white border border-gray-200/50 rounded-2xl p-6">
-               <div className='mb-4 space-y-2'>
+              <div className="mb-4 space-y-2">
                 <p className="text-lg font-semibold text-gray-800">
                   2. Grave ou faça o upload do áudio
                 </p>

@@ -130,7 +130,7 @@ const filterPatients = (
 
     // Filtro de plano de saúde
     if (filters.hasInsurance !== undefined) {
-      const hasInsurance = Boolean(patient.insurance_name);
+      const hasInsurance = Boolean(patient.insurance_company);
       if (filters.hasInsurance !== hasInsurance) return false;
     }
 
